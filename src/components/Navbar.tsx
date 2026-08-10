@@ -112,19 +112,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs font-bold text-lg">
-            <Box className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs font-bold text-lg shrink-0">
+            <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-stone-900 text-lg tracking-tight leading-none">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate">
                 MicroMate
               </h1>
-              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-900 px-1.5 py-0.5 rounded border border-emerald-200/80">
+              <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-900 px-1.5 py-0.5 rounded border border-emerald-200/80">
                 MVP v1.0
               </span>
               {hasDemoData && (
@@ -132,13 +132,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   onClick={onOpenDemoOnboarding}
                   title="Klik untuk memilih opsi data contoh atau hapus data contoh"
-                  className="text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  className="text-[9px] sm:text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 px-1.5 sm:px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95 shrink-0"
                 >
-                  <span>🧪 Data Contoh</span>
+                  <span>🧪 Contoh</span>
                 </button>
               )}
             </div>
-            <p className="text-xs text-stone-500 hidden sm:block font-medium">
+            <p className="text-xs text-stone-500 hidden sm:block font-medium truncate">
               Personal Asset & Maintenance Manager
             </p>
           </div>
@@ -159,14 +159,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Action Controls & Sync Status Badge */}
-        <div className="flex items-center gap-2 sm:gap-3 relative">
+        <div className="flex items-center gap-1.5 sm:gap-3 relative shrink-0">
           
           {/* Sync Status Badge with Popover */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowSyncPopover(!showSyncPopover)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
               title="Status Koneksi & Sinkronisasi Cloud"
             >
               {badgeConfig.icon}
@@ -177,7 +177,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Sync Detail Popover Card */}
             {showSyncPopover && (
               <div 
-                className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-stone-200 shadow-xl p-4 z-50 space-y-3.5"
+                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-stone-200 shadow-xl p-4 z-50 space-y-3.5"
                 onMouseLeave={() => setShowSyncPopover(false)}
               >
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">
