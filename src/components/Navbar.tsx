@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   AlertCircle,
   UploadCloud,
-  Code2
+  Code2,
+  Download
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -25,6 +26,7 @@ interface NavbarProps {
   lastSyncTime: string;
   hasDemoData?: boolean;
   onSyncClick: () => void;
+  onPullClick?: () => void;
   onOpenSettings: () => void;
   onNavigateDocs?: () => void;
   onQuickAddAsset: () => void;
@@ -42,6 +44,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   lastSyncTime,
   hasDemoData,
   onSyncClick,
+  onPullClick,
   onOpenSettings,
   onNavigateDocs,
   onQuickAddAsset,
@@ -255,7 +258,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </p>
                 </div>
 
-                <div className="pt-1 flex gap-2">
+                <div className="pt-1 flex flex-col gap-2">
                   {syncStatus === 'unconfigured' || syncStatus === 'partial' || syncStatus === 'error' ? (
                     <button
                       type="button"
@@ -269,17 +272,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>Pengaturan Sync</span>
                     </button>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSyncClick();
-                        setShowSyncPopover(false);
-                      }}
-                      className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>Sinkronkan Sekarang</span>
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onSyncClick();
+                          setShowSyncPopover(false);
+                        }}
+                        className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Sinkronkan Sekarang (Dua Arah)</span>
+                      </button>
+
+                      {onPullClick && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onPullClick();
+                            setShowSyncPopover(false);
+                          }}
+                          className="w-full py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-stone-200"
+                        >
+                          <Download className="w-3 h-3 text-emerald-700" />
+                          <span>Tarik Data dari Sheets</span>
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               </div>

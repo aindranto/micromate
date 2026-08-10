@@ -274,6 +274,37 @@ export default function App() {
     }
   };
 
+  const handlePullFromSheets = async () => {
+    const scriptUrl = localStorage.getItem('micromate_apps_script_url');
+    if (!scriptUrl || !scriptUrl.trim()) {
+      setIsSettingsOpen(true);
+      return;
+    }
+
+    if (!navigator.onLine) {
+      setSyncStatus('offline');
+      return;
+    }
+
+    setSyncStatus('syncing');
+    const res = await dbManager.pullFromGoogleSheets();
+    if (res.success) {
+      const list = await dbManager.getAllAssets();
+      setAssets(list);
+      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      setLastSyncTime(nowStr);
+      setSyncStatus('synced');
+      setServiceHealth({
+        appsScript: true,
+        googleSheets: true,
+        googleDrive: true,
+        lastChecked: nowStr
+      });
+    } else {
+      setSyncStatus('error');
+    }
+  };
+
   const attentionItems = getNeedsAttentionItems(assets);
 
   return (
@@ -287,6 +318,7 @@ export default function App() {
         lastSyncTime={lastSyncTime}
         hasDemoData={hasDemoData}
         onSyncClick={handleFlushSync}
+        onPullClick={handlePullFromSheets}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onNavigateDocs={() => {
           setActiveTab('docs');

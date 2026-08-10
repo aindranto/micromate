@@ -116,6 +116,9 @@ export function calculateAssetTCO(asset: Asset): {
   accessoriesTotal: number;
   otherTotal: number;
   totalCostOfOwnership: number;
+  maintenanceRatioPercent: number;
+  yearsOwned: number;
+  costPerYear: number;
 } {
   const purchasePrice = asset.purchase_price || 0;
   let maintenanceTotal = 0;
@@ -139,13 +142,34 @@ export function calculateAssetTCO(asset: Asset): {
 
   const totalCostOfOwnership = purchasePrice + maintenanceTotal + repairTotal + accessoriesTotal + otherTotal;
 
+  // Calculate Maintenance Ratio (% of purchase price)
+  const maintenanceRatioPercent = purchasePrice > 0 
+    ? Number((((maintenanceTotal + repairTotal) / purchasePrice) * 100).toFixed(1))
+    : 0;
+
+  // Calculate Years Owned
+  let yearsOwned = 1;
+  if (asset.purchase_date) {
+    const buyDate = new Date(asset.purchase_date);
+    if (!isNaN(buyDate.getTime())) {
+      const diffMs = new Date().getTime() - buyDate.getTime();
+      const diffYears = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+      yearsOwned = Math.max(0.5, Number(diffYears.toFixed(1)));
+    }
+  }
+
+  const costPerYear = Math.round(totalCostOfOwnership / yearsOwned);
+
   return {
     purchasePrice,
     maintenanceTotal,
     repairTotal,
     accessoriesTotal,
     otherTotal,
-    totalCostOfOwnership
+    totalCostOfOwnership,
+    maintenanceRatioPercent,
+    yearsOwned,
+    costPerYear
   };
 }
 

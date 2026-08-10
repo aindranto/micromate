@@ -219,7 +219,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
             <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
               <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Harga Beli</span>
               <span className="font-bold text-stone-900 text-sm">
@@ -227,17 +227,24 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               </span>
             </div>
 
-            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Total Kepemilikan (TCO)</span>
-              <span className="font-bold text-emerald-800 text-sm">
+            <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-200">
+              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Total Kepemilikan (TCO)</span>
+              <span className="font-bold text-emerald-900 text-sm">
                 {formatRupiah(tcoInfo.totalCostOfOwnership)}
               </span>
             </div>
 
-            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 col-span-2 sm:col-span-1">
-              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Tanggal Pembelian</span>
-              <span className="font-semibold text-stone-800 text-sm">
-                {formatDate(asset.purchase_date)}
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Biaya / Tahun</span>
+              <span className="font-bold text-stone-900 text-sm">
+                {formatRupiah(tcoInfo.costPerYear)}/thn
+              </span>
+            </div>
+
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+              <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Rasio Perawatan</span>
+              <span className="font-bold text-stone-900 text-sm">
+                {tcoInfo.maintenanceRatioPercent}% <span className="text-[10px] font-medium text-stone-500">dari beli</span>
               </span>
             </div>
           </div>
@@ -627,7 +634,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             Breakdown Total Cost of Ownership (TCO)
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="p-4 bg-stone-50 rounded-xl space-y-1">
               <span className="text-stone-400 font-bold uppercase block text-[10px]">Harga Pembelian</span>
               <span className="text-base font-extrabold text-stone-900">
@@ -638,7 +645,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             <div className="p-4 bg-stone-50 rounded-xl space-y-1">
               <span className="text-stone-400 font-bold uppercase block text-[10px]">Biaya Servis & Perawatan</span>
               <span className="text-base font-extrabold text-rose-600">
-                {formatRupiah(tcoInfo.maintenanceTotal)}
+                {formatRupiah(tcoInfo.maintenanceTotal + tcoInfo.repairTotal)}
               </span>
             </div>
 
@@ -654,6 +661,30 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               <span className="text-lg font-extrabold text-emerald-700">
                 {formatRupiah(tcoInfo.totalCostOfOwnership)}
               </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-2 border-t border-stone-100">
+            <div className="p-4 bg-stone-50/80 rounded-2xl border border-stone-200 flex items-center justify-between">
+              <div>
+                <span className="text-stone-500 font-bold text-xs block">Rasio Perawatan vs Harga Beli</span>
+                <p className="text-[11px] text-stone-500 mt-0.5">Persentase biaya servis dibanding harga beli awal</p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-lg font-black text-emerald-900 block">{tcoInfo.maintenanceRatioPercent}%</span>
+                <span className="text-[10px] font-semibold text-stone-500">dari harga beli</span>
+              </div>
+            </div>
+
+            <div className="p-4 bg-stone-50/80 rounded-2xl border border-stone-200 flex items-center justify-between">
+              <div>
+                <span className="text-stone-500 font-bold text-xs block">Estimasi Biaya Kepemilikan Per Tahun</span>
+                <p className="text-[11px] text-stone-500 mt-0.5">Masa kepemilikan ~{tcoInfo.yearsOwned} tahun</p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-lg font-black text-stone-900 block">{formatRupiah(tcoInfo.costPerYear)}</span>
+                <span className="text-[10px] font-semibold text-stone-500">per tahun</span>
+              </div>
             </div>
           </div>
         </div>

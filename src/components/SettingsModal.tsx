@@ -75,7 +75,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const result = await dbManager.pullFromGoogleSheets();
     setIsPulling(false);
     if (result.success) {
-      setPullMessage(`Berhasil menyinkronkan ${result.count} data aset dari Google Sheets!`);
+      let msg = `Berhasil menyinkronkan ${result.count} data aset dari Google Sheets!`;
+      if (result.reconciledRemoved && result.reconciledRemoved > 0) {
+        msg += ` (${result.reconciledRemoved} aset yang tidak ada di cloud telah disesuaikan/dihapus dari lokal)`;
+      }
+      setPullMessage(msg);
       onDataReload();
     } else {
       setPullMessage(result.error || 'Gagal menarik data dari Google Sheets.');

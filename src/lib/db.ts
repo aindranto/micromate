@@ -228,11 +228,8 @@ class DatabaseManager {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   }
 
-  // Delete asset (removes from LocalStorage & IndexedDB and queues for Google Sheets sync)
-  public async deleteAsset(assetId: string): Promise<void> {
-    localStorage.setItem('micromate_db_seeded', 'true');
-    
-    // 1. Delete directly from IndexedDB with Promise wait
+  // Delete asset locally without adding to sync queue (used for cloud reconciliation)
+  public async deleteAssetLocallyWithoutQueue(assetId: string): Promise<void> {
     if (this.db) {
       await new Promise<void>((resolve) => {
         try {
@@ -250,7 +247,6 @@ class DatabaseManager {
       });
     }
 
-    // 2. Delete directly from LocalStorage
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -261,8 +257,12 @@ class DatabaseManager {
     } catch (e) {
       console.warn('Error deleting asset from LocalStorage:', e);
     }
+  }
 
-    // 3. Queue delete action for Google Sheets
+  // Delete asset (removes locally and queues for Google Sheets sync)
+  public async deleteAsset(assetId: string): Promise<void> {
+    localStorage.setItem('micromate_db_seeded', 'true');
+    await this.deleteAssetLocallyWithoutQueue(assetId);
     await this.addToSyncQueue('deleteAsset', { assetId, id: assetId, asset_id: assetId });
   }
 
@@ -581,7 +581,7 @@ class DatabaseManager {
     }
   }
 
-  // Process Sync Queue with backend / Apps Script Gateway
+  // Process Sync Queue with backend / Apps Script Gateway & Reconcile with Google Sheets
   public async flushSyncQueue(): Promise<boolean> {
     const url = localStorage.getItem('micromate_apps_script_url');
     if (!url || !url.trim()) {
@@ -590,85 +590,85 @@ class DatabaseManager {
 
     try {
       const queue = await this.getAllSyncQueueItems();
-      if (queue.length === 0) return true;
-
       let successCount = 0;
 
-      for (const item of queue) {
-        let sent = false;
-        let responseData: any = null;
+      if (queue.length > 0) {
+        for (const item of queue) {
+          let sent = false;
+          let responseData: any = null;
 
-        try {
-          // Direct fetch to Google Apps Script Web App
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(item)
-          });
-          if (res.ok) {
-            sent = true;
-            responseData = await res.json().catch(() => null);
-          }
-        } catch (e) {
-          console.warn('Direct Apps Script fetch error:', e);
-        }
-
-        // Fallback to proxy endpoint if direct fetch failed
-        if (!sent) {
           try {
-            const proxyRes = await fetch('/api/exec', {
+            // Direct fetch to Google Apps Script Web App
+            const res = await fetch(url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'text/plain' },
               body: JSON.stringify(item)
             });
-            if (proxyRes.ok) {
+            if (res.ok) {
               sent = true;
-              responseData = await proxyRes.json().catch(() => null);
+              responseData = await res.json().catch(() => null);
             }
           } catch (e) {
-            console.warn('Proxy fetch error:', e);
+            console.warn('Direct Apps Script fetch error:', e);
+          }
+
+          // Fallback to proxy endpoint if direct fetch failed
+          if (!sent) {
+            try {
+              const proxyRes = await fetch('/api/exec', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+              });
+              if (proxyRes.ok) {
+                sent = true;
+                responseData = await proxyRes.json().catch(() => null);
+              }
+            } catch (e) {
+              console.warn('Proxy fetch error:', e);
+            }
+          }
+
+          if (sent) {
+            successCount++;
+            if (responseData && responseData.file_url && item.data) {
+              await this.updateAssetDriveUrl(
+                item.data.asset_id,
+                item.data.file_name,
+                item.data.file_category,
+                responseData.file_url,
+                item.data.base64_data
+              );
+            }
           }
         }
 
-        if (sent) {
-          successCount++;
-          if (responseData && responseData.file_url && item.data) {
-            await this.updateAssetDriveUrl(
-              item.data.asset_id,
-              item.data.file_name,
-              item.data.file_category,
-              responseData.file_url,
-              item.data.base64_data
-            );
+        // If items sent, clear sync stores
+        if (successCount > 0) {
+          localStorage.removeItem(SYNC_QUEUE_KEY);
+          if (this.db) {
+            try {
+              const tx = this.db.transaction('syncQueue', 'readwrite');
+              tx.objectStore('syncQueue').clear();
+            } catch (e) {
+              console.warn('Error clearing IndexedDB syncQueue store:', e);
+            }
           }
         }
       }
 
-      // If items sent or queue was empty, clear sync stores
-      if (successCount > 0 || queue.length === 0) {
-        localStorage.removeItem(SYNC_QUEUE_KEY);
-        if (this.db) {
-          try {
-            const tx = this.db.transaction('syncQueue', 'readwrite');
-            tx.objectStore('syncQueue').clear();
-          } catch (e) {
-            console.warn('Error clearing IndexedDB syncQueue store:', e);
-          }
-        }
-      }
+      // Tarik & rekonsiliasi data dari Google Sheets ke IndexedDB/LocalStorage
+      const pullRes = await this.pullFromGoogleSheets();
 
-      // Tarik juga data dari Google Sheets agar data lokal selalu terbarui
-      await this.pullFromGoogleSheets();
-
-      return successCount > 0 || queue.length === 0;
+      return (queue.length === 0 || successCount > 0) && pullRes.success;
     } catch (err) {
       console.warn('Sync failed (offline or network error):', err);
       return false;
     }
   }
 
-  // Tarik & sinkronkan seluruh data aset dari Google Sheets ke IndexedDB & LocalStorage
-  public async pullFromGoogleSheets(): Promise<{ success: boolean; count: number; error?: string }> {
+  // Tarik & sinkronkan seluruh data aset dari Google Sheets ke IndexedDB & LocalStorage dengan Cloud Reconciliation
+  public async pullFromGoogleSheets(): Promise<{ success: boolean; count: number; reconciledRemoved?: number; error?: string }> {
     const url = localStorage.getItem('micromate_apps_script_url');
     if (!url || !url.trim()) {
       return { success: false, count: 0, error: 'Endpoint Google Apps Script belum dikonfigurasi.' };
@@ -732,14 +732,40 @@ class DatabaseManager {
       }
     }
 
-    if (fetched && remoteAssets.length > 0) {
+    if (fetched) {
       localStorage.setItem('micromate_db_seeded', 'true');
+
+      // Get current local assets & unsynced queue items
+      const localAssets = await this.getAllAssets();
+      const syncQueue = await this.getAllSyncQueueItems();
+      const pendingLocalAssetIds = new Set<string>();
+      for (const item of syncQueue) {
+        if (item.data) {
+          const id = item.data.asset_id || item.data.assetId || item.data.id;
+          if (id) pendingLocalAssetIds.add(id);
+        }
+      }
+
+      const remoteAssetIds = new Set<string>();
       for (const asset of remoteAssets) {
+        asset.data_origin = 'synced';
+        remoteAssetIds.add(asset.asset_id);
         await this.saveAssetToDB(asset);
       }
-      return { success: true, count: remoteAssets.length };
-    } else if (fetched) {
-      return { success: true, count: 0 };
+
+      // Cloud Reconciliation: Remove local assets that do not exist in Google Sheets and have no pending local sync actions
+      let reconciledRemoved = 0;
+      for (const localAsset of localAssets) {
+        if (!remoteAssetIds.has(localAsset.asset_id)) {
+          // If asset is not in cloud AND has no unsynced changes pending in queue, it was deleted in cloud
+          if (!pendingLocalAssetIds.has(localAsset.asset_id)) {
+            await this.deleteAssetLocallyWithoutQueue(localAsset.asset_id);
+            reconciledRemoved++;
+          }
+        }
+      }
+
+      return { success: true, count: remoteAssets.length, reconciledRemoved };
     }
 
     return { success: false, count: 0, error: 'Gagal mengambil data dari Google Sheets' };
