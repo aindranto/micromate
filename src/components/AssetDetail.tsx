@@ -99,22 +99,24 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
     <div className="space-y-6 pb-16">
       
       {/* Top Bar Navigation */}
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-4 flex-nowrap">
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white text-stone-700 border border-stone-200 hover:bg-stone-50 transition-colors shadow-2xs cursor-pointer"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-xl bg-white text-stone-700 border border-stone-200 hover:bg-stone-50 transition-colors shadow-2xs cursor-pointer shrink-0"
+          title="Kembali ke Daftar Aset"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Kembali ke Daftar Aset</span>
+          <span className="hidden sm:inline">Kembali ke Daftar Aset</span>
+          <span className="sm:hidden">Kembali</span>
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* Change Status selector */}
           <select
             value={asset.status}
             onChange={(e) => onUpdateStatus(asset.asset_id, e.target.value as AssetStatus)}
-            className="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-white border border-stone-200 text-stone-800 focus:outline-none"
+            className="px-2 py-1.5 text-xs font-semibold rounded-xl bg-white border border-stone-200 text-stone-800 focus:outline-none max-w-[100px] xs:max-w-[130px] sm:max-w-none truncate shrink-0"
           >
             <option value="active">Active (Aktif)</option>
             <option value="stored">Stored (Disimpan)</option>
@@ -126,7 +128,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <button
             type="button"
             onClick={() => onEditAsset && onEditAsset(asset)}
-            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs active:scale-95 rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5"
+            className="p-1.5 sm:px-3.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs active:scale-95 rounded-xl border border-emerald-200 transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 shrink-0"
             title="Edit Produk / Aset"
           >
             <Edit3 className="w-4 h-4 text-emerald-700" />
@@ -136,10 +138,11 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           <button
             type="button"
             onClick={() => setIsDeleteModalOpen(true)}
-            className="p-2 text-rose-600 hover:bg-rose-50 active:scale-95 rounded-xl border border-rose-200 transition-all cursor-pointer shadow-2xs"
+            className="p-1.5 sm:p-2 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-600 active:scale-95 rounded-xl border border-rose-200 transition-all cursor-pointer shadow-2xs shrink-0 flex items-center justify-center gap-1"
             title="Hapus Aset"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 text-rose-600" />
+            <span className="hidden lg:inline text-xs font-bold">Hapus</span>
           </button>
         </div>
       </div>

@@ -49,10 +49,11 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
         <button
           type="button"
           onClick={onAddReminder}
-          className="flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          <span>Tambah Reminder</span>
+          <span className="hidden sm:inline">Tambah Reminder</span>
+          <span className="sm:hidden">Reminder</span>
         </button>
       </div>
 

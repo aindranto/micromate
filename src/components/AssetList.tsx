@@ -103,10 +103,11 @@ export const AssetList: React.FC<AssetListProps> = ({
         <button
           type="button"
           onClick={onQuickAddAsset}
-          className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-xs transition-all cursor-pointer active:scale-95 shrink-0"
+          className="flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm shadow-2xs transition-all cursor-pointer active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Tambah Aset</span>
+          <span className="hidden sm:inline">Tambah Aset</span>
+          <span className="sm:hidden">Tambah</span>
         </button>
       </div>
 
