@@ -326,7 +326,7 @@ export default function App() {
         />
 
         {/* Content Region */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-full overflow-hidden">
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-full overflow-hidden">
           
           {selectedAsset ? (
             <AssetDetail
