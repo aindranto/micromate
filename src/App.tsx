@@ -145,29 +145,49 @@ export default function App() {
     await verifySyncConnection();
   }, [selectedAsset, verifySyncConnection]);
 
-  useEffect(() => {
-    reloadData();
-
-    const handleOnline = () => verifySyncConnection();
-    const handleOffline = () => setSyncStatus('offline');
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  const triggerAutoSync = async () => {
+  const triggerAutoSync = useCallback(async () => {
     const count = await dbManager.getSyncQueueCount();
     setSyncQueueCount(count);
     const scriptUrl = localStorage.getItem('micromate_apps_script_url');
     if (scriptUrl && scriptUrl.trim() && navigator.onLine) {
       await handleFlushSync();
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const initApp = async () => {
+      await reloadData();
+      const scriptUrl = localStorage.getItem('micromate_apps_script_url');
+      if (scriptUrl && scriptUrl.trim() && navigator.onLine) {
+        // Auto 2-Way Sync on Startup / Refresh
+        await triggerAutoSync();
+      }
+    };
+
+    initApp();
+
+    const handleOnline = () => {
+      verifySyncConnection();
+      triggerAutoSync();
+    };
+    const handleOffline = () => setSyncStatus('offline');
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        triggerAutoSync();
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   // Handlers
   const handleSaveAsset = async (newAsset: Asset) => {
@@ -259,6 +279,11 @@ export default function App() {
       const list = await dbManager.getAllAssets();
       setAssets(list);
 
+      if (selectedAsset) {
+        const updated = list.find((a) => a.asset_id === selectedAsset.asset_id);
+        setSelectedAsset(updated || null);
+      }
+
       const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       setSyncQueueCount(0);
       setLastSyncTime(nowStr);
@@ -291,6 +316,12 @@ export default function App() {
     if (res.success) {
       const list = await dbManager.getAllAssets();
       setAssets(list);
+
+      if (selectedAsset) {
+        const updated = list.find((a) => a.asset_id === selectedAsset.asset_id);
+        setSelectedAsset(updated || null);
+      }
+
       const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       setLastSyncTime(nowStr);
       setSyncStatus('synced');

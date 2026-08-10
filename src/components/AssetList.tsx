@@ -20,8 +20,11 @@ import {
   ShieldCheck, 
   AlertCircle,
   Clock,
-  Filter
+  Filter,
+  Maximize2,
+  ZoomIn
 } from 'lucide-react';
+import { ImageViewerModal, MediaItem } from './ImageViewerModal';
 
 interface AssetListProps {
   assets: Asset[];
@@ -45,6 +48,47 @@ export const AssetList: React.FC<AssetListProps> = ({
   const [internalCategory, setInternalCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Image Viewer Lightbox State
+  const [previewMedia, setPreviewMedia] = useState<{ isOpen: boolean; items: MediaItem[]; initialIndex?: number }>({
+    isOpen: false,
+    items: [],
+    initialIndex: 0
+  });
+
+  const handleOpenPhotoPreview = (e: React.MouseEvent, asset: Asset) => {
+    e.stopPropagation();
+    if (!asset.photo_url) return;
+
+    const mediaList: MediaItem[] = [
+      {
+        url: asset.photo_url,
+        title: asset.name,
+        category: asset.category,
+        type: 'image'
+      }
+    ];
+
+    // Include documents if available
+    if (asset.documents && asset.documents.length > 0) {
+      asset.documents.forEach((doc) => {
+        if (doc.file_url) {
+          mediaList.push({
+            url: doc.file_url,
+            title: doc.name || 'Dokumen Aset',
+            category: doc.type || 'dokumen',
+            type: doc.file_url.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
+          });
+        }
+      });
+    }
+
+    setPreviewMedia({
+      isOpen: true,
+      items: mediaList,
+      initialIndex: 0
+    });
+  };
 
   const selectedCategory = externalCategory !== undefined ? externalCategory : internalCategory;
 
@@ -230,14 +274,26 @@ export const AssetList: React.FC<AssetListProps> = ({
               >
                 <div className="space-y-3">
                   {/* Photo & Category Badge */}
-                  <div className="relative w-full h-40 bg-stone-100 rounded-xl overflow-hidden border border-stone-200 flex items-center justify-center">
+                  <div className="relative w-full h-40 bg-stone-100 rounded-xl overflow-hidden border border-stone-200 flex items-center justify-center group/photo">
                     {asset.photo_url ? (
-                      <img
-                        src={formatImageUrl(asset.photo_url)}
-                        alt={asset.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <>
+                        <img
+                          src={formatImageUrl(asset.photo_url)}
+                          alt={asset.name}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300"
+                        />
+                        {/* Expand / Zoom Overlay Button */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleOpenPhotoPreview(e, asset)}
+                          className="absolute bottom-2 right-2 p-1.5 bg-stone-900/80 hover:bg-emerald-600 text-white rounded-lg backdrop-blur-md opacity-0 group-hover/photo:opacity-100 sm:opacity-90 transition-all shadow-md cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                          title="Lihat & Zoom Gambar"
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Zoom</span>
+                        </button>
+                      </>
                     ) : (
                       <Box className="w-10 h-10 text-stone-300" />
                     )}
@@ -320,9 +376,17 @@ export const AssetList: React.FC<AssetListProps> = ({
                 className="p-4 hover:bg-stone-50 cursor-pointer transition-colors flex items-center justify-between gap-4 group"
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-12 h-12 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0">
+                  <div 
+                    className="relative w-12 h-12 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0 group/thumb"
+                    onClick={(e) => asset.photo_url && handleOpenPhotoPreview(e, asset)}
+                  >
                     {asset.photo_url ? (
-                      <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                      <>
+                        <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform" />
+                        <div className="absolute inset-0 bg-stone-900/40 opacity-0 group-hover/thumb:opacity-100 flex items-center justify-center transition-opacity text-white">
+                          <ZoomIn className="w-4 h-4" />
+                        </div>
+                      </>
                     ) : (
                       <Box className="w-5 h-5 text-stone-400" />
                     )}
@@ -359,6 +423,14 @@ export const AssetList: React.FC<AssetListProps> = ({
           })}
         </div>
       )}
+
+      {/* Image Viewer Lightbox Modal */}
+      <ImageViewerModal
+        isOpen={previewMedia.isOpen}
+        onClose={() => setPreviewMedia((prev) => ({ ...prev, isOpen: false }))}
+        items={previewMedia.items}
+        initialIndex={previewMedia.initialIndex || 0}
+      />
 
     </div>
   );

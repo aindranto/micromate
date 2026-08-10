@@ -25,8 +25,12 @@ import {
   AlertTriangle,
   ChevronRight,
   CheckCircle2,
-  Tag
+  Tag,
+  Maximize2,
+  ZoomIn,
+  Eye
 } from 'lucide-react';
+import { ImageViewerModal, MediaItem } from './ImageViewerModal';
 
 interface AssetDetailProps {
   asset: Asset;
@@ -56,8 +60,55 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   >('specs');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Lightbox Media Preview State
+  const [previewMedia, setPreviewMedia] = useState<{ isOpen: boolean; items: MediaItem[]; initialIndex?: number }>({
+    isOpen: false,
+    items: [],
+    initialIndex: 0
+  });
+
   const tcoInfo = calculateAssetTCO(asset);
   const warrantyInfo = getWarrantyStatus(asset.warranty);
+
+  // Collect all media items for gallery viewer
+  const getAssetMediaList = (): MediaItem[] => {
+    const list: MediaItem[] = [];
+
+    if (asset.photo_url) {
+      list.push({
+        url: asset.photo_url,
+        title: `${asset.name} (Foto Utama)`,
+        category: asset.category,
+        type: 'image'
+      });
+    }
+
+    if (asset.documents && asset.documents.length > 0) {
+      asset.documents.forEach((doc) => {
+        if (doc.file_url) {
+          list.push({
+            url: doc.file_url,
+            title: doc.name || 'Dokumen Aset',
+            category: doc.type || 'dokumen',
+            type: doc.file_url.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
+          });
+        }
+      });
+    }
+
+    return list;
+  };
+
+  const handleOpenPhotoPreview = (index = 0) => {
+    const mediaList = getAssetMediaList();
+    if (mediaList.length === 0) return;
+
+    setPreviewMedia({
+      isOpen: true,
+      items: mediaList,
+      initialIndex: index
+    });
+  };
 
   const handleOpenDocument = (doc: AssetDocument) => {
     if (!doc.file_url) return;
@@ -192,9 +243,23 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
       <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs flex flex-col md:flex-row gap-6">
         
         {/* Photo Thumbnail */}
-        <div className="w-full md:w-56 h-48 bg-stone-100 rounded-2xl overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center">
+        <div 
+          onClick={() => asset.photo_url && handleOpenPhotoPreview(0)}
+          className={`relative w-full md:w-56 h-48 bg-stone-100 rounded-2xl overflow-hidden border border-stone-200 shrink-0 flex items-center justify-center group/photo ${
+            asset.photo_url ? 'cursor-pointer' : ''
+          }`}
+        >
           {asset.photo_url ? (
-            <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+            <>
+              <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-300" />
+              <div className="absolute inset-0 bg-stone-950/40 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center text-white gap-1.5 font-bold text-xs backdrop-blur-xs">
+                <Maximize2 className="w-4 h-4 text-emerald-400" />
+                <span>Lihat & Zoom</span>
+              </div>
+              <div className="absolute top-2 right-2 p-1.5 bg-stone-900/80 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow-md">
+                <Maximize2 className="w-3 h-3 text-emerald-400" />
+              </div>
+            </>
           ) : (
             <Box className="w-12 h-12 text-stone-300" />
           )}
@@ -733,14 +798,25 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const targetIdx = asset.photo_url ? index + 1 : index;
+                        handleOpenPhotoPreview(targetIdx);
+                      }}
+                      className="px-2.5 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+                      title="Preview / Zoom Dokumen"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Preview</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleOpenDocument(doc)}
-                      className="p-2 text-emerald-700 hover:bg-emerald-100 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
-                      title="Buka Dokumen"
+                      className="p-1.5 text-stone-600 hover:bg-stone-200/80 rounded-lg transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+                      title="Buka File / External Link"
                     >
-                      <span>Buka</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -750,6 +826,14 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           )}
         </div>
       )}
+
+      {/* Lightbox Image & Document Viewer Modal */}
+      <ImageViewerModal
+        isOpen={previewMedia.isOpen}
+        onClose={() => setPreviewMedia((prev) => ({ ...prev, isOpen: false }))}
+        items={previewMedia.items}
+        initialIndex={previewMedia.initialIndex || 0}
+      />
 
     </div>
   );
