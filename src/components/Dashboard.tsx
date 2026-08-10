@@ -78,9 +78,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-8 pb-12">
       
       {/* Simplified Welcome Banner */}
-      <div className="bg-emerald-800 text-white rounded-2xl p-5 sm:p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-emerald-800 text-white rounded-2xl p-4 sm:p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+          <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
             Ringkasan Aset Hari Ini
           </h2>
           <p className="text-emerald-100 text-xs sm:text-sm">
@@ -91,138 +91,138 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Quick Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={onQuickAddAsset}
-            className="flex items-center gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-3.5 py-2 rounded-xl text-xs shadow-2xs transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs shadow-2xs transition-all cursor-pointer active:scale-95"
           >
-            <Plus className="w-4 h-4 text-emerald-700" />
+            <Plus className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
             <span>Aset Baru</span>
           </button>
 
           <button
             type="button"
             onClick={onQuickAddMaintenance}
-            className="flex items-center gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-3 py-2 rounded-xl text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
           >
-            <Wrench className="w-3.5 h-3.5 text-emerald-200" />
-            <span>Catat Servis</span>
+            <Wrench className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
+            <span>Servis</span>
           </button>
 
           <button
             type="button"
             onClick={onQuickAddReminder}
-            className="flex items-center gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-3 py-2 rounded-xl text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
           >
-            <Bell className="w-3.5 h-3.5 text-amber-300" />
+            <Bell className="w-3.5 h-3.5 text-amber-300 shrink-0" />
             <span>Reminder</span>
           </button>
         </div>
       </div>
 
       {/* KPI Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-4">
         
         {/* Total Devices */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('device') : onNavigateTab('assets')}
-          className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all"
+          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-600">Devices</span>
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-800">
-              <Laptop className="w-4 h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Devices</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
+              <Laptop className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-stone-900">
+          <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {devicesCount}
           </div>
-          <p className="text-[11px] text-stone-500 mt-1">Laptop, Phone, Tablet</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Laptop, Phone, Tablet</p>
         </div>
 
         {/* Vehicles */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('vehicle') : onNavigateTab('assets')}
-          className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all"
+          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-600">Vehicles</span>
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-800">
-              <Car className="w-4 h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Vehicles</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
+              <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-stone-900">
+          <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {vehiclesCount}
           </div>
-          <p className="text-[11px] text-stone-500 mt-1">Motor & Mobil</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Motor & Mobil</p>
         </div>
 
         {/* Home Appliances */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('home') : onNavigateTab('assets')}
-          className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all"
+          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-600">Home</span>
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-800">
-              <Home className="w-4 h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Home</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
+              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-stone-900">
+          <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {homeCount}
           </div>
-          <p className="text-[11px] text-stone-500 mt-1">AC, TV, Elektronik</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">AC, TV, Elektronik</p>
         </div>
 
         {/* Other Assets */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('other') : onNavigateTab('assets')}
-          className="bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all"
+          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-600">Kamera & Lainnya</span>
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-800">
-              <Box className="w-4 h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Kamera & Lainnya</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
+              <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-stone-900">
+          <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {otherCount}
           </div>
-          <p className="text-[11px] text-stone-500 mt-1">Hobi & Aksesori</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Hobi & Aksesori</p>
         </div>
 
         {/* Total Cost of Ownership */}
         <div 
           onClick={() => onNavigateTab('expenses')}
-          className="col-span-2 md:col-span-1 bg-white p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all"
+          className="col-span-2 md:col-span-1 bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-stone-600">Total Nilai & Biaya</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800">
-              <TrendingUp className="w-4 h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Total Nilai & Biaya</span>
+            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-50 text-emerald-800 shrink-0">
+              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
             </div>
           </div>
-          <div className="text-lg font-bold text-stone-900 truncate">
+          <div className="text-base sm:text-lg font-bold text-stone-900 truncate">
             {formatRupiah(totalTCO)}
           </div>
-          <p className="text-[11px] text-stone-500 mt-1">Aset + Total Servis</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Aset + Total Servis</p>
         </div>
 
       </div>
 
       {/* "Needs Attention" Section */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-xl bg-rose-50 text-rose-600 shrink-0">
               <ShieldAlert className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="font-bold text-stone-900 text-lg">
+            <div className="min-w-0">
+              <h3 className="font-bold text-stone-900 text-base sm:text-lg truncate">
                 Needs Attention
               </h3>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-500 truncate hidden xs:block">
                 Aset yang membutuhkan perawatan, pembayaran pajak, atau perhatian garansi
               </p>
             </div>
@@ -231,7 +231,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('reminders')}
-            className="text-xs font-semibold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs font-semibold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer shrink-0 self-end xs:self-center"
           >
             <span>Semua Reminder</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {attentionItems.length === 0 ? (
-          <div className="py-8 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200 space-y-2">
+          <div className="py-6 sm:py-8 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
             <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
             <p className="text-sm font-semibold text-stone-800">
               Tidak ada agenda mendesak
@@ -269,15 +269,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               return (
                 <div
                   key={item.id || `att-${index}`}
-                  className={`p-4 rounded-2xl border flex items-start justify-between gap-3 transition-all ${
+                  className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col xs:flex-row xs:items-center justify-between gap-3 transition-all min-w-0 ${
                     item.isOverdue
                       ? 'bg-rose-50/80 border-rose-200 shadow-2xs'
                       : 'bg-amber-50/80 border-amber-200 shadow-2xs'
                   }`}
                 >
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`px-2 py-0.5 text-[10px] font-extrabold tracking-wide uppercase rounded-md border ${
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold tracking-wide uppercase rounded-md border ${
                         item.isOverdue
                           ? 'bg-rose-600 text-white border-rose-700'
                           : 'bg-amber-500 text-white border-amber-600'
@@ -285,7 +285,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {item.isOverdue ? '🔴 Overdue' : '🟠 Mendatang'}
                       </span>
                       {relativeText && (
-                        <span className={`text-[11px] font-bold ${
+                        <span className={`text-[10px] sm:text-[11px] font-bold ${
                           item.isOverdue ? 'text-rose-700' : 'text-amber-900'
                         }`}>
                           • {relativeText}
@@ -293,16 +293,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       )}
                     </div>
 
-                    <h4 className="text-sm font-bold text-stone-900 truncate">
+                    <h4 className="text-xs sm:text-sm font-bold text-stone-900 truncate">
                       {item.title}
                     </h4>
 
-                    <div className="flex items-center gap-2 text-xs text-stone-600">
-                      <span className="font-semibold text-stone-700">
+                    <div className="flex items-center gap-2 text-[11px] sm:text-xs text-stone-600 truncate">
+                      <span className="font-semibold text-stone-700 truncate">
                         {item.assetName}
                       </span>
                       {item.dueDate && (
-                        <span className="text-stone-500 flex items-center gap-1">
+                        <span className="text-stone-500 flex items-center gap-1 shrink-0">
                           <Clock className="w-3 h-3" />
                           {formatDate(item.dueDate)}
                         </span>
@@ -310,12 +310,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5 items-end shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 self-end xs:self-center">
                     {targetAsset && (
                       <button
                         type="button"
                         onClick={() => onSelectAsset(targetAsset)}
-                        className="px-3 py-1.5 text-xs font-bold rounded-xl bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-2xs whitespace-nowrap cursor-pointer"
+                        className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-2xs whitespace-nowrap cursor-pointer"
                       >
                         {item.actionLabel}
                       </button>
@@ -341,9 +341,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Registered Assets Quick List */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-stone-900 text-lg">
+            <h3 className="font-bold text-stone-900 text-base sm:text-lg">
               Aset Terdaftar ({assets.length})
             </h3>
             <button
@@ -361,10 +361,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div
                 key={asset.asset_id || `dash-ast-${index}`}
                 onClick={() => onSelectAsset(asset)}
-                className="p-3.5 rounded-xl border border-stone-200/80 hover:bg-stone-50 hover:border-emerald-200 cursor-pointer transition-all flex items-center justify-between gap-3 group"
+                className="p-3 sm:p-3.5 rounded-xl border border-stone-200/80 hover:bg-stone-50 hover:border-emerald-200 cursor-pointer transition-all flex items-center justify-between gap-2.5 group min-w-0"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0">
                     {asset.photo_url ? (
                       <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                     ) : (
@@ -373,10 +373,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
 
                   <div className="min-w-0">
-                    <h4 className="text-sm font-semibold text-stone-900 group-hover:text-emerald-600 transition-colors truncate">
+                    <h4 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-emerald-600 transition-colors truncate">
                       {asset.name}
                     </h4>
-                    <p className="text-xs text-stone-500 truncate">
+                    <p className="text-[11px] sm:text-xs text-stone-500 truncate">
                       {asset.brand || 'No Brand'} • {asset.subcategory || asset.category}
                       {asset.serial_number ? ` • S/N: ${asset.serial_number}` : ''}
                       {asset.vehicle_details?.license_plate ? ` • ${asset.vehicle_details.license_plate}` : ''}
@@ -385,11 +385,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="text-xs font-bold text-stone-800 block">
+                  <span className="text-xs sm:text-sm font-bold text-stone-800 block">
                     {formatRupiah(asset.purchase_price)}
                   </span>
-                  <span className="text-[10px] text-stone-400">
-                    Beli: {formatDate(asset.purchase_date)}
+                  <span className="text-[10px] text-stone-400 block">
+                    {formatDate(asset.purchase_date)}
                   </span>
                 </div>
               </div>
@@ -398,9 +398,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Recent Maintenance Feed */}
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-xs space-y-4">
+        <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-stone-900 text-lg">
+            <h3 className="font-bold text-stone-900 text-base sm:text-lg">
               Riwayat Perawatan Terbaru
             </h3>
             <button
