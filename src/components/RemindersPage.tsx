@@ -108,7 +108,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
 
             return (
               <div
-                key={rem.reminder_id || (rem as any).id || `rem-pg-${index}`}
+                key={`rem-pg-${rem.reminder_id || (rem as any).id || ''}-${index}`}
                 className={`bg-white p-4.5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-2xs ${
                   rem.status === 'overdue' || (daysLeft !== null && daysLeft < 0 && rem.status !== 'completed')
                     ? 'border-rose-200 bg-rose-50/40 hover:border-rose-300'

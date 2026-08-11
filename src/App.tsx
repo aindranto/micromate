@@ -19,6 +19,8 @@ import { AddReminderModal } from './components/AddReminderModal';
 import { AddDocumentModal } from './components/AddDocumentModal';
 import { SettingsModal } from './components/SettingsModal';
 import { DemoOnboardingModal } from './components/DemoOnboardingModal';
+import { OnboardingPage } from './components/OnboardingPage';
+import { PinLockModal } from './components/PinLockModal';
 
 import { getNeedsAttentionItems } from './lib/utils';
 
@@ -28,6 +30,11 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // App PIN Lock State
+  const [isAppLocked, setIsAppLocked] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('micromate_app_pin'));
+  });
   
   // Refined Sync State Machine
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('unconfigured');
@@ -39,7 +46,39 @@ export default function App() {
   });
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
 
-  // Modals state
+  // Onboarding & Standalone Route State
+  const [isSetupCompleted, setIsSetupCompleted] = useState<boolean>(() => {
+    return Boolean(
+      localStorage.getItem('micromate_setup_completed') ||
+      localStorage.getItem('micromate_onboarding_completed')
+    );
+  });
+
+  const [currentRoute, setCurrentRoute] = useState<'app' | 'setup' | 'setup-google'>(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') return 'setup';
+    if (hash === '#/setup/google' || hash === '#setup/google') return 'setup-google';
+    if (!localStorage.getItem('micromate_setup_completed') && !localStorage.getItem('micromate_onboarding_completed')) {
+      return 'setup';
+    }
+    return 'app';
+  });
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
+        setCurrentRoute('setup');
+      } else if (hash === '#/setup/google' || hash === '#setup/google') {
+        setCurrentRoute('setup-google');
+      } else if (isSetupCompleted) {
+        setCurrentRoute('app');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [isSetupCompleted]);
   const [isAddAssetOpen, setIsAddAssetOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isAddMaintenanceOpen, setIsAddMaintenanceOpen] = useState(false);
@@ -253,6 +292,30 @@ export default function App() {
     window.location.reload();
   };
 
+  const handleCompleteSetup = async (
+    mode: 'cloud' | 'local',
+    initialDataChoice: 'existing' | 'empty' | 'demo'
+  ) => {
+    localStorage.setItem('micromate_setup_completed', 'true');
+    localStorage.setItem('micromate_onboarding_completed', 'true');
+    setIsSetupCompleted(true);
+    setCurrentRoute('app');
+    window.location.hash = '';
+
+    if (initialDataChoice === 'existing' && mode === 'cloud') {
+      await handlePullFromSheets();
+    } else if (initialDataChoice === 'empty') {
+      await dbManager.clearDemoData();
+      if (mode === 'cloud') {
+        await handleFlushSync();
+      }
+    } else if (initialDataChoice === 'demo' && mode === 'cloud') {
+      await handleFlushSync();
+    }
+
+    await reloadData();
+  };
+
   const handleKeepDemoData = async () => {
     await dbManager.markAllDemoAsUser();
     setIsDemoOnboardingOpen(false);
@@ -337,6 +400,16 @@ export default function App() {
   };
 
   const attentionItems = getNeedsAttentionItems(assets);
+
+  // Standalone Setup / Onboarding Route Check
+  if (!isSetupCompleted || currentRoute === 'setup' || currentRoute === 'setup-google') {
+    return (
+      <OnboardingPage
+        initialStep={currentRoute === 'setup-google' ? 'google_guide' : 'welcome'}
+        onComplete={handleCompleteSetup}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 flex flex-col font-sans transition-colors antialiased">
@@ -542,6 +615,12 @@ export default function App() {
         onChooseStartFresh={handleClearDemoData}
         onChooseKeepDemo={handleKeepDemoData}
         onClose={() => setIsDemoOnboardingOpen(false)}
+      />
+
+      <PinLockModal
+        isOpen={isAppLocked}
+        onSuccess={() => setIsAppLocked(false)}
+        onResetPin={() => setIsAppLocked(false)}
       />
 
     </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { APPS_SCRIPT_CODE } from '../lib/appsScriptCode';
 import { 
   BookOpen, 
   Check, 
@@ -36,722 +37,10 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
   const [copiedScript, setCopiedScript] = useState(false);
   const [docTab, setDocTab] = useState<'user' | 'system'>('user');
 
-  const appsScriptCode = `/**
- * MICROMATE CLOUD GATEWAY - GOOGLE APPS SCRIPT (v1.2)
- * Menangani pembuatan tab sheet otomatis, simpan metadata ke Google Sheets,
- * serta upload file/foto dokumen ke Google Drive.
- */
+  const appsScriptCode = APPS_SCRIPT_CODE;
 
-const CONFIG = {
-  ROOT_FOLDER_NAME: "MicroMate",
-  SHEET_NAME_ASSETS: "Assets",
-  SHEET_NAME_FILES: "AssetFiles",
-  SHEET_NAME_MAINTENANCE: "Maintenance",
-  SHEET_NAME_REMINDERS: "Reminders"
-};
+  // Apps script code imported from lib/appsScriptCode.ts
 
-/** Otomatis membuat seluruh Tab Sheet & Header Kolom jika belum ada */
-function ensureSheetTabs(ss) {
-  if (!ss) return;
-
-  const tabsConfig = [
-    {
-      name: CONFIG.SHEET_NAME_ASSETS,
-      headers: ["Asset ID", "Asset Code", "Name", "Category", "Brand", "Model", "Serial Number", "Purchase Date", "Purchase Price", "Status", "Warranty End Date", "Warranty Provider", "Updated At"]
-    },
-    {
-      name: CONFIG.SHEET_NAME_FILES,
-      headers: ["File ID", "Asset ID", "File Name", "File Type", "Category", "File Size", "Drive File ID", "View URL", "Download URL", "Uploaded At"]
-    },
-    {
-      name: CONFIG.SHEET_NAME_MAINTENANCE,
-      headers: ["Log ID", "Asset ID", "Service Type", "Service Date", "Cost", "Provider", "Notes", "Created At"]
-    },
-    {
-      name: CONFIG.SHEET_NAME_REMINDERS,
-      headers: ["Reminder ID", "Asset ID", "Title", "Due Date", "Status", "Notes", "Created At"]
-    }
-  ];
-
-  tabsConfig.forEach(function(tab) {
-    let sheet = ss.getSheetByName(tab.name);
-    if (!sheet) {
-      sheet = ss.insertSheet(tab.name);
-      sheet.appendRow(tab.headers);
-      sheet.getRange(1, 1, 1, tab.headers.length).setFontWeight("bold").setBackground("#d1fae5");
-      sheet.setFrozenRows(1);
-    } else if (tab.name === CONFIG.SHEET_NAME_ASSETS) {
-      var currentHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0].map(function(h) { return String(h).trim(); });
-      if (currentHeaders.indexOf("Warranty End Date") === -1) {
-        var updatedAtIdx = currentHeaders.indexOf("Updated At");
-        if (updatedAtIdx !== -1) {
-          sheet.insertColumnsBefore(updatedAtIdx + 1, 2);
-        } else if (sheet.getLastColumn() > 0) {
-          sheet.insertColumnsAfter(sheet.getLastColumn(), 2);
-        }
-        sheet.getRange(1, 1, 1, tab.headers.length).setValues([tab.headers]);
-        sheet.getRange(1, 1, 1, tab.headers.length).setFontWeight("bold").setBackground("#d1fae5");
-        sheet.setFrozenRows(1);
-      }
-    }
-  });
-
-  // Hapus sheet default (Sheet1/Lembar1) jika ada & kosong
-  const defaultSheet = ss.getSheetByName("Sheet1") || ss.getSheetByName("Lembar1");
-  if (defaultSheet && ss.getSheets().length > 1) {
-    try {
-      if (defaultSheet.getLastRow() <= 1) {
-        ss.deleteSheet(defaultSheet);
-      }
-    } catch(e) {}
-  }
-}
-
-/** Helper untuk mendapatkan / membuat Google Spreadsheet secara otomatis */
-/** Helper untuk mendapatkan / membuat Google Spreadsheet & Folder Drive secara otomatis */
-function ensureVaultFolder() {
-  try {
-    const rootFolders = DriveApp.getFoldersByName(CONFIG.ROOT_FOLDER_NAME);
-    const rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.createFolder(CONFIG.ROOT_FOLDER_NAME);
-    const assetsFolders = rootFolder.getFoldersByName("Assets");
-    if (!assetsFolders.hasNext()) {
-      rootFolder.createFolder("Assets");
-    }
-    return rootFolder;
-  } catch (err) {
-    Logger.log("DriveApp Error: " + err);
-    return null;
-  }
-}
-
-function getSpreadsheet() {
-  let ss = null;
-  try {
-    ss = SpreadsheetApp.getActiveSpreadsheet();
-  } catch (err) {}
-
-  if (!ss) {
-    try {
-      const files = DriveApp.getFilesByName("MicroMate Database");
-      if (files.hasNext()) {
-        ss = SpreadsheetApp.openById(files.next().getId());
-      }
-    } catch (err) {}
-  }
-
-  if (!ss) {
-    ss = SpreadsheetApp.create("MicroMate Database");
-  }
-
-  // Otomatis pastikan semua tab sheet dan folder MicroMate_Vault tersedia
-  ensureSheetTabs(ss);
-  ensureVaultFolder();
-  return ss;
-}
-
-function doGet(e) {
-  const ss = getSpreadsheet();
-  ensureVaultFolder();
-
-  if (e && e.parameter && (e.parameter.action === "getAllAssets" || e.parameter.action === "getAssets" || e.parameter.action === "fetchAll")) {
-    return handleGetAllAssets(ss);
-  }
-
-  return respondJSON({
-    status: "ok",
-    message: "MicroMate Apps Script Gateway Active",
-    services: {
-      appsScript: true,
-      googleSheets: !!ss,
-      googleDrive: true
-    },
-    timestamp: new Date().toISOString()
-  });
-}
-
-function doPost(e) {
-  try {
-    if (!e || !e.postData || !e.postData.contents) {
-      return respondJSON({ success: false, error: "POST body kosong atau request tidak valid" });
-    }
-
-    const data = JSON.parse(e.postData.contents);
-    const action = data.action || "syncAsset";
-    const ss = getSpreadsheet();
-    ensureVaultFolder();
-
-    if (action === "health") {
-      return respondJSON({
-        status: "ok",
-        success: true,
-        services: {
-          appsScript: true,
-          googleSheets: !!ss,
-          googleDrive: true
-        },
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    if (action === "getAllAssets" || action === "getAssets" || action === "fetchAll" || action === "pullAssets") {
-      return handleGetAllAssets(ss);
-    } else if (action === "syncAsset" || action === "saveAsset") {
-      return handleSyncAsset(ss, data.data || data.payload || data);
-    } else if (action === "uploadFile") {
-      return handleUploadFile(ss, data.data || data.payload || data);
-    } else if (action === "syncMaintenance" || action === "addMaintenance") {
-      return handleSyncMaintenance(ss, data.data || data.payload || data);
-    } else if (action === "syncReminder" || action === "addReminder") {
-      return handleSyncReminder(ss, data.data || data.payload || data);
-    } else if (action === "deleteAsset") {
-      return handleDeleteAsset(ss, data.data || data.payload || data);
-    } else {
-      return respondJSON({ success: false, error: "Action tidak dikenal: " + action });
-    }
-  } catch (err) {
-    return respondJSON({ success: false, error: err.toString() });
-  }
-}
-
-// Helper untuk Format Tanggal agar selalu YYYY-MM-DD
-function formatDateStr(val) {
-  if (!val) return "";
-  if (val instanceof Date) {
-    var y = val.getFullYear();
-    var m = String(val.getMonth() + 1);
-    if (m.length < 2) m = "0" + m;
-    var d = String(val.getDate());
-    if (d.length < 2) d = "0" + d;
-    return y + "-" + m + "-" + d;
-  }
-  var s = String(val).trim();
-  if (!s) return "";
-  if (s.indexOf("GMT") !== -1 || s.indexOf("T") !== -1) {
-    try {
-      var dt = new Date(s);
-      if (!isNaN(dt.getTime())) {
-        var y2 = dt.getFullYear();
-        var m2 = String(dt.getMonth() + 1);
-        if (m2.length < 2) m2 = "0" + m2;
-        var d2 = String(dt.getDate());
-        if (d2.length < 2) d2 = "0" + d2;
-        return y2 + "-" + m2 + "-" + d2;
-      }
-    } catch (e) {}
-  }
-  return s;
-}
-
-// Handler untuk Mengambil Seluruh Data Aset dari Google Sheets (Pull / Sync Down)
-function handleGetAllAssets(ss) {
-  if (!ss) ss = getSpreadsheet();
-  ensureSheetTabs(ss);
-
-  const assetSheet = ss.getSheetByName(CONFIG.SHEET_NAME_ASSETS);
-  if (!assetSheet) {
-    return respondJSON({ success: true, assets: [], count: 0 });
-  }
-
-  const assetRows = assetSheet.getDataRange().getValues();
-  if (assetRows.length <= 1) {
-    return respondJSON({ success: true, assets: [], count: 0 });
-  }
-
-  const headers = assetRows[0].map(function(h) { return String(h).trim(); });
-  const colAssetId = headers.indexOf("Asset ID") !== -1 ? headers.indexOf("Asset ID") : 0;
-  const colAssetCode = headers.indexOf("Asset Code") !== -1 ? headers.indexOf("Asset Code") : 1;
-  const colName = headers.indexOf("Name") !== -1 ? headers.indexOf("Name") : 2;
-  const colCategory = headers.indexOf("Category") !== -1 ? headers.indexOf("Category") : 3;
-  const colBrand = headers.indexOf("Brand") !== -1 ? headers.indexOf("Brand") : 4;
-  const colModel = headers.indexOf("Model") !== -1 ? headers.indexOf("Model") : 5;
-  const colSN = headers.indexOf("Serial Number") !== -1 ? headers.indexOf("Serial Number") : 6;
-  const colPurDate = headers.indexOf("Purchase Date") !== -1 ? headers.indexOf("Purchase Date") : 7;
-  const colPurPrice = headers.indexOf("Purchase Price") !== -1 ? headers.indexOf("Purchase Price") : 8;
-  const colStatus = headers.indexOf("Status") !== -1 ? headers.indexOf("Status") : 9;
-  const colWarEnd = headers.indexOf("Warranty End Date");
-  const colWarProv = headers.indexOf("Warranty Provider");
-  const colUpdated = headers.indexOf("Updated At") !== -1 ? headers.indexOf("Updated At") : (headers.length - 1);
-
-  const maintSheet = ss.getSheetByName(CONFIG.SHEET_NAME_MAINTENANCE);
-  const maintRows = maintSheet ? maintSheet.getDataRange().getValues() : [];
-
-  const reminderSheet = ss.getSheetByName(CONFIG.SHEET_NAME_REMINDERS);
-  const reminderRows = reminderSheet ? reminderSheet.getDataRange().getValues() : [];
-
-  const fileSheet = ss.getSheetByName(CONFIG.SHEET_NAME_FILES);
-  const fileRows = fileSheet ? fileSheet.getDataRange().getValues() : [];
-
-  const assets = [];
-
-  for (let i = 1; i < assetRows.length; i++) {
-    const row = assetRows[i];
-    if (!row[colAssetId] || String(row[colAssetId]) === "Asset ID") continue;
-
-    const assetId = String(row[colAssetId]);
-    const assetCode = String(row[colAssetCode] || "");
-    const name = String(row[colName] || "Aset Tanpa Nama");
-    const category = String(row[colCategory] || "Umum");
-    const brand = String(row[colBrand] || "");
-    const model = String(row[colModel] || "");
-    const serialNumber = String(row[colSN] || "");
-    const purchaseDate = formatDateStr(row[colPurDate]);
-    const purchasePrice = Number(row[colPurPrice]) || 0;
-    const status = String(row[colStatus] || "active");
-    const updatedAt = String(row[colUpdated] || new Date().toISOString());
-
-    let warrantyEndDate = colWarEnd !== -1 ? formatDateStr(row[colWarEnd]) : "";
-    let warrantyProvider = colWarProv !== -1 ? String(row[colWarProv] || "") : "";
-
-    let warranty = undefined;
-    if (warrantyEndDate && warrantyEndDate !== "-" && warrantyEndDate.length >= 8) {
-      warranty = {
-        warranty_id: "war_" + assetId,
-        asset_id: assetId,
-        start_date: purchaseDate || new Date().toISOString().split("T")[0],
-        end_date: warrantyEndDate,
-        provider: warrantyProvider || "Garansi Resmi"
-      };
-    }
-
-    const maintenanceRecords = [];
-    for (let m = 1; m < maintRows.length; m++) {
-      const mRow = maintRows[m];
-      if (String(mRow[1]) === assetId) {
-        maintenanceRecords.push({
-          record_id: String(mRow[0]),
-          asset_id: assetId,
-          type: String(mRow[2] || "Perawatan"),
-          date: formatDateStr(mRow[3]),
-          cost: Number(mRow[4]) || 0,
-          provider: String(mRow[5] || "-"),
-          notes: String(mRow[6] || ""),
-          created_at: String(mRow[7] || new Date().toISOString())
-        });
-      }
-    }
-
-    const reminders = [];
-    for (let r = 1; r < reminderRows.length; r++) {
-      const rRow = reminderRows[r];
-      if (String(rRow[1]) === assetId) {
-        reminders.push({
-          reminder_id: String(rRow[0]),
-          asset_id: assetId,
-          title: String(rRow[2] || ""),
-          due_date: formatDateStr(rRow[3]),
-          recurring: String(rRow[4] || "none"),
-          status: String(rRow[5] || "pending"),
-          notes: String(rRow[6] || "")
-        });
-      }
-    }
-
-    const documents = [];
-    let photoUrl = "";
-
-    for (let f = 1; f < fileRows.length; f++) {
-      const fRow = fileRows[f];
-      if (String(fRow[1]) === assetId) {
-        const fileCat = String(fRow[4] || "document");
-        const fileUrl = String(fRow[7] || fRow[8] || "");
-        
-        if (fileCat === "photo") {
-          photoUrl = fileUrl;
-        } else {
-          documents.push({
-            doc_id: String(fRow[0]),
-            asset_id: assetId,
-            name: String(fRow[2] || "Dokumen"),
-            type: fileCat,
-            file_url: fileUrl,
-            uploaded_at: String(fRow[9] || new Date().toISOString())
-          });
-        }
-      }
-    }
-
-    assets.push({
-      asset_id: assetId,
-      asset_code: assetCode,
-      name: name,
-      category: category,
-      brand: brand,
-      model: model,
-      serial_number: serialNumber,
-      purchase_date: purchaseDate,
-      purchase_price: purchasePrice,
-      status: status,
-      warranty: warranty,
-      updated_at: updatedAt,
-      maintenance_records: maintenanceRecords,
-      reminders: reminders,
-      documents: documents,
-      photo_url: photoUrl
-    });
-  }
-
-  return respondJSON({
-    success: true,
-    assets: assets,
-    count: assets.length
-  });
-}
-
-// Handler untuk Menyimpan/Update Asset Metadata (Tab "Assets")
-function handleSyncAsset(ss, asset) {
-  if (!ss) ss = getSpreadsheet();
-  ensureSheetTabs(ss);
-
-  if (!asset) {
-    return respondJSON({ success: false, error: "Data aset tidak ditemukan" });
-  }
-
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME_ASSETS);
-  const rows = sheet.getDataRange().getValues();
-  let rowIndex = -1;
-  const targetId = asset.asset_id || asset.id;
-
-  for (let i = 1; i < rows.length; i++) {
-    if (String(rows[i][0]) === String(targetId)) {
-      rowIndex = i + 1;
-      break;
-    }
-  }
-
-  const pDate = formatDateStr(asset.purchase_date || asset.purchaseDate);
-  let warEnd = "";
-  let warProv = "";
-
-  if (asset.warranty) {
-    if (typeof asset.warranty === "object") {
-      warEnd = formatDateStr(asset.warranty.end_date || asset.warranty.endDate || asset.warranty.end);
-      warProv = String(asset.warranty.provider || asset.warranty.providerName || asset.warranty.provider_name || "");
-    } else if (typeof asset.warranty === "string") {
-      warEnd = formatDateStr(asset.warranty);
-    }
-  }
-  if (!warEnd && (asset.warranty_end_date || asset.warrantyEndDate)) {
-    warEnd = formatDateStr(asset.warranty_end_date || asset.warrantyEndDate);
-  }
-  if (!warProv && (asset.warranty_provider || asset.warrantyProvider)) {
-    warProv = String(asset.warranty_provider || asset.warrantyProvider);
-  }
-
-  const rowData = [
-    targetId || ("AST-" + Date.now()),
-    asset.asset_code || asset.assetCode || "",
-    asset.name || "Aset Tanpa Nama",
-    asset.category || "Umum",
-    asset.brand || "",
-    asset.model || "",
-    asset.serial_number || asset.serialNumber || "Tidak memiliki S/N",
-    pDate,
-    typeof asset.purchase_price === "number" ? asset.purchase_price : (Number(asset.purchase_price) || Number(asset.purchasePrice) || 0),
-    asset.status || "active",
-    warEnd,
-    warProv,
-    new Date().toISOString()
-  ];
-
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-  } else {
-    sheet.appendRow(rowData);
-  }
-
-  // Jika aset membawa informasi garansi, simpan pengingat garansi secara otomatis
-  if (asset.warranty && asset.warranty.end_date) {
-    try {
-      handleSyncReminder(ss, {
-        id: "war_rem_" + targetId,
-        asset_id: targetId,
-        title: "Masa Garansi Berakhir: " + (asset.name || "Aset"),
-        due_date: formatDateStr(asset.warranty.end_date),
-        status: "pending",
-        notes: "Penyedia Garansi: " + (asset.warranty.provider || "Garansi Resmi")
-      });
-    } catch (e) {}
-  }
-
-  // Jika aset membawa foto base64, unggah ke Google Drive
-  if (asset.photo_url && typeof asset.photo_url === "string" && asset.photo_url.indexOf("data:") === 0) {
-    try {
-      handleUploadFile(ss, {
-        asset_id: targetId,
-        asset_code: asset.asset_code || targetId,
-        file_category: "photo",
-        file_name: "Photo_" + (asset.asset_code || targetId) + ".jpg",
-        mime_type: "image/jpeg",
-        base64_data: asset.photo_url,
-        file_size: Math.round(asset.photo_url.length * 0.75)
-      });
-    } catch (e) {}
-  }
-
-  // Jika aset membawa dokumen base64, unggah ke Google Drive
-  if (asset.documents && Array.isArray(asset.documents)) {
-    asset.documents.forEach(function(doc) {
-      if (doc.file_url && typeof doc.file_url === "string" && doc.file_url.indexOf("data:") === 0) {
-        try {
-          handleUploadFile(ss, {
-            asset_id: targetId,
-            asset_code: asset.asset_code || targetId,
-            file_category: doc.type || "document",
-            file_name: doc.name || ("Doc_" + targetId),
-            mime_type: doc.file_url.indexOf("image/") > -1 ? "image/jpeg" : "application/pdf",
-            base64_data: doc.file_url,
-            file_size: Math.round(doc.file_url.length * 0.75)
-          });
-        } catch (e) {}
-      }
-    });
-  }
-
-  // Jika aset membawa riwayat perawatan, simpan juga ke tab Maintenance
-  if (asset.maintenance_records && Array.isArray(asset.maintenance_records)) {
-    asset.maintenance_records.forEach(function(rec) {
-      handleSyncMaintenance(ss, {
-        id: rec.record_id || rec.id,
-        asset_id: targetId,
-        service_type: rec.type || rec.service_type || "Perawatan",
-        service_date: rec.date || rec.service_date,
-        cost: rec.cost || 0,
-        provider: rec.provider || "-",
-        notes: rec.notes || ""
-      });
-    });
-  }
-
-  // Jika aset membawa pengingat, simpan juga ke tab Reminders
-  if (asset.reminders && Array.isArray(asset.reminders)) {
-    asset.reminders.forEach(function(rem) {
-      handleSyncReminder(ss, {
-        id: rem.reminder_id || rem.id,
-        asset_id: targetId,
-        title: rem.title,
-        due_date: rem.due_date,
-        status: rem.status || "pending",
-        notes: rem.notes || ""
-      });
-    });
-  }
-
-  return respondJSON({ success: true, message: "Asset saved to Google Sheets Assets tab", asset_id: targetId });
-}
-
-// Handler untuk Hapus Asset (Menghapus row di Assets, Maintenance, Reminders, AssetFiles, serta file & folder di Google Drive)
-function handleDeleteAsset(ss, payload) {
-  if (!ss) ss = getSpreadsheet();
-  ensureSheetTabs(ss);
-  const targetId = typeof payload === "string" ? payload : (payload.assetId || payload.asset_id || payload.id);
-  if (!targetId) return respondJSON({ success: false, error: "ID Aset tidak ditemukan" });
-
-  let assetCode = targetId;
-
-  // 1. Hapus dari Tab "Assets"
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME_ASSETS);
-  if (sheet) {
-    const rows = sheet.getDataRange().getValues();
-    for (let i = rows.length - 1; i >= 1; i--) {
-      if (String(rows[i][0]) === String(targetId)) {
-        if (rows[i][1]) assetCode = String(rows[i][1]);
-        sheet.deleteRow(i + 1);
-      }
-    }
-  }
-
-  // 2. Hapus dari Tab "Maintenance"
-  const maintSheet = ss.getSheetByName(CONFIG.SHEET_NAME_MAINTENANCE);
-  if (maintSheet) {
-    const mRows = maintSheet.getDataRange().getValues();
-    for (let i = mRows.length - 1; i >= 1; i--) {
-      if (String(mRows[i][1]) === String(targetId)) {
-        maintSheet.deleteRow(i + 1);
-      }
-    }
-  }
-
-  // 3. Hapus dari Tab "Reminders"
-  const remSheet = ss.getSheetByName(CONFIG.SHEET_NAME_REMINDERS);
-  if (remSheet) {
-    const rRows = remSheet.getDataRange().getValues();
-    for (let i = rRows.length - 1; i >= 1; i--) {
-      if (String(rRows[i][1]) === String(targetId)) {
-        remSheet.deleteRow(i + 1);
-      }
-    }
-  }
-
-  // 4. Hapus File di Google Drive & Data di Tab "AssetFiles"
-  const fileSheet = ss.getSheetByName(CONFIG.SHEET_NAME_FILES);
-  if (fileSheet) {
-    const fRows = fileSheet.getDataRange().getValues();
-    for (let i = fRows.length - 1; i >= 1; i--) {
-      if (String(fRows[i][1]) === String(targetId)) {
-        const driveFileId = fRows[i][6]; // Kolom index 6 adalah drive_file_id
-        if (driveFileId && String(driveFileId) !== "-") {
-          try {
-            DriveApp.getFileById(String(driveFileId)).setTrashed(true);
-          } catch (e) {
-            // File mungkin sudah dihapus
-          }
-        }
-        fileSheet.deleteRow(i + 1);
-      }
-    }
-  }
-
-  // 5. Hapus folder spesifik Aset di Google Drive jika ada
-  try {
-    const rootFolders = DriveApp.getFoldersByName(CONFIG.ROOT_FOLDER_NAME);
-    if (rootFolders.hasNext()) {
-      const rootFolder = rootFolders.next();
-      const assetsFolders = rootFolder.getFoldersByName("Assets");
-      if (assetsFolders.hasNext()) {
-        const assetsFolder = assetsFolders.next();
-        const targetFolders = assetsFolder.getFoldersByName(assetCode);
-        while (targetFolders.hasNext()) {
-          targetFolders.next().setTrashed(true);
-        }
-      }
-    }
-  } catch (err) {}
-
-  return respondJSON({ success: true, message: "Asset dan seluruh berkas/data terkait berhasil dihapus dari Google Sheets & Google Drive" });
-}
-
-// Handler untuk Menyimpan Riwayat Perawatan (Tab "Maintenance")
-function handleSyncMaintenance(ss, record) {
-  if (!ss) ss = getSpreadsheet();
-  ensureSheetTabs(ss);
-
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME_MAINTENANCE);
-  const rowData = [
-    record.id || ("MNT-" + Date.now()),
-    record.asset_id || "",
-    record.service_type || "Perawatan",
-    record.service_date || new Date().toISOString().split("T")[0],
-    record.cost || 0,
-    record.provider || "-",
-    record.notes || "",
-    new Date().toISOString()
-  ];
-  sheet.appendRow(rowData);
-  return respondJSON({ success: true, message: "Maintenance log saved to Google Sheets Maintenance tab" });
-}
-
-// Handler untuk Menyimpan Pengingat (Tab "Reminders")
-function handleSyncReminder(ss, reminder) {
-  if (!ss) ss = getSpreadsheet();
-  ensureSheetTabs(ss);
-
-  const sheet = ss.getSheetByName(CONFIG.SHEET_NAME_REMINDERS);
-  const rowData = [
-    reminder.id || ("REM-" + Date.now()),
-    reminder.asset_id || "",
-    reminder.title || "Pengingat",
-    reminder.due_date || "",
-    reminder.status || "pending",
-    reminder.notes || "",
-    new Date().toISOString()
-  ];
-  sheet.appendRow(rowData);
-  return respondJSON({ success: true, message: "Reminder saved to Google Sheets Reminders tab" });
-}
-
-// Handler untuk Upload File ke Google Drive & simpan metadata di Tab "AssetFiles"
-function handleUploadFile(ss, payload) {
-  if (!payload) return respondJSON({ success: false, error: "Payload file kosong" });
-  const asset_id = payload.asset_id || payload.assetId || "";
-  const asset_code = payload.asset_code || payload.assetCode || asset_id || "General";
-  const file_category = payload.file_category || payload.fileCategory || "document";
-  const file_name = payload.file_name || payload.fileName || ("File_" + Date.now());
-  const mime_type = payload.mime_type || payload.mimeType || "application/octet-stream";
-  const base64_data = payload.base64_data || payload.base64Data || payload.file_url || "";
-  const file_size = payload.file_size || 0;
-
-  let catFolder;
-  try {
-    const rootFolders = DriveApp.getFoldersByName(CONFIG.ROOT_FOLDER_NAME);
-    const rootFolder = rootFolders.hasNext() ? rootFolders.next() : DriveApp.createFolder(CONFIG.ROOT_FOLDER_NAME);
-
-    const assetsFolders = rootFolder.getFoldersByName("Assets");
-    const assetsFolder = assetsFolders.hasNext() ? assetsFolders.next() : rootFolder.createFolder("Assets");
-
-    const targetAssetFolders = assetsFolder.getFoldersByName(asset_code);
-    const targetAssetFolder = targetAssetFolders.hasNext() ? targetAssetFolders.next() : assetsFolder.createFolder(asset_code);
-
-    const categoryFolderName = file_category === "photo" ? "Photos" : "Documents";
-    const catFolders = targetAssetFolder.getFoldersByName(categoryFolderName);
-    catFolder = catFolders.hasNext() ? catFolders.next() : targetAssetFolder.createFolder(categoryFolderName);
-  } catch (err) {
-    return respondJSON({ success: false, error: "Gagal membuat folder di Google Drive: " + err.toString() });
-  }
-
-  if (!base64_data || typeof base64_data !== "string") {
-    return respondJSON({ success: true, message: "Folder terbuat, tidak ada data file base64" });
-  }
-
-  if (base64_data.indexOf("http://") === 0 || base64_data.indexOf("https://") === 0) {
-    if (!ss) ss = getSpreadsheet();
-    ensureSheetTabs(ss);
-    const fileSheet = ss.getSheetByName(CONFIG.SHEET_NAME_FILES);
-    if (fileSheet) {
-      fileSheet.appendRow([
-        "DOC-" + Date.now(),
-        asset_id,
-        file_name,
-        mime_type,
-        file_category,
-        file_size,
-        "-",
-        base64_data,
-        base64_data,
-        new Date().toISOString()
-      ]);
-    }
-    return respondJSON({ success: true, file_url: base64_data });
-  }
-
-  try {
-    const rawData = base64_data.indexOf(",") > -1 ? base64_data.split(",")[1] : base64_data;
-    const decodedData = Utilities.base64Decode(rawData);
-    const blob = Utilities.newBlob(decodedData, mime_type, file_name);
-    const file = catFolder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-
-    if (!ss) ss = getSpreadsheet();
-    ensureSheetTabs(ss);
-    const fileSheet = ss.getSheetByName(CONFIG.SHEET_NAME_FILES);
-    if (fileSheet) {
-      fileSheet.appendRow([
-        "DOC-" + Date.now(),
-        asset_id,
-        file_name,
-        mime_type,
-        file_category,
-        file_size,
-        file.getId(),
-        file.getUrl(),
-        file.getDownloadUrl(),
-        new Date().toISOString()
-      ]);
-    }
-
-    return respondJSON({
-      success: true,
-      file_id: file.getId(),
-      file_url: file.getUrl(),
-      download_url: file.getDownloadUrl()
-    });
-  } catch (err) {
-    return respondJSON({ success: false, error: "Drive Blob Upload error: " + err.toString() });
-  }
-}
-
-function respondJSON(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
-}`;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(appsScriptCode);
@@ -906,21 +195,119 @@ function respondJSON(obj) {
             </div>
           </section>
 
-          {/* 3. Export / Import Backup */}
+          {/* 3. Auto 2-Way Sync & Reconciliation */}
           <section className="bg-white rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xs">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold">
                 3
               </div>
               <div>
-                <h2 className="text-lg font-bold text-stone-900">Backup Data & Keamanan Pribadi</h2>
-                <p className="text-xs text-stone-500">Milik Anda sepenuhnya tanpa kunci vendor (Zero Vendor Lock-in)</p>
+                <h2 className="text-lg font-bold text-stone-900">Otomatisasi Synchronisasi 2-Arah (Auto 2-Way Sync)</h2>
+                <p className="text-xs text-stone-500">Pembaruan data instan antara IndexedDB Lokal & Google Sheets</p>
               </div>
             </div>
 
-            <p className="text-xs text-stone-600 leading-relaxed">
-              Data aset Anda tersimpan secara aman di peramban (browser) lokal Anda (IndexedDB). Anda dapat melakukan backup data kapan saja dalam format JSON melalui menu Pengaturan, atau menyinkronkannya secara otomatis ke akun Google Sheets milik Anda sendiri.
-            </p>
+            <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2 text-xs text-stone-700 leading-relaxed">
+              <p className="font-semibold text-stone-900">
+                🔄 Prinsip <strong>"Last Known State + Pending Changes"</strong>:
+              </p>
+              <ul className="list-disc pl-5 space-y-1 text-stone-600">
+                <li><strong>Instant Rendering:</strong> Aplikasi memuat data lokal dari IndexedDB secara instan sehingga pengguna tidak perlu menunggu koneksi jaringan.</li>
+                <li><strong>Auto Sync Triggers:</strong> Sinkronisasi 2-arah berjalan di latar belakang otomatis saat aplikasi dibuka, browser di-refresh, tab kembali aktif, atau internet terhubung kembali.</li>
+                <li><strong>Reconciliation Engine:</strong> MicroMate membandingkan status lokal dan cloud secara otomatis untuk mendeteksi penambahan, pembaruan, dan penghapusan record tanpa risiko kehilangan data.</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* 4. Click-to-Preview Image Lightbox & Zoom */}
+          <section className="bg-white rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold">
+                4
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-stone-900">Pratinjau Foto & Dokumen (Click-to-Preview & Zoom)</h2>
+                <p className="text-xs text-stone-500">Melihat nomor seri (S/N), invoice, dan detail fisik aset secara langsung</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs text-stone-600 leading-relaxed">
+              <p>
+                Klik pada foto aset atau tombol <strong>Preview</strong> pada lampiran dokumen untuk membuka modal Lightbox interaktif.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">🔍 Zoom & Drag/Pan</span>
+                  <p>Gunakan tombol Zoom (+/-), scroll mouse, atau pintasan keyboard untuk memperbesar detail hingga 400% dan geser posisi foto.</p>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">🖼️ Galeri Multi-Media</span>
+                  <p>Navigasi antarfoto dan dokumen dengan mudah menggunakan thumbnail di bagian bawah atau tombol panah keyboard (← / →).</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. Account Dependency Tracker */}
+          <section className="bg-white rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold">
+                5
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-stone-900">Pelacak Keterikatan Akun (Account Dependency Tracker)</h2>
+                <p className="text-xs text-stone-500">Pelacakan keterikatan nomor SIM / HP ke akun digital tanpa menyimpan password</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs text-stone-600 leading-relaxed">
+              <p>
+                MicroMate sengaja <strong>TIDAK berfungsi sebagai Password Manager</strong> untuk menjaga privasi dan keamanan tingkat tinggi. Sebagai gantinya, MicroMate menyediakan <strong>Account Dependency Tracker</strong>.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">📱 Mitigasi Kehilangan SIM / HP</span>
+                  <p>Mencatat daftar layanan seperti WhatsApp, Tokopedia, Shopee, M-Banking, dan Email yang terikat pada nomor HP tersebut.</p>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">🔒 Tanpa Password & Kredensial</span>
+                  <p>Hanya nama aplikasi/layanan yang dicatat. Tanpa password, PIN, atau kredensial sensitif sehingga aman jika diakses pihak lain.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 6. Security Architecture & App PIN Lock */}
+          <section className="bg-white rounded-3xl p-6 border border-stone-200 space-y-4 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold">
+                6
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-stone-900">Arsitektur Penyimpanan Personal & Keamanan App PIN</h2>
+                <p className="text-xs text-stone-500">Google Storage milik pengguna sendiri + Pengunci Aplikasi Lokal</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3 text-xs text-stone-600 leading-relaxed">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">☁️ Personal Storage Gateway (Zero SaaS)</span>
+                  <p>MicroMate terhubung langsung ke Google Sheets &amp; Drive pribadi pengguna melalui Apps Script. Tanpa registrasi akun SaaS, tanpa ketergantungan pada server pihak ketiga.</p>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
+                  <span className="font-bold text-emerald-800 block">🔒 App PIN Lock (4-Digit)</span>
+                  <p>Kunci aplikasi lokal untuk menjaga privasi data aset saat HP/laptop dipinjamkan. Tersimpan dengan aman di penyimpanan lokal peramban.</p>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1 sm:col-span-2">
+                  <span className="font-bold text-emerald-800 block">🛡️ Email Ownership Verification (Kode OTP)</span>
+                  <p>Saat menghubungkan Apps Script URL, sistem secara otomatis mendeteksi pemilik akun Google (Session.getEffectiveUser) dan mengirimkan 6-digit OTP melalui MailApp. Email disamarkan di UI (mis. u••••@gmail.com) demi privasi.</p>
+                </div>
+              </div>
+              <p className="text-[11px] text-stone-500 italic">
+                * Catatan Keamanan: Otorisasi Google Account Anda adalah benteng utama. Apps Script berjalan atas nama Anda (Execute as: Me) untuk mengakses Google Sheets &amp; Drive pribadi secara langsung.
+              </p>
+            </div>
           </section>
 
         </div>

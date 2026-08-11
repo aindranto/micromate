@@ -474,15 +474,155 @@ class DatabaseManager {
     return items.length;
   }
 
-  // Check Health status of Apps Script, Sheets, and Drive
+  // Helper to check local verified status
+  public isConnectionVerified(): boolean {
+    const verified = localStorage.getItem('micromate_connection_verified');
+    const url = localStorage.getItem('micromate_apps_script_url');
+    return Boolean(verified === 'true' && url && url.trim());
+  }
+
+  public getMaskedOwnerEmail(): string {
+    return localStorage.getItem('micromate_owner_email_masked') || '';
+  }
+
+  public disconnectGateway(): void {
+    localStorage.removeItem('micromate_connection_verified');
+    localStorage.removeItem('micromate_owner_email_masked');
+    localStorage.removeItem('micromate_verified_at');
+  }
+
+  // Gateway Action: identify (Get owner info & masked email)
+  public async identifyGateway(targetUrl?: string): Promise<{
+    success: boolean;
+    emailMasked?: string;
+    services?: { appsScript: boolean; googleSheets: boolean; googleDrive: boolean };
+    error?: string;
+    message?: string;
+  }> {
+    const url = targetUrl || localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
+
+    if (!url || !url.trim()) {
+      return { success: false, error: 'NO_URL', message: 'Apps Script Web App URL belum dimasukkan.' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'identify', token })
+      }).catch(() => null);
+
+      if (res && res.ok) {
+        const json = await res.json().catch(() => null);
+        if (json) return json;
+      }
+
+      // GET Fallback
+      const getUrl = url.includes('?')
+        ? `${url}&action=identify&token=${encodeURIComponent(token)}`
+        : `${url}?action=identify&token=${encodeURIComponent(token)}`;
+      const getRes = await fetch(getUrl, { method: 'GET' }).catch(() => null);
+      if (getRes && getRes.ok) {
+        const json = await getRes.json().catch(() => null);
+        if (json) return json;
+      }
+
+      return { success: false, error: 'CONNECTION_FAILED', message: 'Tidak dapat menghubungkan ke endpoint Apps Script URL.' };
+    } catch (e: any) {
+      return { success: false, error: 'NETWORK_ERROR', message: e?.message || 'Gagal terhubung ke Apps Script.' };
+    }
+  }
+
+  // Gateway Action: requestOtp
+  public async requestOtp(targetUrl?: string): Promise<{
+    success: boolean;
+    emailMasked?: string;
+    expiresIn?: number;
+    error?: string;
+    message?: string;
+    waitSeconds?: number;
+  }> {
+    const url = targetUrl || localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
+
+    if (!url || !url.trim()) {
+      return { success: false, error: 'NO_URL', message: 'Apps Script Web App URL belum dimasukkan.' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'requestOtp', token })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.emailMasked) {
+          localStorage.setItem('micromate_owner_email_masked', json.emailMasked);
+        }
+        return json;
+      }
+      return { success: false, error: 'HTTP_ERROR', message: 'Gagal mengirim permintaan OTP ke Apps Script.' };
+    } catch (e: any) {
+      return { success: false, error: 'NETWORK_ERROR', message: e?.message || 'Network error saat meminta OTP.' };
+    }
+  }
+
+  // Gateway Action: verifyOtp
+  public async verifyOtp(otp: string, targetUrl?: string): Promise<{
+    success: boolean;
+    verified?: boolean;
+    emailMasked?: string;
+    error?: string;
+    message?: string;
+    attemptsRemaining?: number;
+  }> {
+    const url = targetUrl || localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
+
+    if (!url || !url.trim()) {
+      return { success: false, error: 'NO_URL', message: 'Apps Script Web App URL belum dimasukkan.' };
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'verifyOtp', otp: otp.trim(), token })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.success && json.verified) {
+          localStorage.setItem('micromate_connection_verified', 'true');
+          if (json.emailMasked) {
+            localStorage.setItem('micromate_owner_email_masked', json.emailMasked);
+          }
+          localStorage.setItem('micromate_verified_at', new Date().toISOString());
+        }
+        return json;
+      }
+      return { success: false, error: 'HTTP_ERROR', message: 'Respon verifikasi OTP dari server gagal.' };
+    } catch (e: any) {
+      return { success: false, error: 'NETWORK_ERROR', message: e?.message || 'Gagal memverifikasi OTP.' };
+    }
+  }
+
+  // Check Health status of Apps Script, Sheets, Drive, and Email Ownership
   public async checkHealth(targetUrl?: string): Promise<ServiceHealth> {
     const url = targetUrl || localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
+    const isVerified = this.isConnectionVerified();
+    const maskedEmail = this.getMaskedOwnerEmail();
+    const verifiedAt = localStorage.getItem('micromate_verified_at') || undefined;
 
     if (!url || !url.trim()) {
       return {
         appsScript: false,
         googleSheets: false,
         googleDrive: false,
+        emailOwnership: false,
+        connectionStatus: 'DISCONNECTED',
         errorMessage: 'Apps Script Web App URL belum dikonfigurasi'
       };
     }
@@ -491,7 +631,9 @@ class DatabaseManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-      const healthUrl = url.includes('?') ? `${url}&action=health` : `${url}?action=health`;
+      const healthUrl = url.includes('?') 
+        ? `${url}&action=health&token=${encodeURIComponent(token)}` 
+        : `${url}?action=health&token=${encodeURIComponent(token)}`;
       const res = await fetch(healthUrl, {
         method: 'GET',
         signal: controller.signal
@@ -501,11 +643,19 @@ class DatabaseManager {
 
       if (res && res.ok) {
         const json = await res.json().catch(() => null);
-        if (json && json.status === 'ok') {
+        if (json && (json.status === 'ok' || json.success)) {
+          const emailMask = json.emailMasked || maskedEmail;
+          if (emailMask) {
+            localStorage.setItem('micromate_owner_email_masked', emailMask);
+          }
           return {
             appsScript: true,
             googleSheets: json.services?.googleSheets ?? true,
             googleDrive: json.services?.googleDrive ?? true,
+            emailOwnership: isVerified,
+            maskedEmail: emailMask,
+            verifiedAt: verifiedAt,
+            connectionStatus: isVerified ? 'VERIFIED' : 'CONNECTING',
             lastChecked: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
           };
         }
@@ -515,16 +665,24 @@ class DatabaseManager {
       const postRes = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'health' })
+        body: JSON.stringify({ action: 'health', token })
       }).catch(() => null);
 
       if (postRes && postRes.ok) {
         const json = await postRes.json().catch(() => null);
         if (json && (json.status === 'ok' || json.success)) {
+          const emailMask = json.emailMasked || maskedEmail;
+          if (emailMask) {
+            localStorage.setItem('micromate_owner_email_masked', emailMask);
+          }
           return {
             appsScript: true,
             googleSheets: json.services?.googleSheets ?? true,
             googleDrive: json.services?.googleDrive ?? true,
+            emailOwnership: isVerified,
+            maskedEmail: emailMask,
+            verifiedAt: verifiedAt,
+            connectionStatus: isVerified ? 'VERIFIED' : 'CONNECTING',
             lastChecked: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
           };
         }
@@ -536,6 +694,10 @@ class DatabaseManager {
           appsScript: true,
           googleSheets: true,
           googleDrive: true,
+          emailOwnership: isVerified,
+          maskedEmail: maskedEmail,
+          verifiedAt: verifiedAt,
+          connectionStatus: isVerified ? 'VERIFIED' : 'CONNECTING',
           lastChecked: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
         };
       }
@@ -544,6 +706,8 @@ class DatabaseManager {
         appsScript: false,
         googleSheets: false,
         googleDrive: false,
+        emailOwnership: false,
+        connectionStatus: 'ERROR',
         errorMessage: 'Respon dari Apps Script tidak valid'
       };
     } catch (err: any) {
@@ -551,6 +715,8 @@ class DatabaseManager {
         appsScript: false,
         googleSheets: false,
         googleDrive: false,
+        emailOwnership: false,
+        connectionStatus: 'ERROR',
         errorMessage: err?.message || 'Gagal terhubung ke Apps Script'
       };
     }
@@ -584,6 +750,7 @@ class DatabaseManager {
   // Process Sync Queue with backend / Apps Script Gateway & Reconcile with Google Sheets
   public async flushSyncQueue(): Promise<boolean> {
     const url = localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
     if (!url || !url.trim()) {
       return false;
     }
@@ -596,13 +763,14 @@ class DatabaseManager {
         for (const item of queue) {
           let sent = false;
           let responseData: any = null;
+          const payloadWithToken = { ...item, token };
 
           try {
             // Direct fetch to Google Apps Script Web App
             const res = await fetch(url, {
               method: 'POST',
               headers: { 'Content-Type': 'text/plain' },
-              body: JSON.stringify(item)
+              body: JSON.stringify(payloadWithToken)
             });
             if (res.ok) {
               sent = true;
@@ -618,7 +786,7 @@ class DatabaseManager {
               const proxyRes = await fetch('/api/exec', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item)
+                body: JSON.stringify(payloadWithToken)
               });
               if (proxyRes.ok) {
                 sent = true;
@@ -670,6 +838,7 @@ class DatabaseManager {
   // Tarik & sinkronkan seluruh data aset dari Google Sheets ke IndexedDB & LocalStorage dengan Cloud Reconciliation
   public async pullFromGoogleSheets(): Promise<{ success: boolean; count: number; reconciledRemoved?: number; error?: string }> {
     const url = localStorage.getItem('micromate_apps_script_url');
+    const token = localStorage.getItem('micromate_access_token') || '';
     if (!url || !url.trim()) {
       return { success: false, count: 0, error: 'Endpoint Google Apps Script belum dikonfigurasi.' };
     }
@@ -682,7 +851,7 @@ class DatabaseManager {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'getAllAssets' })
+        body: JSON.stringify({ action: 'getAllAssets', token })
       });
       if (res.ok) {
         const json = await res.json();
@@ -698,7 +867,9 @@ class DatabaseManager {
     // 2. Coba GET sebagai fallback jika POST terblokir CORS
     if (!fetched) {
       try {
-        const getUrl = url.includes('?') ? `${url}&action=getAllAssets` : `${url}?action=getAllAssets`;
+        const getUrl = url.includes('?') 
+          ? `${url}&action=getAllAssets&token=${encodeURIComponent(token)}` 
+          : `${url}?action=getAllAssets&token=${encodeURIComponent(token)}`;
         const res = await fetch(getUrl, { method: 'GET' });
         if (res.ok) {
           const json = await res.json();
@@ -718,7 +889,7 @@ class DatabaseManager {
         const proxyRes = await fetch('/api/exec', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'getAllAssets' })
+          body: JSON.stringify({ action: 'getAllAssets', token })
         });
         if (proxyRes.ok) {
           const json = await proxyRes.json();
@@ -747,9 +918,28 @@ class DatabaseManager {
       }
 
       const remoteAssetIds = new Set<string>();
-      for (const asset of remoteAssets) {
+      for (let asset of remoteAssets) {
         asset.data_origin = 'synced';
         remoteAssetIds.add(asset.asset_id);
+
+        const existingLocal = localAssets.find((a) => a.asset_id === asset.asset_id);
+        if (existingLocal) {
+          asset = {
+            ...existingLocal,
+            ...asset,
+            assigned_user: asset.assigned_user || existingLocal.assigned_user,
+            purchase_location: asset.purchase_location || existingLocal.purchase_location,
+            notes: asset.notes || existingLocal.notes,
+            device_details: asset.device_details || existingLocal.device_details,
+            vehicle_details: asset.vehicle_details || existingLocal.vehicle_details,
+            photo_url: asset.photo_url || existingLocal.photo_url,
+            warranty: asset.warranty || existingLocal.warranty,
+            maintenance_records: (asset.maintenance_records && asset.maintenance_records.length > 0) ? asset.maintenance_records : (existingLocal.maintenance_records || []),
+            reminders: (asset.reminders && asset.reminders.length > 0) ? asset.reminders : (existingLocal.reminders || []),
+            documents: (asset.documents && asset.documents.length > 0) ? asset.documents : (existingLocal.documents || [])
+          };
+        }
+
         await this.saveAssetToDB(asset);
       }
 

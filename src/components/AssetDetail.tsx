@@ -31,6 +31,7 @@ import {
   Eye
 } from 'lucide-react';
 import { ImageViewerModal, MediaItem } from './ImageViewerModal';
+import { useCategories, getCategoryIcon, getCategoryLabel } from '../lib/categories';
 
 interface AssetDetailProps {
   asset: Asset;
@@ -55,6 +56,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
   onCompleteReminder,
   onEditAsset,
 }) => {
+  const categories = useCategories();
   const [activeTab, setActiveTab] = useState<
     'specs' | 'maintenance' | 'warranty' | 'reminders' | 'tco' | 'documents'
   >('specs');
@@ -269,9 +271,17 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
         <div className="flex-1 space-y-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-stone-900 text-white rounded-md">
-                {asset.category}
-              </span>
+              {(() => {
+                const foundCategory = categories.find(c => c.id === asset.category);
+                const IconComponent = getCategoryIcon(foundCategory?.iconName || 'Box');
+                const label = getCategoryLabel(asset.category, categories);
+                return (
+                  <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-stone-900 text-white rounded-md flex items-center gap-1.5">
+                    <IconComponent className="w-3 h-3 text-emerald-400" />
+                    <span>{label}</span>
+                  </span>
+                );
+              })()}
               <span className={`px-2.5 py-0.5 text-[10px] font-semibold rounded-md ${warrantyInfo.badgeClass}`}>
                 {warrantyInfo.label}
               </span>
@@ -371,6 +381,12 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               <div className="flex justify-between py-1 border-b border-stone-200/60">
                 <span className="text-stone-500">Model:</span>
                 <span className="font-semibold text-stone-800">{asset.model || '-'}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-stone-200/60">
+                <span className="text-stone-500">Pengguna / Penanggung Jawab:</span>
+                <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                  {asset.assigned_user || '-'}
+                </span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-stone-500">Serial Number (S/N):</span>
@@ -501,12 +517,15 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             </div>
           )}
 
-          {asset.notes && (
-            <div className="p-4 bg-stone-50 rounded-xl border border-stone-200/80 text-xs">
-              <span className="font-bold text-stone-700 block mb-1">Catatan Tambahan:</span>
-              <p className="text-stone-600 leading-relaxed">{asset.notes}</p>
-            </div>
-          )}
+          <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200/80 text-xs space-y-1.5">
+            <span className="font-bold text-stone-800 text-xs block flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-emerald-700" />
+              <span>Catatan & Info Detail Perangkat</span>
+            </span>
+            <p className="text-stone-700 leading-relaxed font-medium whitespace-pre-line">
+              {asset.notes ? asset.notes : 'Tidak ada catatan tambahan untuk aset ini.'}
+            </p>
+          </div>
         </div>
       )}
 
@@ -665,7 +684,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             <div className="space-y-3">
               {asset.reminders.map((rem, index) => (
                 <div
-                  key={rem.reminder_id || (rem as any).id || `rem-${index}`}
+                  key={`rem-det-${rem.reminder_id || (rem as any).id || ''}-${index}`}
                   className="p-4 rounded-xl border border-stone-200 flex items-center justify-between gap-4"
                 >
                   <div>

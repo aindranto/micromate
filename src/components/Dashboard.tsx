@@ -268,7 +268,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
               return (
                 <div
-                  key={item.id || `att-${index}`}
+                  key={`dash-att-${item.id || ''}-${index}`}
                   className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col xs:flex-row xs:items-center justify-between gap-3 transition-all min-w-0 ${
                     item.isOverdue
                       ? 'bg-rose-50/80 border-rose-200 shadow-2xs'

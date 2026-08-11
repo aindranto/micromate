@@ -4,8 +4,9 @@ import { INITIAL_WORKSPACE_ID } from '../lib/seedData';
 import { formatRupiah } from '../lib/utils';
 import { 
   X, Box, Laptop, Car, Home, Camera, Gamepad2, RefreshCw, 
-  Upload, FileText, CheckCircle2, Image as ImageIcon, Trash2, Eye, FileCheck, Edit3, AlertTriangle 
+  Upload, FileText, CheckCircle2, Image as ImageIcon, Trash2, Eye, FileCheck, Edit3, AlertTriangle, ShieldCheck 
 } from 'lucide-react';
+import { useCategories, getCategoryIcon } from '../lib/categories';
 
 interface AddAssetModalProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
   }, [isOpen]);
 
   // Confirmation Modal State
+  const userCategories = useCategories();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [pendingAsset, setPendingAsset] = useState<Asset | null>(null);
 
@@ -43,6 +45,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
   const [brand, setBrand] = useState('');
   const [model, setModel] = useState('');
   const [serialNumber, setSerialNumber] = useState('');
+  const [assignedUser, setAssignedUser] = useState('');
 
   // Asset Code & Serial Number helpers
   const generateAssetCode = () => {
@@ -294,6 +297,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       setSubcategory(assetToEdit.subcategory || '');
       setBrand(assetToEdit.brand || '');
       setModel(assetToEdit.model || '');
+      setAssignedUser(assetToEdit.assigned_user || '');
       const isNoSn = assetToEdit.serial_number === 'Tidak memiliki S/N';
       setNoSerialNumber(isNoSn);
       setSerialNumber(isNoSn ? '' : (assetToEdit.serial_number || ''));
@@ -332,6 +336,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       setSubcategory('');
       setBrand('');
       setModel('');
+      setAssignedUser('');
       setSerialNumber('');
       setNoSerialNumber(false);
       setAssetCode(generateAssetCode());
@@ -383,6 +388,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       purchase_price: purchasePrice !== '' ? Number(purchasePrice) : undefined,
       purchase_location: purchaseLocation || undefined,
       status: assetToEdit?.status || 'active',
+      assigned_user: assignedUser.trim() || undefined,
       notes: notes || undefined,
       photo_url: photoUrl || assetToEdit?.photo_url || undefined,
       created_at: assetToEdit?.created_at || new Date().toISOString(),
@@ -521,15 +527,8 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
               1. Pilih Kategori Aset *
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              {[
-                { id: 'device', label: 'Device', icon: Laptop },
-                { id: 'vehicle', label: 'Vehicle', icon: Car },
-                { id: 'home', label: 'Home', icon: Home },
-                { id: 'camera', label: 'Camera', icon: Camera },
-                { id: 'gaming', label: 'Gaming', icon: Gamepad2 },
-                { id: 'other', label: 'Lainnya', icon: Box },
-              ].map((item) => {
-                const Icon = item.icon;
+              {userCategories.map((item) => {
+                const Icon = getCategoryIcon(item.iconName);
                 const isSelected = category === item.id;
                 return (
                   <button
@@ -543,7 +542,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
+                    <span className="truncate max-w-full">{item.label}</span>
                   </button>
                 );
               })}
@@ -584,6 +583,23 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 placeholder="Model / Tipe varian"
                 className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium"
               />
+            </div>
+
+            <div className="space-y-1 sm:col-span-2">
+              <label className="font-bold text-stone-800 flex items-center justify-between">
+                <span>Siapa yang Menggunakan (Pengguna / Penanggung Jawab)</span>
+                <span className="text-[10px] text-stone-400 font-normal">Opsional</span>
+              </label>
+              <input
+                type="text"
+                value={assignedUser}
+                onChange={(e) => setAssignedUser(e.target.value)}
+                placeholder="misal: Budi Santoso (IT), Rian (Operasional), Kamar Utama, Tim Media"
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium"
+              />
+              <p className="text-[10px] text-stone-500">
+                Sebutkan nama pengguna, unit kerja/divisi, atau lokasi penempatan aset.
+              </p>
             </div>
 
             <div className="space-y-2.5 sm:col-span-2 bg-stone-50/70 p-3.5 rounded-2xl border border-stone-200">
@@ -681,6 +697,20 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 onChange={(e) => setPurchaseLocation(e.target.value)}
                 placeholder="iBox, Tokopedia, AHASS"
                 className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium"
+              />
+            </div>
+
+            <div className="space-y-1 sm:col-span-2">
+              <label className="font-bold text-stone-800 flex items-center justify-between">
+                <span>Catatan & Info Detail Perangkat</span>
+                <span className="text-[10px] text-stone-400 font-normal">Opsional</span>
+              </label>
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Tuliskan catatan tambahan, spesifikasi khusus, warna, kapasitas RAM/SSD, jenis freon, atau riwayat kondisi..."
+                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium text-xs leading-relaxed"
               />
             </div>
           </div>
@@ -1156,6 +1186,12 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 <span className="text-stone-500">Kategori:</span>
                 <span className="font-semibold text-stone-800 uppercase">{pendingAsset.category}</span>
               </div>
+              {pendingAsset.assigned_user && (
+                <div className="flex justify-between border-b border-stone-200/60 pb-2">
+                  <span className="text-stone-500">Pengguna / Penanggung Jawab:</span>
+                  <span className="font-bold text-emerald-800">{pendingAsset.assigned_user}</span>
+                </div>
+              )}
               {pendingAsset.brand && (
                 <div className="flex justify-between border-b border-stone-200/60 pb-2">
                   <span className="text-stone-500">Merek / Model:</span>

@@ -25,6 +25,7 @@ import {
   ZoomIn
 } from 'lucide-react';
 import { ImageViewerModal, MediaItem } from './ImageViewerModal';
+import { useCategories, getCategoryIcon } from '../lib/categories';
 
 interface AssetListProps {
   assets: Asset[];
@@ -99,14 +100,15 @@ export const AssetList: React.FC<AssetListProps> = ({
     }
   };
 
+  const userCategories = useCategories();
+
   const categories = [
     { id: 'all', label: 'Semua Aset', icon: Box },
-    { id: 'device', label: 'Devices', icon: Laptop },
-    { id: 'vehicle', label: 'Vehicles', icon: Car },
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'camera', label: 'Camera', icon: Camera },
-    { id: 'gaming', label: 'Gaming', icon: Gamepad2 },
-    { id: 'other', label: 'Lainnya', icon: Box },
+    ...userCategories.map((c) => ({
+      id: c.id,
+      label: c.label,
+      icon: getCategoryIcon(c.iconName)
+    }))
   ];
 
   // Filter assets
@@ -322,6 +324,12 @@ export const AssetList: React.FC<AssetListProps> = ({
 
                   {/* Serial Number & License Plate Highlights */}
                   <div className="text-xs space-y-1 bg-stone-50 p-2.5 rounded-xl border border-stone-200/80">
+                    {asset.assigned_user && (
+                      <div className="flex justify-between text-stone-600">
+                        <span className="text-stone-400">Pengguna:</span>
+                        <span className="font-bold text-emerald-800 truncate max-w-[150px]">{asset.assigned_user}</span>
+                      </div>
+                    )}
                     {asset.serial_number && (
                       <div className="flex justify-between text-stone-600">
                         <span className="text-stone-400">S/N:</span>

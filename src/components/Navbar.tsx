@@ -61,9 +61,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     switch (syncStatus) {
       case 'unconfigured':
         return {
-          label: '⚪ Belum Terhubung',
-          classes: 'bg-stone-100 border-stone-300 text-stone-700 hover:bg-stone-200',
-          icon: <AlertTriangle className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+          label: '💻 Local Storage',
+          classes: 'bg-stone-100 border-stone-300 text-stone-800 hover:bg-stone-200',
+          icon: <HardDrive className="w-3.5 h-3.5 text-stone-600 shrink-0" />
         };
       case 'unverified':
         return {
@@ -239,6 +239,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </span>
                   </div>
 
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-stone-600 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Verifikasi Kepemilikan Email</span>
+                    </span>
+                    <span className={`font-bold text-[11px] ${
+                      serviceHealth.emailOwnership ? 'text-emerald-700' : 'text-amber-700'
+                    }`}>
+                      {serviceHealth.emailOwnership 
+                        ? `✓ ${serviceHealth.maskedEmail || 'Terverifikasi'}` 
+                        : '⚠️ Belum Verifikasi'}
+                    </span>
+                  </div>
+
                   {lastSyncTime && (
                     <div className="flex items-center justify-between pt-1 border-t border-stone-100 text-stone-500 text-[11px]">
                       <span className="flex items-center gap-1">
@@ -266,10 +280,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onOpenSettings();
                         setShowSyncPopover(false);
                       }}
-                      className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
+                      className="w-full py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
-                      <Settings className="w-3.5 h-3.5" />
-                      <span>Pengaturan Sync</span>
+                      <UploadCloud className="w-4 h-4 text-emerald-300" />
+                      <span>☁️ Hubungkan Google Storage</span>
                     </button>
                   ) : (
                     <>

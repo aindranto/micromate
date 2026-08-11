@@ -1,4 +1,4 @@
-export type AssetCategory = 'device' | 'vehicle' | 'home' | 'camera' | 'gaming' | 'other';
+export type AssetCategory = 'device' | 'vehicle' | 'home' | 'camera' | 'gaming' | 'other' | string;
 
 export type AssetStatus = 'active' | 'stored' | 'under_repair' | 'sold' | 'disposed';
 
@@ -116,6 +116,7 @@ export interface Expense {
 
 export interface Asset {
   asset_id: string;
+  asset_code?: string;
   workspace_id: string;
   category: AssetCategory;
   subcategory?: string;
@@ -134,6 +135,8 @@ export interface Asset {
   deleted?: boolean;
   is_demo?: boolean;
   data_origin?: 'demo' | 'local' | 'synced' | 'imported';
+  assigned_user?: string; // Siapa yang menggunakan / Penanggung jawab aset
+  account_dependencies?: string[]; // (Opsional) Ketergantungan Akun
 
   // Joined/embedded details
   vehicle_details?: VehicleDetails;
@@ -144,6 +147,14 @@ export interface Asset {
   documents?: AssetDocument[];
   expenses?: Expense[];
 }
+
+export type ConnectionStatus = 
+  | 'DISCONNECTED' 
+  | 'CONNECTING' 
+  | 'OTP_SENT' 
+  | 'VERIFYING' 
+  | 'VERIFIED' 
+  | 'ERROR';
 
 export type SyncStatus = 
   | 'unconfigured' 
@@ -159,6 +170,10 @@ export interface ServiceHealth {
   appsScript: boolean;
   googleSheets: boolean;
   googleDrive: boolean;
+  emailOwnership?: boolean;
+  maskedEmail?: string;
+  verifiedAt?: string;
+  connectionStatus?: ConnectionStatus;
   lastChecked?: string;
   errorMessage?: string;
 }
