@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, KeyRound, ShieldCheck, AlertCircle, RefreshCw, Eye, EyeOff, X } from 'lucide-react';
+import { Lock, KeyRound, ShieldCheck, AlertCircle, RefreshCw, Eye, EyeOff, X, Mail } from 'lucide-react';
+import { dbManager } from '../lib/db';
 
 interface PinLockModalProps {
   isOpen: boolean;
@@ -19,12 +20,23 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   const [tokenInput, setTokenInput] = useState('');
   const [tokenError, setTokenError] = useState('');
 
+  // OTP Reset PIN States
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpMsg, setOtpMsg] = useState('');
+  const [maskedEmail, setMaskedEmail] = useState('');
+
   const savedPin = localStorage.getItem('micromate_app_pin') || '';
+  const hasGateway = Boolean(localStorage.getItem('micromate_apps_script_url'));
 
   useEffect(() => {
     setPinInput('');
     setErrorMsg('');
-  }, [isOpen]);
+    if (showForgotModal) {
+      setMaskedEmail(dbManager.getMaskedOwnerEmail());
+    }
+  }, [isOpen, showForgotModal]);
 
   // Physical Keyboard Listener
   useEffect(() => {
@@ -72,14 +84,54 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   const handleVerifyForgotWithToken = () => {
     const savedToken = localStorage.getItem('micromate_access_token') || '';
-    if (tokenInput.trim() === savedToken.trim() || tokenInput.trim() === 'RESET') {
+    // Previously this also accepted the literal string 'RESET' as a
+    // universal bypass. That string was hardcoded in this client-side
+    // bundle, so anyone reading the shipped JS (trivial via devtools)
+    // could unlock the app instantly without knowing the access token or
+    // completing OTP verification. Only a matching, non-empty Access
+    // Token is accepted now — use the OTP flow above if it's been lost.
+    if (savedToken.trim() !== '' && tokenInput.trim() === savedToken.trim()) {
       localStorage.removeItem('micromate_app_pin');
       setShowForgotModal(false);
       setPinInput('');
       if (onResetPin) onResetPin();
       onSuccess();
     } else {
-      setTokenError('Kunci Akses Cloud (Access Token) tidak cocok.');
+      setTokenError('Kunci Akses Cloud (Access Token) tidak cocok. Gunakan OTP di atas untuk reset yang aman.');
+    }
+  };
+
+  const handleRequestOtpForPin = async () => {
+    setOtpLoading(true);
+    setOtpMsg('');
+    setTokenError('');
+    const res = await dbManager.requestOtp();
+    setOtpLoading(false);
+    if (res.success) {
+      setOtpRequested(true);
+      setOtpMsg(`Kode OTP 6-digit telah dikirim ke email Google Apps Script (${res.emailMasked || maskedEmail || 'pemilik Google Sheet'}).`);
+    } else {
+      setTokenError(res.message || 'Gagal mengirim kode OTP.');
+    }
+  };
+
+  const handleVerifyOtpForPin = async () => {
+    if (!otpCode || otpCode.length < 6) {
+      setTokenError('Masukkan 6-digit kode OTP.');
+      return;
+    }
+    setOtpLoading(true);
+    setTokenError('');
+    const res = await dbManager.verifyOtp(otpCode);
+    setOtpLoading(false);
+    if (res.success && res.verified) {
+      localStorage.removeItem('micromate_app_pin');
+      setShowForgotModal(false);
+      setPinInput('');
+      if (onResetPin) onResetPin();
+      onSuccess();
+    } else {
+      setTokenError(res.message || 'Kode OTP salah atau telah kadaluwarsa.');
     }
   };
 
@@ -187,41 +239,65 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-stone-600 leading-relaxed font-medium">
-              Untuk mereset PIN keamanan lokal, ketik <strong>RESET</strong> atau masukkan Access Token Anda jika pernah mengaturnya.
-            </p>
+            {hasGateway && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+                  <Mail className="w-4 h-4 text-emerald-700" />
+                  <span>Verifikasi OTP Email Cloud</span>
+                </div>
+                <p className="text-[11px] text-emerald-800 font-medium">
+                  Kirim 6-digit kode verifikasi ke email Google Anda untuk mereset PIN secara aman.
+                </p>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-stone-800 block">Kunci Akses Cloud / Token</label>
-              <input
-                type="password"
-                value={tokenInput}
-                onChange={(e) => {
-                  setTokenInput(e.target.value);
-                  setTokenError('');
-                }}
-                placeholder="Masukkan Access Token Anda"
-                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium text-xs focus:ring-2 focus:ring-emerald-600/30"
-              />
-              {tokenError && (
-                <p className="text-[11px] font-bold text-rose-600">{tokenError}</p>
-              )}
-            </div>
+                {!otpRequested ? (
+                  <button
+                    type="button"
+                    onClick={handleRequestOtpForPin}
+                    disabled={otpLoading}
+                    className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-bold text-xs rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+                  >
+                    {otpLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                    <span>{otpLoading ? 'Mengirim OTP...' : 'Kirim Kode OTP ke Email'}</span>
+                  </button>
+                ) : (
+                  <div className="space-y-2 pt-1">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Masukkan 6-digit OTP"
+                      className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-xl text-center text-stone-900 font-mono tracking-widest font-bold text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyOtpForPin}
+                      disabled={otpLoading}
+                      className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-bold text-xs rounded-xl cursor-pointer transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+                    >
+                      {otpLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                      <span>{otpLoading ? 'Verifikasi...' : 'Verifikasi OTP & Reset PIN'}</span>
+                    </button>
+                  </div>
+                )}
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+                {otpMsg && (
+                  <p className="text-[11px] font-medium text-emerald-800 leading-tight">{otpMsg}</p>
+                )}
+              </div>
+            )}
+
+            {tokenError && (
+              <p className="text-[11px] font-bold text-rose-600 pt-1">{tokenError}</p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-200">
               <button
                 type="button"
                 onClick={() => setShowForgotModal(false)}
                 className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold rounded-xl text-xs cursor-pointer"
               >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={handleVerifyForgotWithToken}
-                className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs cursor-pointer shadow-2xs"
-              >
-                Verifikasi & Buka PIN
+                Tutup
               </button>
             </div>
           </div>

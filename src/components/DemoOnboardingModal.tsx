@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Trash2, CheckCircle2, ShieldCheck, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Box, Trash2, CheckCircle2, ShieldCheck, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 interface DemoOnboardingModalProps {
   isOpen: boolean;
@@ -32,16 +32,16 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
       <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col my-auto transition-all">
         
         {/* Compact Header Banner */}
-        <div className="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white p-4 sm:p-5 relative">
-          <div className="flex items-center gap-1.5 text-emerald-200 text-[11px] font-bold uppercase tracking-wider mb-1">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Google Sheets Terhubung</span>
+        <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-white p-4 sm:p-5 relative">
+          <div className="flex items-center gap-1.5 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1">
+            <Box className="w-3.5 h-3.5 text-amber-400" />
+            <span>Manajemen Data Simulasi</span>
           </div>
           <h2 className="text-lg sm:text-xl font-black text-white leading-tight">
-            Konfigurasi Data Awal
+            Kelola Data Contoh (Demo)
           </h2>
-          <p className="text-emerald-100/90 text-xs mt-1 leading-snug">
-            Google Apps Script Gateway telah siap. Pilih cara pengelolaan data awal Anda.
+          <p className="text-stone-300 text-xs mt-1 leading-snug">
+            Atur apakah Anda ingin membersihkan 4 aset simulasi bawaan agar workspace siap untuk data riil Anda, atau menyimpannya.
           </p>
         </div>
 
@@ -56,7 +56,7 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
                   🧪
                 </span>
                 <p className="text-xs text-amber-950 leading-snug font-medium">
-                  Terdeteksi <strong>{countDisplay} aset contoh</strong> (MacBook, Vario, AC, Kamera) di aplikasi.
+                  Saat ini terdapat <strong>{countDisplay} aset contoh</strong> (MacBook, Vario, AC, Kamera) di ruang kerja Anda.
                 </p>
               </div>
 
@@ -72,14 +72,14 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-stone-900 text-xs sm:text-sm">
-                        1. Hapus Data Contoh
+                        1. Hapus Semua Data Contoh
                       </span>
                       <span className="px-2 py-0.5 bg-emerald-700 text-white text-[10px] font-extrabold rounded-full">
                         Rekomendasi
                       </span>
                     </div>
                     <p className="text-[11px] sm:text-xs text-stone-600 leading-snug">
-                      Mulai dengan workspace bersih untuk mencatat aset asli Anda.
+                      Bersihkan sampel bawaan agar workspace siap untuk Anda input aset asli.
                     </p>
                   </div>
                   <div className="p-2 bg-emerald-100 text-emerald-800 rounded-xl shrink-0 group-hover:bg-emerald-200">
@@ -98,7 +98,7 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
                       2. Pertahankan Data Contoh
                     </span>
                     <p className="text-[11px] sm:text-xs text-stone-500 leading-snug">
-                      Simpan {countDisplay} aset contoh sebagai gambaran/referensi awal.
+                      Simpan {countDisplay} aset contoh sebagai gambaran/referensi data di aplikasi.
                     </p>
                   </div>
                   <div className="p-2 bg-stone-100 text-stone-600 rounded-xl shrink-0 group-hover:bg-emerald-50 group-hover:text-emerald-700">
@@ -203,7 +203,7 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
             onClick={handleResetStateAndClose}
             className="px-3 py-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 active:scale-95 transition-all cursor-pointer rounded-lg hover:bg-stone-200/60"
           >
-            Nanti Saja
+            Tutup
           </button>
         </div>
 

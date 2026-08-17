@@ -5,7 +5,8 @@ import {
   formatRupiah, 
   formatDate, 
   calculateAssetTCO,
-  formatImageUrl
+  formatImageUrl,
+  getAssetMainPhoto
 } from '../lib/utils';
 import { 
   AlertTriangle, 
@@ -22,7 +23,8 @@ import {
   TrendingUp, 
   Clock, 
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Eye
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -298,9 +300,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </h4>
 
                     <div className="flex items-center gap-2 text-[11px] sm:text-xs text-stone-600 truncate">
-                      <span className="font-semibold text-stone-700 truncate">
-                        {item.assetName}
-                      </span>
+                      {targetAsset ? (
+                        <button
+                          type="button"
+                          onClick={() => onSelectAsset(targetAsset)}
+                          className="font-extrabold text-emerald-800 hover:text-emerald-950 hover:underline cursor-pointer flex items-center gap-1 truncate"
+                          title="Lihat Detail Aset"
+                        >
+                          <span>{item.assetName}</span>
+                          <ChevronRight className="w-3 h-3 shrink-0" />
+                        </button>
+                      ) : (
+                        <span className="font-semibold text-stone-700 truncate">
+                          {item.assetName}
+                        </span>
+                      )}
                       {item.dueDate && (
                         <span className="text-stone-500 flex items-center gap-1 shrink-0">
                           <Clock className="w-3 h-3" />
@@ -315,16 +329,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <button
                         type="button"
                         onClick={() => onSelectAsset(targetAsset)}
-                        className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 transition-colors shadow-2xs whitespace-nowrap cursor-pointer"
+                        className="px-3 py-1.5 text-xs font-extrabold rounded-xl bg-emerald-800 text-white hover:bg-emerald-900 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex items-center gap-1.5"
                       >
-                        {item.actionLabel}
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Lihat Detail Aset</span>
                       </button>
                     )}
                     {(item.category === 'maintenance' || item.category === 'custom') && (
                       <button
                         type="button"
                         onClick={() => onCompleteReminder(item.id)}
-                        className="text-[11px] text-emerald-800 font-bold hover:underline cursor-pointer"
+                        className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
                       >
                         Selesaikan
                       </button>
@@ -357,43 +372,46 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           <div className="space-y-3">
-            {assets.slice(0, 4).map((asset, index) => (
-              <div
-                key={asset.asset_id || `dash-ast-${index}`}
-                onClick={() => onSelectAsset(asset)}
-                className="p-3 sm:p-3.5 rounded-xl border border-stone-200/80 hover:bg-stone-50 hover:border-emerald-200 cursor-pointer transition-all flex items-center justify-between gap-2.5 group min-w-0"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0">
-                    {asset.photo_url ? (
-                      <img src={formatImageUrl(asset.photo_url)} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                    ) : (
-                      <Box className="w-5 h-5 text-stone-400" />
-                    )}
+            {assets.slice(0, 4).map((asset, index) => {
+              const mainPhoto = getAssetMainPhoto(asset);
+              return (
+                <div
+                  key={asset.asset_id || `dash-ast-${index}`}
+                  onClick={() => onSelectAsset(asset)}
+                  className="p-3 sm:p-3.5 rounded-xl border border-stone-200/80 hover:bg-stone-50 hover:border-emerald-200 cursor-pointer transition-all flex items-center justify-between gap-2.5 group min-w-0"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {mainPhoto ? (
+                        <img src={mainPhoto} alt={asset.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                      ) : (
+                        <Box className="w-5 h-5 text-stone-400" />
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <h4 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-emerald-600 transition-colors truncate">
+                        {asset.name}
+                      </h4>
+                      <p className="text-[11px] sm:text-xs text-stone-500 truncate">
+                        {asset.brand || 'No Brand'} • {asset.subcategory || asset.category}
+                        {asset.serial_number ? ` • S/N: ${asset.serial_number}` : ''}
+                        {asset.vehicle_details?.license_plate ? ` • ${asset.vehicle_details.license_plate}` : ''}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="min-w-0">
-                    <h4 className="text-xs sm:text-sm font-semibold text-stone-900 group-hover:text-emerald-600 transition-colors truncate">
-                      {asset.name}
-                    </h4>
-                    <p className="text-[11px] sm:text-xs text-stone-500 truncate">
-                      {asset.brand || 'No Brand'} • {asset.subcategory || asset.category}
-                      {asset.serial_number ? ` • S/N: ${asset.serial_number}` : ''}
-                      {asset.vehicle_details?.license_plate ? ` • ${asset.vehicle_details.license_plate}` : ''}
-                    </p>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs sm:text-sm font-bold text-stone-800 block">
+                      {formatRupiah(asset.purchase_price)}
+                    </span>
+                    <span className="text-[10px] text-stone-400 block">
+                      {formatDate(asset.purchase_date)}
+                    </span>
                   </div>
                 </div>
-
-                <div className="text-right shrink-0">
-                  <span className="text-xs sm:text-sm font-bold text-stone-800 block">
-                    {formatRupiah(asset.purchase_price)}
-                  </span>
-                  <span className="text-[10px] text-stone-400 block">
-                    {formatDate(asset.purchase_date)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -419,29 +437,58 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           ) : (
             <div className="relative pl-4 border-l-2 border-stone-200 space-y-4">
-              {recentMaintenanceLogs.map((log, index) => (
-                <div key={log.maintenance_id || (log as any).id || `dash-maint-${index}`} className="relative group">
-                  <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white" />
-                  
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[11px] font-semibold text-stone-400">
-                        {formatDate(log.date)} • {log.assetName}
-                      </span>
-                      <h4 className="text-sm font-bold text-stone-900 capitalize">
-                        {log.type.replace('_', ' ')}
-                      </h4>
-                      <p className="text-xs text-stone-600 line-clamp-1">
-                        {log.notes || 'Pekerjaan rutin teratur'}
-                      </p>
-                    </div>
+              {recentMaintenanceLogs.map((log, index) => {
+                const targetAsset = assets.find((a) => a.asset_id === log.assetId);
+                return (
+                  <div key={log.maintenance_id || (log as any).id || `dash-maint-${index}`} className="relative group">
+                    <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white" />
+                    
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[11px] font-semibold text-stone-400">
+                            {formatDate(log.date)}
+                          </span>
+                          {targetAsset && (
+                            <button
+                              type="button"
+                              onClick={() => onSelectAsset(targetAsset)}
+                              className="text-[11px] font-bold text-emerald-800 hover:underline cursor-pointer flex items-center gap-1"
+                              title="Lihat Detail Aset"
+                            >
+                              <span>• {log.assetName}</span>
+                              <Eye className="w-3 h-3 text-emerald-600" />
+                            </button>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-bold text-stone-900 capitalize">
+                          {log.type.replace('_', ' ')}
+                        </h4>
+                        <p className="text-xs text-stone-600 line-clamp-1">
+                          {log.notes || 'Pekerjaan rutin teratur'}
+                        </p>
+                      </div>
 
-                    <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 shrink-0">
-                      {formatRupiah(log.cost)}
-                    </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 shrink-0">
+                          {formatRupiah(log.cost)}
+                        </span>
+                        {targetAsset && (
+                          <button
+                            type="button"
+                            onClick={() => onSelectAsset(targetAsset)}
+                            className="px-2 py-1 text-[11px] font-extrabold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                            title="Lihat Detail Aset"
+                          >
+                            <Eye className="w-3 h-3 text-emerald-700" />
+                            <span>Detail</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

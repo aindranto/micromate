@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Asset, SyncStatus, ServiceHealth, MaintenanceRecord, Reminder, AssetDocument, AssetStatus } from './types';
 import { dbManager } from './lib/db';
+import { INITIAL_WORKSPACE_ID } from './lib/seedData';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -11,6 +12,7 @@ import { MaintenancePage } from './components/MaintenancePage';
 import { RemindersPage } from './components/RemindersPage';
 import { CostAnalyticsPage } from './components/CostAnalyticsPage';
 import { DocumentationPage } from './components/DocumentationPage';
+import { AttentionDashboardPage } from './components/attention/AttentionDashboardPage';
 
 // Modals
 import { AddAssetModal } from './components/AddAssetModal';
@@ -23,6 +25,7 @@ import { OnboardingPage } from './components/OnboardingPage';
 import { PinLockModal } from './components/PinLockModal';
 
 import { getNeedsAttentionItems } from './lib/utils';
+import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
 
 export default function App() {
   const [assets, setAssets] = useState<Asset[]>([]);
@@ -46,32 +49,48 @@ export default function App() {
   });
   const [lastSyncTime, setLastSyncTime] = useState<string>('');
 
-  // Onboarding & Standalone Route State
+  // Onboarding & Standalone Route State (Canonical Initialization Gate with Route Precedence Invariant)
   const [isSetupCompleted, setIsSetupCompleted] = useState<boolean>(() => {
-    return Boolean(
-      localStorage.getItem('micromate_setup_completed') ||
-      localStorage.getItem('micromate_onboarding_completed')
-    );
+    return localStorage.getItem('micromate_setup_completed') === 'true' ||
+      localStorage.getItem('micromate_onboarding_completed') === 'true';
   });
 
   const [currentRoute, setCurrentRoute] = useState<'app' | 'setup' | 'setup-google'>(() => {
+    const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
+      localStorage.getItem('micromate_onboarding_completed') === 'true';
+
+    // If app is already initialized, stale #/setup or #/onboarding hash MUST NOT force setup view
+    if (isCompleted) {
+      return 'app';
+    }
+
     const hash = window.location.hash.toLowerCase();
     if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') return 'setup';
     if (hash === '#/setup/google' || hash === '#setup/google') return 'setup-google';
-    if (!localStorage.getItem('micromate_setup_completed') && !localStorage.getItem('micromate_onboarding_completed')) {
-      return 'setup';
-    }
-    return 'app';
+    
+    return 'setup';
   });
 
   useEffect(() => {
     const handleHashChange = () => {
+      const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
+        localStorage.getItem('micromate_onboarding_completed') === 'true' ||
+        isSetupCompleted;
+
       const hash = window.location.hash.toLowerCase();
       if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
-        setCurrentRoute('setup');
+        // Stale setup hash on initialized app redirects canonically to app view
+        if (isCompleted) {
+          setCurrentRoute('app');
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        } else {
+          setCurrentRoute('setup');
+        }
       } else if (hash === '#/setup/google' || hash === '#setup/google') {
-        setCurrentRoute('setup-google');
-      } else if (isSetupCompleted) {
+        setCurrentRoute(isCompleted ? 'app' : 'setup-google');
+      } else if (isCompleted) {
         setCurrentRoute('app');
       }
     };
@@ -87,6 +106,14 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDemoOnboardingOpen, setIsDemoOnboardingOpen] = useState(false);
   const [hasPromptedDemoOnboarding, setHasPromptedDemoOnboarding] = useState(false);
+  const [syncToast, setSyncToast] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (syncToast) {
+      const timer = setTimeout(() => setSyncToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [syncToast]);
 
   // Target asset ID for maintenance/document modals
   const [targetAssetId, setTargetAssetId] = useState<string | undefined>(undefined);
@@ -151,11 +178,11 @@ export default function App() {
       }
 
       // Jika Gateway terhubung dan database lokal kosong/di-reset, otomatis tarik data dari Google Sheets
-      const localAssets = await dbManager.getAllAssets();
+      const localAssets = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
       if (localAssets.length === 0) {
         const pullRes = await dbManager.pullFromGoogleSheets();
         if (pullRes.success && pullRes.count > 0) {
-          const freshList = await dbManager.getAllAssets();
+          const freshList = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
           setAssets(freshList);
         }
       }
@@ -172,7 +199,7 @@ export default function App() {
   // Load assets from database on startup
   const reloadData = useCallback(async () => {
     await dbManager.init();
-    const list = await dbManager.getAllAssets();
+    const list = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
     setAssets(list);
 
     // If currently viewing a detailed asset, update its reference
@@ -196,6 +223,32 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       await reloadData();
+
+      // Async Initialization Gate: Validate & Self-Heal Canonical Setup State
+      const currentFlag = localStorage.getItem('micromate_setup_completed') === 'true' ||
+        localStorage.getItem('micromate_onboarding_completed') === 'true';
+
+      if (!currentFlag) {
+        // Inspect whether a valid, consistent persisted initialization state exists in storage
+        const hasValidState = await dbManager.hasValidPersistedState();
+        if (hasValidState) {
+          localStorage.setItem('micromate_setup_completed', 'true');
+          localStorage.setItem('micromate_onboarding_completed', 'true');
+          setIsSetupCompleted(true);
+          setCurrentRoute('app');
+          if (window.location.hash && (window.location.hash.toLowerCase().includes('setup') || window.location.hash.toLowerCase().includes('onboarding'))) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }
+      } else {
+        // If flag is valid and current route is stale setup hash, clean it
+        const hash = window.location.hash.toLowerCase();
+        if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
+          setCurrentRoute('app');
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }
+
       const scriptUrl = localStorage.getItem('micromate_apps_script_url');
       if (scriptUrl && scriptUrl.trim() && navigator.onLine) {
         // Auto 2-Way Sync on Startup / Refresh
@@ -230,13 +283,13 @@ export default function App() {
 
   // Handlers
   const handleSaveAsset = async (newAsset: Asset) => {
-    await dbManager.saveAsset(newAsset);
+    await dbManager.saveAsset(newAsset, INITIAL_WORKSPACE_ID);
     await reloadData();
     await triggerAutoSync();
   };
 
   const handleDeleteAsset = async (assetId: string) => {
-    await dbManager.deleteAsset(assetId);
+    await dbManager.deleteAsset(assetId, INITIAL_WORKSPACE_ID);
     setSelectedAsset(null);
     await reloadData();
     await triggerAutoSync();
@@ -246,32 +299,38 @@ export default function App() {
     const asset = assets.find((a) => a.asset_id === assetId);
     if (asset) {
       asset.status = status;
-      await dbManager.saveAsset(asset);
+      await dbManager.saveAsset(asset, INITIAL_WORKSPACE_ID);
       await reloadData();
       await triggerAutoSync();
     }
   };
 
-  const handleSaveMaintenance = async (assetId: string, record: MaintenanceRecord) => {
-    await dbManager.addMaintenanceRecord(assetId, record);
+  const handleSaveMaintenance = async (assetId: string, input: any, options?: any) => {
+    await dbManager.addMaintenanceRecord(assetId, input, INITIAL_WORKSPACE_ID, options);
     await reloadData();
     await triggerAutoSync();
   };
 
   const handleSaveReminder = async (assetId: string | undefined, reminder: Reminder) => {
-    await dbManager.addReminder(assetId, reminder);
+    await dbManager.addReminder(assetId, reminder, INITIAL_WORKSPACE_ID);
     await reloadData();
     await triggerAutoSync();
   };
 
   const handleCompleteReminder = async (reminderId: string) => {
-    await dbManager.completeReminder(reminderId);
+    await dbManager.completeReminder(reminderId, INITIAL_WORKSPACE_ID);
+    await reloadData();
+    await triggerAutoSync();
+  };
+
+  const handleDismissReminder = async (reminderId: string) => {
+    await dbManager.dismissReminder(reminderId, INITIAL_WORKSPACE_ID);
     await reloadData();
     await triggerAutoSync();
   };
 
   const handleSaveDocument = async (assetId: string, doc: AssetDocument) => {
-    await dbManager.addDocument(assetId, doc);
+    await dbManager.addDocument(assetId, doc, INITIAL_WORKSPACE_ID);
     await reloadData();
     await triggerAutoSync();
   };
@@ -283,13 +342,21 @@ export default function App() {
   };
 
   const handleClearCacheAndReset = async () => {
-    localStorage.clear();
-    if (window.indexedDB) {
-      try {
-        window.indexedDB.deleteDatabase('MicroMateDB');
-      } catch (e) {}
-    }
-    window.location.reload();
+    localStorage.removeItem('micromate_setup_completed');
+    localStorage.removeItem('micromate_onboarding_completed');
+    localStorage.removeItem('micromate_db_seeded');
+    localStorage.removeItem('micromate_demo_dismissed');
+    localStorage.removeItem('micromate_apps_script_url');
+    localStorage.removeItem('micromate_user_email');
+    localStorage.removeItem('micromate_connection_verified');
+    localStorage.removeItem('micromate_app_pin');
+    localStorage.removeItem('micromate_notif_prefs');
+    await dbManager.clearAllData();
+    setIsSettingsOpen(false);
+    setIsSetupCompleted(false);
+    setCurrentRoute('setup');
+    window.location.hash = '#setup';
+    await reloadData();
   };
 
   const handleCompleteSetup = async (
@@ -323,15 +390,21 @@ export default function App() {
     await handleFlushSync();
   };
 
-  const handleFlushSync = async () => {
+  const handleFlushSync = async (isManual = false) => {
     const scriptUrl = localStorage.getItem('micromate_apps_script_url');
     if (!scriptUrl || !scriptUrl.trim()) {
-      setIsSettingsOpen(true);
+      if (isManual) setIsSettingsOpen(true);
       return;
     }
 
     if (!navigator.onLine) {
       setSyncStatus('offline');
+      if (isManual) {
+        setSyncToast({
+          type: 'info',
+          message: 'Perangkat offline. Perubahan disimpan lokal.'
+        });
+      }
       return;
     }
 
@@ -339,7 +412,7 @@ export default function App() {
     const success = await dbManager.flushSyncQueue();
     if (success) {
       // Muat ulang data aset setelah sinkronisasi dan penarikan data dari Google Sheets
-      const list = await dbManager.getAllAssets();
+      const list = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
       setAssets(list);
 
       if (selectedAsset) {
@@ -357,8 +430,20 @@ export default function App() {
         googleDrive: true,
         lastChecked: nowStr
       });
+      if (isManual) {
+        setSyncToast({
+          type: 'success',
+          message: 'Sinkronisasi berhasil.'
+        });
+      }
     } else {
       setSyncStatus('error');
+      if (isManual) {
+        setSyncToast({
+          type: 'error',
+          message: 'Gagal menyinkronkan data ke Google Sheets.'
+        });
+      }
     }
   };
 
@@ -371,13 +456,17 @@ export default function App() {
 
     if (!navigator.onLine) {
       setSyncStatus('offline');
+      setSyncToast({
+        type: 'info',
+        message: 'Tidak dapat menarik data: Perangkat sedang offline.'
+      });
       return;
     }
 
     setSyncStatus('syncing');
     const res = await dbManager.pullFromGoogleSheets();
     if (res.success) {
-      const list = await dbManager.getAllAssets();
+      const list = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
       setAssets(list);
 
       if (selectedAsset) {
@@ -394,10 +483,41 @@ export default function App() {
         googleDrive: true,
         lastChecked: nowStr
       });
+
+      if (res.count && res.count > 0) {
+        setSyncToast({
+          type: 'success',
+          message: `Berhasil memuat ${res.count} data aset dari Google Sheets.`
+        });
+      } else {
+        setSyncToast({
+          type: 'info',
+          message: `Google Sheets terhubung, namun tidak ada baris data aset ditemukan (0 aset).`
+        });
+      }
     } else {
       setSyncStatus('error');
+      setSyncToast({
+        type: 'error',
+        message: `Gagal menarik data dari Google Sheets: ${res.error || 'Periksa URL Apps Script atau konfigurasi Sheet'}`
+      });
     }
   };
+
+  const handleNotificationAction = useCallback((payload: any) => {
+    if (!payload || !payload.asset_id) return;
+    const matchedAsset = assets.find((a) => a.asset_id === payload.asset_id);
+    if (matchedAsset) {
+      setSelectedAsset(matchedAsset);
+      if (payload.workflow_type === 'DOCUMENT_RENEWAL') {
+        setActiveTab('assets');
+      } else if (payload.workflow_type === 'MAINTENANCE') {
+        setActiveTab('maintenance');
+      } else if (payload.workflow_type === 'COST_ACK') {
+        setActiveTab('expenses');
+      }
+    }
+  }, [assets]);
 
   const attentionItems = getNeedsAttentionItems(assets);
 
@@ -405,8 +525,12 @@ export default function App() {
   if (!isSetupCompleted || currentRoute === 'setup' || currentRoute === 'setup-google') {
     return (
       <OnboardingPage
-        initialStep={currentRoute === 'setup-google' ? 'google_guide' : 'welcome'}
+        initialStep={currentRoute === 'setup-google' ? 'google_setup' : 'welcome'}
         onComplete={handleCompleteSetup}
+        onClose={() => {
+          setCurrentRoute('app');
+          window.location.hash = '';
+        }}
       />
     );
   }
@@ -421,7 +545,7 @@ export default function App() {
         serviceHealth={serviceHealth}
         lastSyncTime={lastSyncTime}
         hasDemoData={hasDemoData}
-        onSyncClick={handleFlushSync}
+        onSyncClick={() => handleFlushSync(true)}
         onPullClick={handlePullFromSheets}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onNavigateDocs={() => {
@@ -440,7 +564,40 @@ export default function App() {
         onVerifyConnection={verifySyncConnection}
         onClearDemoData={handleClearDemoData}
         onOpenDemoOnboarding={() => setIsDemoOnboardingOpen(true)}
+        onNotificationAction={handleNotificationAction}
+        assets={assets}
       />
+
+      {/* Sync Toast Feedback Banner */}
+      {syncToast && (
+        <div className="fixed top-16 right-4 sm:right-6 z-50 max-w-sm w-full animate-in slide-in-from-top-2 duration-200">
+          <div
+            className={`p-2.5 px-3.5 rounded-xl shadow-lg border flex items-center gap-2.5 backdrop-blur-md text-xs ${
+              syncToast.type === 'success'
+                ? 'bg-stone-900/95 text-emerald-300 border-emerald-800/40 shadow-stone-950/20'
+                : syncToast.type === 'error'
+                ? 'bg-rose-950/95 text-rose-100 border-rose-800/60 shadow-rose-950/20'
+                : 'bg-stone-900/95 text-stone-100 border-stone-700/60 shadow-stone-950/20'
+            }`}
+          >
+            <div className="shrink-0">
+              {syncToast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+              {syncToast.type === 'error' && <AlertTriangle className="w-4 h-4 text-rose-400" />}
+              {syncToast.type === 'info' && <Info className="w-4 h-4 text-amber-400" />}
+            </div>
+            <div className="flex-1 font-medium leading-tight text-stone-200">
+              {syncToast.message}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSyncToast(null)}
+              className="shrink-0 p-1 hover:bg-white/10 rounded-md text-stone-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Body Layout with Sidebar */}
       <div className="flex-1 max-w-7xl w-full mx-auto flex">
@@ -529,6 +686,7 @@ export default function App() {
                 setIsAddReminderOpen(true);
               }}
               onCompleteReminder={handleCompleteReminder}
+              onDismissReminder={handleDismissReminder}
               onSelectAsset={(a) => setSelectedAsset(a)}
             />
           ) : activeTab === 'expenses' ? (
@@ -540,6 +698,13 @@ export default function App() {
             <DocumentationPage
               onOpenSettings={() => setIsSettingsOpen(true)}
               onQuickAddAsset={handleOpenAddAsset}
+            />
+          ) : activeTab === 'attention' ? (
+            <AttentionDashboardPage
+              assets={assets}
+              onSelectAsset={(a) => setSelectedAsset(a)}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+              onEditAsset={handleOpenEditAsset}
             />
           ) : null}
 
@@ -554,7 +719,16 @@ export default function App() {
           setActiveTab(tab);
           setSelectedAsset(null);
         }}
-        onQuickAdd={handleOpenAddAsset}
+        onQuickAddAsset={handleOpenAddAsset}
+        onQuickAddMaintenance={() => {
+          setTargetAssetId(undefined);
+          setIsAddMaintenanceOpen(true);
+        }}
+        onQuickAddReminder={() => {
+          setTargetAssetId(undefined);
+          setIsAddReminderOpen(true);
+        }}
+        onOpenSettings={() => setIsSettingsOpen(true)}
         needsAttentionCount={attentionItems.length}
       />
 
@@ -567,6 +741,7 @@ export default function App() {
         }}
         onSave={handleSaveAsset}
         assetToEdit={editingAsset}
+        onShowToast={(type, message) => setSyncToast({ type, message })}
       />
 
       <AddMaintenanceModal
@@ -606,6 +781,10 @@ export default function App() {
         onVerifyConnection={verifySyncConnection}
         onClearDemoData={handleClearDemoData}
         onOpenDemoOnboarding={() => setIsDemoOnboardingOpen(true)}
+        onRestartOnboarding={() => {
+          setIsSettingsOpen(false);
+          setCurrentRoute('setup');
+        }}
         onClearCacheAndReset={handleClearCacheAndReset}
       />
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SyncStatus, ServiceHealth } from '../types';
+import React, { useState, useEffect } from 'react';
+import { SyncStatus, ServiceHealth, Asset } from '../types';
 import { 
   Box, 
   RefreshCw, 
@@ -7,7 +7,6 @@ import {
   WifiOff, 
   Settings, 
   Search,
-  BookOpen,
   Database,
   HardDrive,
   Clock,
@@ -16,7 +15,10 @@ import {
   AlertCircle,
   UploadCloud,
   Code2,
-  Download
+  Download,
+  Sparkles,
+  BookOpen,
+  X
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -35,6 +37,8 @@ interface NavbarProps {
   onVerifyConnection?: () => void;
   onClearDemoData?: () => void;
   onOpenDemoOnboarding?: () => void;
+  onNotificationAction?: (payload: any) => void;
+  assets?: Asset[];
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -53,59 +57,77 @@ export const Navbar: React.FC<NavbarProps> = ({
   onVerifyConnection,
   onClearDemoData,
   onOpenDemoOnboarding,
+  onNotificationAction,
+  assets = []
 }) => {
   const [showSyncPopover, setShowSyncPopover] = useState(false);
+  const [isDemoBannerVisible, setIsDemoBannerVisible] = useState(() => {
+    return localStorage.getItem('micromate_demo_banner_dismissed') !== 'true';
+  });
 
-  // Helper badge config for the header button
+  const handleDismissDemoBanner = () => {
+    setIsDemoBannerVisible(false);
+    localStorage.setItem('micromate_demo_banner_dismissed', 'true');
+  };
+
+  // Contextual indicator config
   const getHeaderBadgeConfig = () => {
     switch (syncStatus) {
       case 'unconfigured':
         return {
-          label: '💻 Local Storage',
-          classes: 'bg-stone-100 border-stone-300 text-stone-800 hover:bg-stone-200',
+          shortLabel: 'Local',
+          fullLabel: 'Penyimpanan Lokal',
+          classes: 'bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200',
           icon: <HardDrive className="w-3.5 h-3.5 text-stone-600 shrink-0" />
         };
       case 'unverified':
         return {
-          label: '🟡 Belum Diverifikasi',
-          classes: 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100',
+          shortLabel: 'Perlu Verifikasi',
+          fullLabel: 'Koneksi Perlu Verifikasi',
+          classes: 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300',
           icon: <RefreshCw className="w-3.5 h-3.5 text-amber-600 animate-spin shrink-0" />
         };
       case 'partial':
         return {
-          label: '🟡 Koneksi Sebagian',
-          classes: 'bg-amber-50 border-amber-300 text-amber-900 hover:bg-amber-100',
+          shortLabel: 'Sebagian',
+          fullLabel: 'Koneksi Sebagian',
+          classes: 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300',
           icon: <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
         };
       case 'pending':
         return {
-          label: `🟡 ${syncQueueCount} Pending`,
-          classes: 'bg-amber-100 border-amber-300 text-amber-950 hover:bg-amber-200',
+          shortLabel: `${syncQueueCount} Pending`,
+          fullLabel: `${syncQueueCount} Perubahan Pending`,
+          classes: 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300 font-extrabold',
           icon: <UploadCloud className="w-3.5 h-3.5 text-amber-700 shrink-0" />
         };
       case 'syncing':
         return {
-          label: '🔄 Menyinkronkan...',
-          classes: 'bg-amber-50 border-amber-300 text-amber-900',
-          icon: <RefreshCw className="w-3.5 h-3.5 text-amber-600 animate-spin shrink-0" />
+          shortLabel: 'Syncing...',
+          fullLabel: 'Menyinkronkan...',
+          classes: 'bg-emerald-50 text-emerald-950 border-emerald-300 font-extrabold',
+          icon: <RefreshCw className="w-3.5 h-3.5 text-emerald-700 animate-spin shrink-0" />
         };
       case 'synced':
         return {
-          label: `🟢 Synced ${lastSyncTime ? `· ${lastSyncTime}` : ''}`,
-          classes: 'bg-emerald-50 border-emerald-300 text-emerald-950 hover:bg-emerald-100',
+          shortLabel: 'Tersinkron',
+          fullLabel: `Tersinkron ${lastSyncTime ? `· ${lastSyncTime}` : ''}`,
+          classes: 'bg-emerald-50/80 hover:bg-emerald-100/80 text-emerald-950 border-emerald-200',
           icon: <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
         };
       case 'error':
         return {
-          label: '🔴 Sync Error',
-          classes: 'bg-rose-50 border-rose-300 text-rose-900 hover:bg-rose-100',
+          shortLabel: 'Sync Error',
+          fullLabel: 'Gagal Menyinkronkan',
+          classes: 'bg-rose-50 hover:bg-rose-100 text-rose-900 border-rose-300',
           icon: <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
         };
       case 'offline':
       default:
         return {
-          label: '⚪ Offline · Data Lokal',
-          classes: 'bg-stone-100 border-stone-300 text-stone-700 hover:bg-stone-200',
+          shortLabel: 'Offline',
+          fullLabel: 'Offline · Data Lokal',
+          classes: 'bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-200',
           icon: <WifiOff className="w-3.5 h-3.5 text-stone-500 shrink-0" />
         };
     }
@@ -115,39 +137,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200 transition-colors">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shadow-xs font-bold text-lg shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center shadow-xs font-black text-base sm:text-lg shrink-0">
             <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate">
-                MicroMate
-              </h1>
-              <span className="hidden xs:inline-block text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-900 px-1.5 py-0.5 rounded border border-emerald-200/80">
-                MVP v1.0
-              </span>
-              {hasDemoData && (
-                <button
-                  type="button"
-                  onClick={onOpenDemoOnboarding}
-                  title="Klik untuk memilih opsi data contoh atau hapus data contoh"
-                  className="text-[9px] sm:text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 px-1.5 sm:px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95 shrink-0"
-                >
-                  <span>🧪 Contoh</span>
-                </button>
-              )}
-            </div>
-            <p className="text-xs text-stone-500 hidden sm:block font-medium truncate">
-              Personal Asset & Maintenance Manager
+            <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate">
+              MicroMate
+            </h1>
+            <p className="text-[11px] text-stone-500 hidden sm:block font-medium truncate mt-0.5">
+              Personal Asset Vault
             </p>
           </div>
         </div>
 
-        {/* Global Search Input */}
+        {/* Global Search Input (Desktop) */}
         <div className="flex-1 max-w-md hidden md:block">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -156,44 +163,45 @@ export const Navbar: React.FC<NavbarProps> = ({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cari aset, plat nomor, serial number, brand..."
-              className="w-full pl-9 pr-4 py-1.5 text-sm bg-stone-50 focus:bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 text-stone-900 placeholder-stone-400 transition-all"
+              className="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-stone-50 focus:bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 text-stone-900 placeholder-stone-400 transition-all"
             />
           </div>
         </div>
 
-        {/* Action Controls & Sync Status Badge */}
-        <div className="flex items-center gap-1.5 sm:gap-3 relative shrink-0">
+        {/* Action Controls: Contextual Sync Status + Settings */}
+        <div className="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
           
-          {/* Sync Status Badge with Popover */}
+          {/* Contextual Sync Status Badge */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowSyncPopover(!showSyncPopover)}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
-              title="Status Koneksi & Sinkronisasi Cloud"
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
+              title="Status Koneksi & Penyimpanan"
             >
               {badgeConfig.icon}
-              <span className="hidden sm:inline">{badgeConfig.label}</span>
+              <span className="hidden sm:inline">{badgeConfig.fullLabel}</span>
+              <span className="sm:hidden font-bold">{badgeConfig.shortLabel}</span>
               <ChevronDown className="w-3 h-3 text-stone-400" />
             </button>
 
             {/* Sync Detail Popover Card */}
             {showSyncPopover && (
               <div 
-                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-stone-200 shadow-xl p-4 z-50 space-y-3.5"
+                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-stone-200 shadow-xl p-4 z-50 space-y-3.5 animate-in fade-in zoom-in-95 duration-150"
                 onMouseLeave={() => setShowSyncPopover(false)}
               >
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">
-                  <span className="text-xs font-bold text-stone-900">Status Sinkronisasi</span>
+                  <span className="text-xs font-extrabold text-stone-900">Status Penyimpanan &amp; Sync</span>
                   <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full border ${
                     syncStatus === 'synced' ? 'bg-emerald-100 text-emerald-900 border-emerald-300' :
                     syncStatus === 'unconfigured' ? 'bg-stone-100 text-stone-700 border-stone-200' :
                     syncStatus === 'error' ? 'bg-rose-100 text-rose-900 border-rose-300' :
                     'bg-amber-100 text-amber-900 border-amber-300'
                   }`}>
-                    {syncStatus === 'synced' ? '🟢 Synced' :
-                     syncStatus === 'unconfigured' ? '⚪ Belum Terhubung' :
-                     syncStatus === 'unverified' ? '🟡 Belum Diverifikasi' :
+                    {syncStatus === 'synced' ? '🟢 Terhubung' :
+                     syncStatus === 'unconfigured' ? '⚪ Penyimpanan Lokal' :
+                     syncStatus === 'unverified' ? '🟡 Belum Verifikasi' :
                      syncStatus === 'partial' ? '🟡 Koneksi Sebagian' :
                      syncStatus === 'pending' ? '🟡 Changes Pending' :
                      syncStatus === 'syncing' ? '🔄 Syncing' :
@@ -205,51 +213,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-stone-600 font-medium">
-                      <Code2 className="w-3.5 h-3.5 text-emerald-700" />
+                      <Code2 className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Apps Script</span>
                     </span>
                     <span className={`font-bold ${
-                      serviceHealth.appsScript ? 'text-emerald-700' : 'text-amber-700'
+                      serviceHealth.appsScript ? 'text-emerald-800' : 'text-amber-800'
                     }`}>
-                      {serviceHealth.appsScript ? '✓ Terhubung' : '⚠️ Belum dikonfigurasi'}
+                      {serviceHealth.appsScript ? '✓ Aktif' : '⚪ Belum dikonfigurasi'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-stone-600 font-medium">
-                      <Database className="w-3.5 h-3.5 text-emerald-700" />
+                      <Database className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Sheets</span>
                     </span>
                     <span className={`font-bold ${
-                      serviceHealth.googleSheets ? 'text-emerald-700' : 'text-stone-500'
+                      serviceHealth.googleSheets ? 'text-emerald-800' : 'text-stone-500'
                     }`}>
-                      {serviceHealth.googleSheets ? '✓ Terhubung' : '⚪ Menunggu koneksi'}
+                      {serviceHealth.googleSheets ? '✓ Aktif' : '⚪ Belum terhubung'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-stone-600 font-medium">
-                      <HardDrive className="w-3.5 h-3.5 text-emerald-700" />
+                      <HardDrive className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Drive Vault</span>
                     </span>
                     <span className={`font-bold ${
-                      serviceHealth.googleDrive ? 'text-emerald-700' : 'text-stone-500'
+                      serviceHealth.googleDrive ? 'text-emerald-800' : 'text-stone-500'
                     }`}>
-                      {serviceHealth.googleDrive ? '✓ Terhubung' : '⚪ Menunggu koneksi'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-stone-600 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>Verifikasi Kepemilikan Email</span>
-                    </span>
-                    <span className={`font-bold text-[11px] ${
-                      serviceHealth.emailOwnership ? 'text-emerald-700' : 'text-amber-700'
-                    }`}>
-                      {serviceHealth.emailOwnership 
-                        ? `✓ ${serviceHealth.maskedEmail || 'Terverifikasi'}` 
-                        : '⚠️ Belum Verifikasi'}
+                      {serviceHealth.googleDrive ? '✓ Aktif' : '⚪ Belum terhubung'}
                     </span>
                   </div>
 
@@ -264,14 +258,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   )}
                 </div>
 
-                {/* Reassurance Offline-First Banner */}
-                <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200 text-[11px] text-stone-600 space-y-1">
-                  <span className="font-bold text-stone-800 block">💡 Local-First Operational Storage:</span>
-                  <p className="leading-snug">
-                    Data lokal tetap 100% aman di peramban Anda (IndexedDB), tidak tergantung pada koneksi cloud.
-                  </p>
-                </div>
-
                 <div className="pt-1 flex flex-col gap-2">
                   {syncStatus === 'unconfigured' || syncStatus === 'partial' || syncStatus === 'error' ? (
                     <button
@@ -280,10 +266,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                         onOpenSettings();
                         setShowSyncPopover(false);
                       }}
-                      className="w-full py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                      className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
                       <UploadCloud className="w-4 h-4 text-emerald-300" />
-                      <span>☁️ Hubungkan Google Storage</span>
+                      <span>☁️ Kelola Integrasi Storage</span>
                     </button>
                   ) : (
                     <>
@@ -296,7 +282,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Sinkronkan Sekarang (Dua Arah)</span>
+                        <span>Sinkronkan Sekarang</span>
                       </button>
 
                       {onPullClick && (
@@ -308,7 +294,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           }}
                           className="w-full py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-stone-200"
                         >
-                          <Download className="w-3 h-3 text-emerald-700" />
+                          <Download className="w-3 h-3 text-emerald-800" />
                           <span>Tarik Data dari Sheets</span>
                         </button>
                       )}
@@ -319,30 +305,61 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
-          {/* Documentation & Help Guide Button */}
+          {/* Panduan & Docs Button */}
           {onNavigateDocs && (
             <button
               type="button"
               onClick={onNavigateDocs}
-              className="p-2 text-stone-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+              className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-stone-200"
               title="Panduan & Dokumentasi"
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-stone-700" />
             </button>
           )}
 
-          {/* Settings Button */}
+          {/* Settings Button (Desktop only; on mobile it is housed in the bottom navigation bar) */}
           <button
             type="button"
             onClick={onOpenSettings}
-            className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
-            title="Pengaturan & Ekspor Data"
+            className="hidden lg:flex p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-stone-200"
+            title="Pengaturan Control Center"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-stone-700" />
           </button>
 
         </div>
       </div>
+
+      {/* Contextual Demo Data Notification Banner */}
+      {hasDemoData && isDemoBannerVisible && (
+        <div className="bg-amber-50/90 border-b border-amber-200/80 px-3 py-1 text-[11px] font-medium text-amber-950 flex items-center justify-between gap-2 transition-all">
+          <div className="flex items-center gap-1.5 min-w-0 truncate">
+            <span className="shrink-0">🧪</span>
+            <span className="truncate text-stone-700">Data contoh (demo assets) aktif.</span>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onOpenDemoOnboarding && (
+              <button
+                type="button"
+                onClick={onOpenDemoOnboarding}
+                className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-md text-[10px] font-bold cursor-pointer transition-colors border border-amber-200"
+              >
+                Kelola
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleDismissDemoBanner}
+              className="p-1 text-stone-500 hover:text-stone-900 hover:bg-amber-100 rounded-md cursor-pointer transition-colors"
+              title="Tutup banner ini"
+              aria-label="Tutup"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
+

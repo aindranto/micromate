@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Asset, MaintenanceType } from '../types';
-import { formatRupiah, formatDate } from '../lib/utils';
-import { Wrench, Plus, Filter, Calendar, Car, Laptop, Box } from 'lucide-react';
+import { Asset } from '../types';
+import { formatRupiah, formatCompactCurrency, formatDate } from '../lib/utils';
+import { Wrench, Eye } from 'lucide-react';
 
 interface MaintenancePageProps {
   assets: Asset[];
@@ -11,7 +11,6 @@ interface MaintenancePageProps {
 
 export const MaintenancePage: React.FC<MaintenancePageProps> = ({
   assets,
-  onAddMaintenance,
   onSelectAsset,
 }) => {
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -32,56 +31,72 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
   });
 
   const totalCost = filteredLogs.reduce((sum, l) => sum + l.cost, 0);
+  const totalAssetsWithMaintenance = assets.filter(
+    (a) => a.maintenance_records && a.maintenance_records.length > 0
+  ).length;
+
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'oil_change': return 'Ganti Oli';
+      case 'routine_service': return 'Servis Rutin';
+      case 'ac': return 'Cuci/Servis AC';
+      case 'tire': return 'Ban & Velg';
+      case 'battery': return 'Aki & Baterai';
+      case 'brake': return 'Kampas Rem';
+      case 'repair': return 'Perbaikan';
+      default: return type.replace('_', ' ').toUpperCase();
+    }
+  };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 pb-28 sm:pb-24">
       
-      {/* Header & Primary Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-stone-900 tracking-tight">
-            Pusat Riwayat Perawatan & Servis
-          </h2>
-          <p className="text-xs font-medium text-stone-600 mt-0.5">
-            Log lengkap perbaikan, ganti oli, sparepart, dan biaya servis aset Anda
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onAddMaintenance}
-          className="flex items-center justify-center gap-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-2xs transition-all active:scale-95 shrink-0 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Catat Servis</span>
-          <span className="sm:hidden">Servis</span>
-        </button>
+      {/* Clean Header */}
+      <div className="pt-1">
+        <h2 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+          Perawatan &amp; Servis
+        </h2>
+        <p className="text-xs font-medium text-stone-600 mt-0.5">
+          Riwayat perawatan, perbaikan &amp; biaya aset Anda.
+        </p>
       </div>
 
-      {/* KPI Stats Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-2xs">
-          <span className="text-xs text-stone-500 font-bold uppercase tracking-wider block mb-1">Total Catatan Servis</span>
-          <span className="text-2xl font-black text-stone-900">{filteredLogs.length}</span>
-        </div>
+      {/* Single Compact Horizontal Summary Bar */}
+      <div className="bg-white rounded-2xl border border-stone-200 p-3 sm:p-4 shadow-2xs">
+        <div className="grid grid-cols-3 divide-x divide-stone-200/80 text-center">
+          <div className="px-1.5 sm:px-2">
+            <span className="text-base sm:text-lg font-black text-stone-900 block leading-tight">
+              {filteredLogs.length}
+            </span>
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+              Catatan Servis
+            </span>
+          </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-2xs">
-          <span className="text-xs text-stone-500 font-bold uppercase tracking-wider block mb-1">Total Pengeluaran Servis</span>
-          <span className="text-2xl font-black text-emerald-900">{formatRupiah(totalCost)}</span>
-        </div>
+          <div className="px-1.5 sm:px-2">
+            <span className="text-base sm:text-lg font-black text-emerald-900 block leading-tight">
+              {formatCompactCurrency(totalCost)}
+            </span>
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+              Total Biaya
+            </span>
+          </div>
 
-        <div className="bg-white p-4.5 rounded-2xl border border-stone-200 shadow-2xs">
-          <span className="text-xs text-stone-500 font-bold uppercase tracking-wider block mb-1">Aset Terawat</span>
-          <span className="text-2xl font-black text-emerald-800">
-            {assets.filter((a) => a.maintenance_records && a.maintenance_records.length > 0).length} / {assets.length}
-          </span>
+          <div className="px-1.5 sm:px-2">
+            <span className="text-base sm:text-lg font-black text-emerald-800 block leading-tight">
+              {totalAssetsWithMaintenance}/{assets.length}
+            </span>
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+              Aset Dirawat
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+      {/* Horizontal Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
         {[
-          { id: 'all', label: 'Semua Jenis' },
+          { id: 'all', label: 'Semua' },
           { id: 'routine_service', label: 'Servis Rutin' },
           { id: 'oil_change', label: 'Ganti Oli' },
           { id: 'ac', label: 'Cuci/Servis AC' },
@@ -94,7 +109,7 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
             key={f.id}
             type="button"
             onClick={() => setSelectedType(f.id)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border cursor-pointer ${
               selectedType === f.id
                 ? 'bg-emerald-800 text-white border-emerald-800 shadow-2xs font-bold'
                 : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
@@ -105,9 +120,9 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
         ))}
       </div>
 
-      {/* Timeline Feed */}
+      {/* Main Focus: Maintenance History Records */}
       {filteredLogs.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-stone-200 p-12 text-center space-y-3 shadow-2xs">
+        <div className="bg-white rounded-2xl border border-stone-200 p-10 text-center space-y-3 shadow-2xs">
           <Wrench className="w-10 h-10 text-stone-300 mx-auto" />
           <h3 className="font-bold text-stone-800 text-base">
             Tidak ada riwayat perawatan
@@ -117,56 +132,66 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200 p-6 space-y-4 shadow-2xs">
-          <div className="relative pl-6 border-l-2 border-stone-200 space-y-6">
-            {filteredLogs.map((log, index) => (
-              <div key={log.maintenance_id || (log as any).id || `maint-log-${index}`} className="relative group">
-                <div className="absolute -left-[31px] top-1.5 w-3.5 h-3.5 rounded-full bg-emerald-700 ring-4 ring-white" />
-
-                <div className="p-4 bg-stone-50/80 rounded-2xl border border-stone-200 hover:border-emerald-600 transition-all space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-900 border border-emerald-200 rounded-md">
-                          {log.type.replace('_', ' ')}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onSelectAsset(log.asset)}
-                          className="text-xs font-bold text-emerald-800 hover:text-emerald-950 hover:underline cursor-pointer"
-                        >
-                          {log.assetName}
-                        </button>
-                      </div>
-                      <span className="text-[11px] text-stone-600 font-medium block pt-1">
-                        Tanggal: <strong className="text-stone-800">{formatDate(log.date)}</strong>
-                        {log.mileage ? ` • Odometer: ${log.mileage.toLocaleString('id-ID')} km` : ''}
-                      </span>
-                    </div>
-
-                    <span className="font-black text-base text-stone-900">
-                      {formatRupiah(log.cost)}
+        <div className="space-y-2.5">
+          {filteredLogs.map((log, index) => (
+            <div
+              key={log.maintenance_id || (log as any).id || `maint-log-${index}`}
+              className="bg-white rounded-2xl border border-stone-200 p-3.5 sm:p-4 hover:border-emerald-600/60 transition-all shadow-2xs space-y-2"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => onSelectAsset(log.asset)}
+                      className="text-xs sm:text-sm font-extrabold text-stone-900 hover:text-emerald-800 hover:underline cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Wrench className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                      <span className="truncate">{log.assetName}</span>
+                    </button>
+                    <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 rounded-md shrink-0">
+                      {getTypeLabel(log.type)}
                     </span>
                   </div>
 
-                  {log.notes && (
-                    <p className="text-xs text-stone-800 font-medium pt-1">
-                      {log.notes}
-                    </p>
-                  )}
+                  <p className="text-[11px] sm:text-xs text-stone-500 font-medium">
+                    {formatDate(log.date)} {log.mileage ? `· ${log.mileage.toLocaleString('id-ID')} km` : ''}
+                  </p>
+                </div>
 
-                  {log.provider && (
-                    <p className="text-[11px] text-stone-500">
-                      Bengkel / Penyedia: <span className="font-semibold text-stone-800">{log.provider}</span>
-                    </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-black text-xs sm:text-sm text-stone-900 bg-stone-50 px-2.5 py-1 rounded-xl border border-stone-200/80">
+                    {formatRupiah(log.cost)}
+                  </span>
+                  {log.asset && (
+                    <button
+                      type="button"
+                      onClick={() => onSelectAsset(log.asset)}
+                      className="px-2.5 py-1 text-xs font-extrabold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200/80 rounded-xl transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Detail Aset</span>
+                    </button>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+
+              {(log.notes || log.provider) && (
+                <div className="pt-2 border-t border-stone-100 space-y-0.5 text-xs">
+                  {log.notes && <p className="text-stone-700 font-medium">{log.notes}</p>}
+                  {log.provider && (
+                    <p className="text-stone-400 text-[11px]">
+                      Penyedia / Bengkel: <span className="font-bold text-stone-600">{log.provider}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
     </div>
   );
 };
+

@@ -1,27 +1,84 @@
 import { Asset, MaintenanceRecord, Reminder, Warranty } from '../types';
 
-/** Helper untuk mengonversi URL Google Drive ke format gambar langsung (CDN direct view) */
+/** Extract Google Drive File ID from various URL formats or raw file ID string */
+export function extractDriveFileId(url?: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return '';
+
+  // Raw file ID (length typically 25 to 45 chars, alphanumeric with - or _)
+  if (!trimmed.includes('/') && !trimmed.includes(':') && !trimmed.includes('?') && trimmed.length >= 20 && trimmed.length <= 60) {
+    return trimmed;
+  }
+
+  // Format 1: /file/d/FILE_ID/
+  const matchFileD = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (matchFileD && matchFileD[1]) return matchFileD[1];
+
+  // Format 2: ?id=FILE_ID or &id=FILE_ID
+  const matchIdParam = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (matchIdParam && matchIdParam[1]) return matchIdParam[1];
+
+  // Format 3: googleusercontent.com/d/FILE_ID
+  const matchLh3 = trimmed.match(/googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
+  if (matchLh3 && matchLh3[1]) return matchLh3[1];
+
+  // Format 4: drive.google.com/open?id=FILE_ID or drive.google.com/uc?id=FILE_ID
+  const matchOpenId = trimmed.match(/drive\.google\.com\/(?:open|uc)\?(?:.*&)?id=([a-zA-Z0-9_-]+)/);
+  if (matchOpenId && matchOpenId[1]) return matchOpenId[1];
+
+  return '';
+}
+
+/** Helper untuk mengonversi URL Google Drive ke format thumbnail/gambar langsung yang stabil dan tidak terblokir cross-origin */
 export function formatImageUrl(url?: string): string | undefined {
   if (!url) return undefined;
-  if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+  const trimmed = url.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
 
-  // Extract Google Drive File ID jika berbentuk URL drive
-  let fileId = '';
-  const matchFileD = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (matchFileD && matchFileD[1]) {
-    fileId = matchFileD[1];
-  } else {
-    const matchIdParam = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (matchIdParam && matchIdParam[1]) {
-      fileId = matchIdParam[1];
+  const fileId = extractDriveFileId(trimmed);
+  if (fileId) {
+    // Gunakan endpoint thumbnail Google Drive yang universal, aman di iframe, dan tidak terkena blokir cookie pihak ketiga
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+  }
+
+  return trimmed;
+}
+
+/** Helper untuk mendapatkan foto utama aset dengan fallback ke dokumen berjenis foto/gambar */
+export function getAssetMainPhoto(asset?: Asset | null): string | undefined {
+  if (!asset) return undefined;
+
+  // 1. Coba photo_url langsung dari metadata aset
+  if (asset.photo_url && asset.photo_url.trim()) {
+    return formatImageUrl(asset.photo_url);
+  }
+
+  // 2. Fallback: Cari di daftar dokumen aset jika ada foto/gambar
+  if (asset.documents && Array.isArray(asset.documents) && asset.documents.length > 0) {
+    for (const doc of asset.documents as any[]) {
+      const docType = String(doc.type || doc.document_type || '').toLowerCase();
+      const docName = String(doc.name || doc.file_name || '').toLowerCase();
+      const mime = String(doc.mime_type || '').toLowerCase();
+      const fileUrl = doc.file_url || doc.drive_url || doc.thumbnail_url;
+
+      const isImage = 
+        docType === 'photo' ||
+        docType === 'image' ||
+        mime.startsWith('image/') ||
+        docName.endsWith('.jpg') ||
+        docName.endsWith('.jpeg') ||
+        docName.endsWith('.png') ||
+        docName.endsWith('.webp');
+
+      if (isImage && fileUrl) {
+        return formatImageUrl(fileUrl);
+      }
     }
   }
 
-  if (fileId) {
-    return `https://lh3.googleusercontent.com/d/${fileId}`;
-  }
-
-  return url;
+  return undefined;
 }
 
 export function formatRupiah(amount?: number): string {
@@ -31,6 +88,21 @@ export function formatRupiah(amount?: number): string {
     currency: 'IDR',
     maximumFractionDigits: 0
   }).format(amount);
+}
+
+export function formatCompactCurrency(amount?: number): string {
+  if (amount === undefined || amount === null || amount === 0) return '0';
+  if (amount < 10_000_000) {
+    return amount.toLocaleString('id-ID');
+  }
+  if (amount < 1_000_000_000) {
+    const inJuta = amount / 1_000_000;
+    const formatted = inJuta % 1 === 0 ? inJuta.toString() : inJuta.toFixed(1).replace('.', ',');
+    return `${formatted} jt`;
+  }
+  const inMilyar = amount / 1_000_000_000;
+  const formatted = inMilyar % 1 === 0 ? inMilyar.toString() : inMilyar.toFixed(2).replace('.', ',');
+  return `${formatted} M`;
 }
 
 export function formatDate(dateString?: string): string {

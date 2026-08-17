@@ -10,6 +10,7 @@ import { APPS_SCRIPT_CODE } from '../lib/appsScriptCode';
 interface OnboardingPageProps {
   onComplete: (mode: 'cloud' | 'local', initialDataChoice: 'existing' | 'empty' | 'demo') => void;
   initialStep?: 'welcome' | 'google_setup';
+  onClose?: () => void;
 }
 
 type StepType = 
@@ -23,7 +24,8 @@ type StepType =
 
 export const OnboardingPage: React.FC<OnboardingPageProps> = ({
   onComplete,
-  initialStep = 'welcome'
+  initialStep = 'welcome',
+  onClose
 }) => {
   const [currentStep, setCurrentStep] = useState<StepType>(
     initialStep === 'google_setup' ? 'google_guide' : 'welcome'
@@ -203,12 +205,23 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
           </div>
         </div>
 
-        {currentStep !== 'welcome' && (
-          <div className="flex items-center gap-1.5 bg-stone-800/80 border border-stone-700/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-extrabold text-stone-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Setup Initial Vault</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {currentStep !== 'welcome' && (
+            <div className="flex items-center gap-1.5 bg-stone-800/80 border border-stone-700/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-extrabold text-stone-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Setup Initial Vault</span>
+            </div>
+          )}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 bg-stone-800/80 hover:bg-stone-700 text-stone-300 hover:text-white border border-stone-700 rounded-full text-xs font-bold transition-all cursor-pointer"
+            >
+              ✕ Keluar ke Aplikasi
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Main Container */}
@@ -436,24 +449,24 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
             {/* Interactive Steps 1-4 */}
             <div className="space-y-3.5 text-xs">
               
-              {/* Step 1: Open Apps Script */}
+              {/* Step 1: Open Google Sheet */}
               <div className="p-4 bg-stone-900/90 rounded-2xl border border-stone-700/80 flex items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="font-extrabold text-white flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-emerald-800 text-emerald-200 text-[10px] font-black flex items-center justify-center">①</span>
-                    <span>Buka Google Apps Script / Sheet Baru</span>
+                    <span>Buka Google Sheet Baru</span>
                   </div>
                   <p className="text-[11px] text-stone-400 font-medium pl-7">
-                    Buat Google Sheet di <strong>sheet.new</strong> lalu buka menu <i>Extensions &gt; Apps Script</i>.
+                    Buat Google Sheet baru di <strong>sheet.new</strong> lalu buka menu <i>Extensions &gt; Apps Script</i>.
                   </p>
                 </div>
                 <a
-                  href="https://script.google.com"
+                  href="https://sheet.new"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-2 bg-stone-800 hover:bg-stone-700 text-emerald-300 font-bold text-[11px] rounded-xl shrink-0 inline-flex items-center gap-1.5 transition-all border border-stone-600"
                 >
-                  <span>Buka Apps Script ↗</span>
+                  <span>Buka Google Sheet ↗</span>
                 </a>
               </div>
 

@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { SyncStatus, ServiceHealth } from '../types';
+import { SyncStatus, ServiceHealth, SyncQueueItem } from '../types';
 import { dbManager } from '../lib/db';
+import { INITIAL_WORKSPACE_ID } from '../lib/seedData';
+import { runContractTests, TestLogEntry } from '../lib/contractTests';
 import { APPS_SCRIPT_CODE } from '../lib/appsScriptCode';
 import { 
   X, Settings, Download, Upload, RotateCcw, Database, Check, RefreshCw, 
   AlertTriangle, HardDrive, Code2, UploadCloud, Lock, KeyRound, ShieldCheck, 
   Tag, Plus, Edit3, Trash2, Sparkles, Mail, Unlink, FileCode, ShieldAlert,
-  FileText, Cloud, ChevronDown, ExternalLink
+  FileText, Cloud, ChevronDown, ChevronUp, Maximize2, Minimize2, ExternalLink, Bell
 } from 'lucide-react';
 import { 
   useCategories, saveCategories, CATEGORY_ICON_LIST, getCategoryIcon, 
   DEFAULT_CATEGORIES, CategoryItem 
 } from '../lib/categories';
+import { 
+  getNotificationPreferences, 
+  saveNotificationPreferences, 
+  requestBrowserPushPermission 
+} from '../lib/notificationPreferenceService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -25,6 +32,7 @@ interface SettingsModalProps {
   onVerifyConnection: () => void;
   onClearDemoData?: () => void;
   onOpenDemoOnboarding?: () => void;
+  onRestartOnboarding?: () => void;
   onClearCacheAndReset?: () => void;
 }
 
@@ -40,6 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onVerifyConnection,
   onClearDemoData,
   onOpenDemoOnboarding,
+  onRestartOnboarding,
   onClearCacheAndReset,
 }) => {
   useEffect(() => {
@@ -72,8 +81,89 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [categoryIconInput, setCategoryIconInput] = useState('Box');
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [categoryError, setCategoryError] = useState('');
+  const [deletingCategoryInfo, setDeletingCategoryInfo] = useState<{ id: string; label: string; inUseCount: number } | null>(null);
+  const [isConfirmingResetCategories, setIsConfirmingResetCategories] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'sync' | 'security' | 'categories' | 'backup' | 'danger'>('sync');
+  // Accordion Expand/Collapse state for Control Center modules (Exclusive Accordion)
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    sync: true,
+    security: false,
+    categories: false,
+    notifications: false,
+    backup: false,
+    diagnostics: false,
+    danger: false,
+  });
+
+  const toggleSection = (key: string) => {
+    setExpandedSections(prev => {
+      const isCurrentlyOpen = !!prev[key];
+      // Exclusive Accordion behavior: opening one collapses all other sections
+      return {
+        sync: key === 'sync' ? !isCurrentlyOpen : false,
+        security: key === 'security' ? !isCurrentlyOpen : false,
+        categories: key === 'categories' ? !isCurrentlyOpen : false,
+        notifications: key === 'notifications' ? !isCurrentlyOpen : false,
+        backup: key === 'backup' ? !isCurrentlyOpen : false,
+        diagnostics: key === 'diagnostics' ? !isCurrentlyOpen : false,
+        danger: key === 'danger' ? !isCurrentlyOpen : false,
+      };
+    });
+  };
+
+  const areAllExpanded = Object.values(expandedSections).every(Boolean);
+  const toggleAllSections = () => {
+    const nextVal = !areAllExpanded;
+    setExpandedSections({
+      sync: nextVal,
+      security: nextVal,
+      categories: nextVal,
+      notifications: nextVal,
+      backup: nextVal,
+      diagnostics: nextVal,
+      danger: nextVal,
+    });
+  };
+
+  // Notification Preferences State (Phase 6-3E)
+  const [notiPrefs, setNotiPrefs] = useState(() => getNotificationPreferences());
+
+  useEffect(() => {
+    if (isOpen) {
+      setNotiPrefs(getNotificationPreferences());
+    }
+  }, [isOpen]);
+
+  const handleToggleGlobal = () => {
+    const updated = { ...notiPrefs, globalEnabled: !notiPrefs.globalEnabled };
+    setNotiPrefs(updated);
+    saveNotificationPreferences(updated);
+  };
+
+  const handleToggleChannel = (categoryKey: keyof typeof notiPrefs.categories, channelKey: 'inApp' | 'browserPush' | 'email') => {
+    const updated = {
+      ...notiPrefs,
+      categories: {
+        ...notiPrefs.categories,
+        [categoryKey]: {
+          ...notiPrefs.categories[categoryKey],
+          [channelKey]: !notiPrefs.categories[categoryKey][channelKey]
+        }
+      }
+    };
+    setNotiPrefs(updated);
+    saveNotificationPreferences(updated);
+  };
+
+  const handleRequestPushPermission = async () => {
+    const permission = await requestBrowserPushPermission();
+    const updated = {
+      ...notiPrefs,
+      browserPermissionState: permission
+    };
+    setNotiPrefs(updated);
+    saveNotificationPreferences(updated);
+  };
 
   const [copied, setCopied] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -129,6 +219,73 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       if (interval) clearInterval(interval);
     };
   }, [resendCooldown, otpExpiryTimer]);
+
+  // Diagnostics & Contract Verification States
+  const [testResults, setTestResults] = useState<TestLogEntry[] | null>(null);
+  const [isRunningTests, setIsRunningTests] = useState(false);
+  const [expandedSuiteId, setExpandedSuiteId] = useState<string | null>(null);
+  const [testsRunTimestamp, setTestsRunTimestamp] = useState<string | null>(null);
+
+  // Sync Queue Inspector & Failure Management State
+  const [queueItems, setQueueItems] = useState<SyncQueueItem[]>([]);
+  const [isLoadingQueue, setIsLoadingQueue] = useState(false);
+  const [showQueueDetails, setShowQueueDetails] = useState(false);
+  const [selectedQueueItem, setSelectedQueueItem] = useState<SyncQueueItem | null>(null);
+
+  const refreshQueueItems = async () => {
+    setIsLoadingQueue(true);
+    try {
+      const items = await dbManager.getAllSyncQueueItems();
+      setQueueItems(items);
+    } catch (e) {
+      console.error('Failed to load queue items', e);
+    } finally {
+      setIsLoadingQueue(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      refreshQueueItems();
+    }
+  }, [isOpen, syncQueueCount]);
+
+  const handleRetryItem = async (itemId: string) => {
+    await dbManager.retryQueueItem(itemId);
+    await refreshQueueItems();
+    if (onFlushSync) onFlushSync();
+  };
+
+  const handleRemoveItem = async (itemId: string) => {
+    await dbManager.removeSyncQueueItem(itemId);
+    await refreshQueueItems();
+    if (selectedQueueItem?.id === itemId) setSelectedQueueItem(null);
+  };
+
+  const handleRetryAllFailed = async () => {
+    await dbManager.retryAllFailedQueueItems();
+    await refreshQueueItems();
+    if (onFlushSync) onFlushSync();
+  };
+
+  const handleClearAllFailed = async () => {
+    await dbManager.clearAllFailedQueueItems();
+    await refreshQueueItems();
+  };
+
+  const handleRunContractTests = async () => {
+    setIsRunningTests(true);
+    setTestResults(null);
+    try {
+      const results = await runContractTests();
+      setTestResults(results);
+      setTestsRunTimestamp(new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    } catch (e) {
+      console.error('Contract tests execution failed', e);
+    } finally {
+      setIsRunningTests(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -298,26 +455,82 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setCategoryError('');
   };
 
-  const handleDeleteCategory = (catId: string) => {
+  const handleStartDeleteCategory = async (catId: string) => {
+    setCategoryError('');
     if (catId === 'other' || catId === 'lainnya') {
-      alert('Kategori "Lainnya" adalah kategori bawaan sistem dan tidak dapat dihapus.');
+      setCategoryError('Kategori "Lainnya" adalah kategori utama sistem dan tidak dapat dihapus.');
       return;
     }
+    
     const cat = categories.find(c => c.id === catId);
     if (categories.length <= 1) {
-      alert('Minimal harus ada 1 kategori aset.');
+      setCategoryError('Minimal harus ada 1 kategori aset.');
       return;
     }
-    if (window.confirm(`Apakah Anda yakin ingin menghapus kategori "${cat?.label || catId}"?`)) {
-      const updatedList = categories.filter((c) => c.id !== catId);
-      saveCategories(updatedList);
+
+    try {
+      const allAssets = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
+      const inUseAssets = allAssets.filter(
+        a => !a.deleted && (
+          a.category === catId || 
+          a.category.toLowerCase() === catId.toLowerCase() || 
+          (cat?.label && a.category.toLowerCase() === cat.label.toLowerCase())
+        )
+      );
+
+      setDeletingCategoryInfo({
+        id: catId,
+        label: cat?.label || catId,
+        inUseCount: inUseAssets.length
+      });
+    } catch (e) {
+      console.error('Gagal menyiapkan penghapusan kategori:', e);
+      setCategoryError('Gagal memeriksa data aset.');
     }
   };
 
-  const handleResetDefaultCategories = () => {
-    if (window.confirm('Kembalikan daftar kategori ke pengaturan awal/bawaan?')) {
-      saveCategories(DEFAULT_CATEGORIES);
+  const handleConfirmDeleteCategory = async () => {
+    if (!deletingCategoryInfo) return;
+    const { id: catId, inUseCount } = deletingCategoryInfo;
+
+    try {
+      if (inUseCount > 0) {
+        const cat = categories.find(c => c.id === catId);
+        const allAssets = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
+        const inUseAssets = allAssets.filter(
+          a => !a.deleted && (
+            a.category === catId || 
+            a.category.toLowerCase() === catId.toLowerCase() || 
+            (cat?.label && a.category.toLowerCase() === cat.label.toLowerCase())
+          )
+        );
+
+        for (const asset of inUseAssets) {
+          await dbManager.saveAsset({
+            ...asset,
+            category: 'other',
+            updated_at: new Date().toISOString()
+          }, INITIAL_WORKSPACE_ID);
+        }
+        
+        onDataReload();
+      }
+
+      const updatedList = categories.filter((c) => c.id !== catId);
+      saveCategories(updatedList);
+      setIsAddingCategory(false);
+      setEditingCategoryId(null);
+      setDeletingCategoryInfo(null);
+    } catch (e) {
+      console.error('Gagal menghapus kategori:', e);
+      setCategoryError('Terjadi kesalahan saat menghapus kategori.');
+      setDeletingCategoryInfo(null);
     }
+  };
+
+  const handleConfirmResetCategories = () => {
+    saveCategories(DEFAULT_CATEGORIES);
+    setIsConfirmingResetCategories(false);
   };
 
   // Bidirectional 2-Way Sync
@@ -367,7 +580,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsPushing(true);
     setPullMessage(null);
     try {
-      const assets = await dbManager.getAllAssets();
+      const assets = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
       const validAssets = assets.filter(a => !a.deleted);
       for (const asset of validAssets) {
         await dbManager.addToSyncQueue('saveAsset', asset);
@@ -386,7 +599,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const handleExportJSON = async () => {
-    const jsonStr = await dbManager.exportJSON();
+    const jsonStr = await dbManager.exportJSON(INITIAL_WORKSPACE_ID);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -430,7 +643,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleConfirmImportJSON = async () => {
     if (!importPreviewData) return;
-    const success = await dbManager.importJSON(importPreviewData.rawContent);
+    const success = await dbManager.importJSON(importPreviewData.rawContent, INITIAL_WORKSPACE_ID);
     if (success) {
       setImportStatus('✓ Data aset & komponen berhasil diimpor!');
       setImportPreviewData(null);
@@ -468,146 +681,71 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        {/* Mobile Navigation Dropdown & Quick Pill Selector (< sm) */}
-        <div className="sm:hidden p-2 bg-stone-100 border-b border-stone-200 shrink-0 space-y-2">
-          <div className="relative">
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value as any)}
-              className="w-full pl-9 pr-8 py-2 bg-white border border-stone-300 rounded-xl font-extrabold text-xs text-stone-900 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 shadow-2xs cursor-pointer"
-            >
-              <option value="sync">Storage &amp; Sync (Penyimpanan)</option>
-              <option value="security">Keamanan PIN Aplikasi</option>
-              <option value="categories">Kategori Aset</option>
-              <option value="backup">Backup &amp; Restore (JSON)</option>
-              <option value="danger">Zona Berbahaya (Reset Data)</option>
-            </select>
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              {activeTab === 'sync' && <Cloud className="w-4 h-4 text-emerald-700" />}
-              {activeTab === 'security' && <Lock className="w-4 h-4 text-emerald-700" />}
-              {activeTab === 'categories' && <Tag className="w-4 h-4 text-emerald-700" />}
-              {activeTab === 'backup' && <Database className="w-4 h-4 text-emerald-700" />}
-              {activeTab === 'danger' && <ShieldAlert className="w-4 h-4 text-rose-600" />}
-            </div>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-stone-500">
-              <ChevronDown className="w-4 h-4" />
-            </div>
+        {/* Expand / Collapse All Control Bar */}
+        <div className="px-3.5 sm:px-5 py-2.5 bg-stone-100/90 border-b border-stone-200 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-extrabold text-stone-700">
+              Menu Pengaturan &amp; Kontrol Sistem
+            </span>
           </div>
-
-          {/* Quick Icon-Only Pill Bar on Mobile for 1-tap switching */}
-          <div className="flex items-center justify-between gap-1">
-            {[
-              { id: 'sync', icon: Cloud, label: 'Sync' },
-              { id: 'security', icon: Lock, label: 'PIN' },
-              { id: 'categories', icon: Tag, label: 'Kategori' },
-              { id: 'backup', icon: Database, label: 'Backup' },
-              { id: 'danger', icon: ShieldAlert, label: 'Bahaya' },
-            ].map((item) => {
-              const IconComponent = item.icon;
-              const isActive = activeTab === item.id;
-              const isDanger = item.id === 'danger';
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveTab(item.id as any)}
-                  className={`flex-1 py-1.5 px-1 rounded-lg text-[10px] font-extrabold flex flex-col items-center justify-center gap-0.5 transition-colors border cursor-pointer ${
-                    isActive
-                      ? isDanger
-                        ? 'bg-rose-50 text-rose-950 border-rose-300 ring-1 ring-rose-300/50 shadow-2xs'
-                        : 'bg-white text-emerald-950 border-stone-200/90 ring-1 ring-black/5 shadow-2xs'
-                      : isDanger
-                        ? 'bg-transparent text-rose-700 border-transparent hover:bg-rose-100/50'
-                        : 'bg-transparent text-stone-600 border-transparent hover:bg-stone-200/60'
-                  }`}
-                >
-                  <IconComponent className={`w-3.5 h-3.5 ${isDanger ? 'text-rose-600' : isActive ? 'text-emerald-700' : 'text-stone-500'}`} />
-                  <span className="truncate max-w-[55px] text-center leading-none">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Desktop & Mobile Landscape Navigation Tabs Bar (sm:flex) */}
-        <div className="hidden sm:flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-stone-100 border-b border-stone-200 shrink-0 overflow-x-auto no-scrollbar">
           <button
             type="button"
-            onClick={() => setActiveTab('sync')}
-            className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0 md:flex-1 transition-colors border cursor-pointer ${
-              activeTab === 'sync'
-                ? 'bg-white text-emerald-950 shadow-xs border-stone-200/90 ring-1 ring-black/5 font-extrabold'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 border-transparent'
-            }`}
+            onClick={toggleAllSections}
+            className="px-2.5 py-1 text-[11px] font-bold text-emerald-900 hover:text-emerald-950 bg-white hover:bg-emerald-50 rounded-lg border border-stone-200 shadow-2xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
           >
-            <Cloud className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-            <span>Storage &amp; Sync</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('security')}
-            className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0 md:flex-1 transition-colors border cursor-pointer ${
-              activeTab === 'security'
-                ? 'bg-white text-emerald-950 shadow-xs border-stone-200/90 ring-1 ring-black/5 font-extrabold'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 border-transparent'
-            }`}
-          >
-            <Lock className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-            <span>Keamanan PIN</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('categories')}
-            className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0 md:flex-1 transition-colors border cursor-pointer ${
-              activeTab === 'categories'
-                ? 'bg-white text-emerald-950 shadow-xs border-stone-200/90 ring-1 ring-black/5 font-extrabold'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 border-transparent'
-            }`}
-          >
-            <Tag className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-            <span>Kategori Aset</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('backup')}
-            className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0 md:flex-1 transition-colors border cursor-pointer ${
-              activeTab === 'backup'
-                ? 'bg-white text-emerald-950 shadow-xs border-stone-200/90 ring-1 ring-black/5 font-extrabold'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 border-transparent'
-            }`}
-          >
-            <Database className="w-3.5 h-3.5 shrink-0 text-emerald-700" />
-            <span>Backup &amp; Restore</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('danger')}
-            className={`px-2.5 md:px-3 py-1.5 md:py-2 rounded-xl text-[11px] md:text-xs font-bold flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap shrink-0 md:flex-1 transition-colors border cursor-pointer ${
-              activeTab === 'danger'
-                ? 'bg-rose-50 text-rose-950 shadow-xs border-rose-200 ring-1 ring-rose-300/50 font-extrabold'
-                : 'text-rose-700 hover:text-rose-900 hover:bg-rose-100/60 border-transparent'
-            }`}
-          >
-            <ShieldAlert className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-            <span>Zona Bahaya</span>
+            {areAllExpanded ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Tutup Semua</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-emerald-700" />
+                <span>Buka Semua</span>
+              </>
+            )}
           </button>
         </div>
 
-        <div className="p-3.5 sm:p-5 md:p-6 space-y-4 sm:space-y-6 text-xs flex-1 overflow-y-auto no-scrollbar">
+        <div className="p-3.5 sm:p-5 md:p-6 space-y-3.5 text-xs flex-1 overflow-y-auto no-scrollbar">
           
-          {/* TAB 1: Storage & Sync */}
-          {activeTab === 'sync' && (
-            <div className="space-y-5 animate-fade-in">
+          {/* SECTION 1: Storage & Sync */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('sync')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
+                  <Cloud className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Storage &amp; Sinkronisasi Cloud</h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      serviceHealth.appsScript && dbManager.isConnectionVerified()
+                        ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                        : 'bg-stone-200 text-stone-700'
+                    }`}>
+                      {serviceHealth.appsScript && dbManager.isConnectionVerified() ? '✓ Terhubung' : 'Offline / Lokal'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    IndexedDB lokal, antrean mutasi FIFO, dan integrasi Google Sheets
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.sync ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.sync && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-5 animate-fade-in">
               {/* Section 1: Storage & Sync Status */}
           <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-bold text-stone-900">
                 <Database className="w-4 h-4 text-emerald-700" />
-                <span>Status Penyimpanan Lokal (IndexedDB)</span>
+                <span>Status Penyimpanan Lokal &amp; Antrean (IndexedDB)</span>
               </div>
               <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
                 ✓ Aktif (Offline-First)
@@ -615,20 +753,177 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             <p className="text-stone-600 leading-relaxed font-medium">
-              Seluruh data aset, garansi, kendaraan, dan riwayat perawatan Anda tersimpan secara offline-first di browser lokal. MicroMate tetap dapat digunakan secara penuh tanpa koneksi internet.
+              Seluruh data aset, garansi, kendaraan, dan riwayat perawatan tersimpan secara offline-first di browser lokal. MicroMate mengeksekusi mutasi dengan antrean berurutan (FIFO) dan mekanisme retry otomatis berstandar enterprise.
             </p>
 
+            {/* Sync Queue Summary Stats */}
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-center">
+                <span className="text-[10px] text-stone-500 font-bold block">Antrean Tertunda</span>
+                <span className="text-sm font-extrabold text-stone-900">
+                  {queueItems.filter(i => i.status === 'PENDING' || i.status === 'PROCESSING').length}
+                </span>
+              </div>
+              <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-center">
+                <span className="text-[10px] text-amber-600 font-bold block">Sedang Retry</span>
+                <span className="text-sm font-extrabold text-amber-900">
+                  {queueItems.filter(i => i.status === 'FAILED_RETRYABLE').length}
+                </span>
+              </div>
+              <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-center">
+                <span className="text-[10px] text-rose-600 font-bold block">Gagal Permanen</span>
+                <span className={`text-sm font-extrabold ${queueItems.some(i => i.status === 'FAILED_PERMANENT') ? 'text-rose-600' : 'text-stone-400'}`}>
+                  {queueItems.filter(i => i.status === 'FAILED_PERMANENT').length}
+                </span>
+              </div>
+            </div>
+
+            {/* Failed Permanent / Retry Alert */}
+            {queueItems.some(i => i.status === 'FAILED_PERMANENT' || i.status === 'FAILED_RETRYABLE') && (
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-2 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-rose-900 text-xs flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-600" />
+                    <span>Perhatian: Ada Mutasi Tertahan di Antrean</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={handleRetryAllFailed}
+                      className="px-2 py-1 bg-rose-800 hover:bg-rose-900 text-white rounded-lg text-[10px] font-bold cursor-pointer transition-all active:scale-95 shadow-2xs"
+                    >
+                      Coba Lagi Semua
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearAllFailed}
+                      className="px-2 py-1 bg-white hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-lg text-[10px] font-bold cursor-pointer transition-all"
+                    >
+                      Bersihkan Gagal
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-rose-800 font-medium">
+                  Terdapat perubahan yang belum berhasil terkirim ke Google Sheets. Anda dapat meninjau penyebab kegagalan di bawah atau menekan tombol coba lagi.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between pt-1">
-              <span className="text-stone-700 font-semibold">
-                Sync Queue Antrean: <strong>{syncQueueCount} item</strong>
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowQueueDetails(!showQueueDetails)}
+                className="text-[11px] font-bold text-emerald-800 hover:text-emerald-900 underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>{showQueueDetails ? 'Sembunyikan Rincian Antrean' : `Lihat Inspeksi Antrean (${queueItems.length} item)`}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showQueueDetails ? 'rotate-180' : ''}`} />
+              </button>
+
               <button
                 onClick={onFlushSync}
-                className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-lg text-xs cursor-pointer active:scale-95 transition-all"
+                className="px-3 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-lg text-xs cursor-pointer active:scale-95 transition-all shadow-2xs"
               >
                 Sinkronkan Sekarang
               </button>
             </div>
+
+            {/* Detailed Sync Queue Inspector */}
+            {showQueueDetails && (
+              <div className="mt-3 pt-3 border-t border-stone-200 space-y-2 animate-fade-in">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-stone-800">Daftar Transaksi Antrean Sinkronisasi:</span>
+                  <button
+                    type="button"
+                    onClick={refreshQueueItems}
+                    disabled={isLoadingQueue}
+                    className="text-[10px] font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isLoadingQueue ? 'animate-spin' : ''}`} />
+                    <span>Muat Ulang Antrean</span>
+                  </button>
+                </div>
+
+                {queueItems.length === 0 ? (
+                  <div className="p-4 bg-white rounded-xl border border-stone-200 text-center text-stone-500 font-medium text-[11px]">
+                    ✨ Antrean sinkronisasi bersih. Seluruh data lokal telah tersinkronkan.
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar">
+                    {queueItems.map((item) => {
+                      const isFailedPerm = item.status === 'FAILED_PERMANENT';
+                      const isRetryable = item.status === 'FAILED_RETRYABLE';
+                      const isProcessing = item.status === 'PROCESSING';
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-2.5 rounded-xl border transition-all text-[11px] ${
+                            isFailedPerm
+                              ? 'bg-rose-50/80 border-rose-300 text-rose-950'
+                              : isRetryable
+                              ? 'bg-amber-50/80 border-amber-300 text-amber-950'
+                              : isProcessing
+                              ? 'bg-blue-50/80 border-blue-300 text-blue-950'
+                              : 'bg-white border-stone-200 text-stone-800'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase border ${
+                                isFailedPerm
+                                  ? 'bg-rose-200 text-rose-900 border-rose-300'
+                                  : isRetryable
+                                  ? 'bg-amber-200 text-amber-900 border-amber-300'
+                                  : isProcessing
+                                  ? 'bg-blue-200 text-blue-900 border-blue-300'
+                                  : 'bg-stone-100 text-stone-700 border-stone-300'
+                              }`}>
+                                {item.status}
+                              </span>
+                              <span className="font-extrabold">{item.action}</span>
+                              <span className="text-[10px] text-stone-500 font-mono">[{item.entity || 'GENERAL'}]</span>
+                            </div>
+
+                            <div className="flex items-center gap-1">
+                              {(isFailedPerm || isRetryable) && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRetryItem(item.id)}
+                                  className="px-2 py-0.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded text-[10px] font-bold cursor-pointer transition-all active:scale-95"
+                                  title="Coba sinkronkan ulang mutasi ini"
+                                >
+                                  Coba Lagi
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItem(item.id)}
+                                className="px-2 py-0.5 bg-stone-200 hover:bg-rose-100 hover:text-rose-800 text-stone-700 rounded text-[10px] font-bold cursor-pointer transition-all"
+                                title="Hapus mutasi dari antrean"
+                              >
+                                Hapus
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-stone-600 font-mono">
+                            <span>ID: {item.mutation_id || item.id}</span>
+                            {item.asset_id && <span>Aset: {item.asset_id}</span>}
+                            <span>Percobaan: {item.retry_count || 0}/5</span>
+                          </div>
+
+                          {item.last_error && (
+                            <div className="mt-1 p-1.5 bg-rose-100/70 rounded-lg text-[10px] text-rose-900 font-semibold border border-rose-200">
+                              ⚠️ Eror: {item.last_error}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Section 2: Google Apps Script Gateway & Email Ownership Verification */}
@@ -980,69 +1275,121 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
       )}
+    </div>
 
-          {/* TAB 2: Security & PIN Access */}
-          {activeTab === 'security' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="space-y-3 p-4 bg-stone-50 rounded-2xl border border-stone-200">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="font-bold text-stone-900 text-sm block flex items-center gap-1.5">
-                      <Lock className="w-4 h-4 text-emerald-800" />
-                      <span>Pengunci PIN Antarmuka Aplikasi</span>
-                    </span>
-                    <span className="text-[11px] text-stone-600 font-medium block mt-1 leading-relaxed">
-                      PIN ini mengunci layar visual UI saat dibuka kembali (bukan enkripsi database). Mencegah akses tak berizin saat perangkat digunakan bersama.
-                    </span>
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                    appPin ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-stone-100 text-stone-600 border border-stone-200'
-                  }`}>
-                    {appPin ? '✓ PIN Aktif' : 'Nonaktif'}
-                  </span>
+          {/* SECTION 2: Security & PIN Access */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('security')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0">
+                  <Lock className="w-4 h-4" />
                 </div>
-
-                <div className="space-y-2 pt-1">
-                  <div className="flex gap-2">
-                    <input
-                      type="password"
-                      maxLength={4}
-                      value={pinInput}
-                      onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
-                      placeholder={appPin ? 'Masukkan PIN Baru (4 digit)' : 'Set 4-digit PIN Baru'}
-                      className="flex-1 px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 placeholder:text-stone-400 font-medium text-xs focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 tracking-widest text-center"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSavePin}
-                      className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl cursor-pointer text-xs shrink-0 active:scale-95 transition-all shadow-2xs"
-                    >
-                      {appPin ? 'Ubah PIN' : 'Aktifkan PIN'}
-                    </button>
-                    {appPin && (
-                      <button
-                        type="button"
-                        onClick={handleRemovePin}
-                        className="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl cursor-pointer text-xs shrink-0 active:scale-95 transition-all"
-                      >
-                        Matikan
-                      </button>
-                    )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Keamanan PIN Aplikasi</h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      appPin ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-stone-200 text-stone-700'
+                    }`}>
+                      {appPin ? '✓ PIN Aktif' : 'Nonaktif'}
+                    </span>
                   </div>
-
-                  {pinMsg && (
-                    <p className={`text-[11px] font-bold ${pinMsg.includes('✓') ? 'text-emerald-800' : 'text-rose-600'}`}>
-                      {pinMsg}
-                    </p>
-                  )}
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    Pengunci layar antarmuka 4-digit saat perangkat digunakan bersama
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.security ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.security && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-4 animate-fade-in">
+                <div className="space-y-3 p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="font-bold text-stone-900 text-sm block flex items-center gap-1.5">
+                        <Lock className="w-4 h-4 text-emerald-800" />
+                        <span>Pengunci PIN Antarmuka Aplikasi</span>
+                      </span>
+                      <span className="text-[11px] text-stone-600 font-medium block mt-1 leading-relaxed">
+                        PIN ini mengunci layar visual UI saat dibuka kembali (bukan enkripsi database). Mencegah akses tak berizin saat perangkat digunakan bersama.
+                      </span>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                      appPin ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-stone-100 text-stone-600 border border-stone-200'
+                    }`}>
+                      {appPin ? '✓ PIN Aktif' : 'Nonaktif'}
+                    </span>
+                  </div>
 
-          {/* TAB 3: Asset Categories */}
-          {activeTab === 'categories' && (
-            <div className="space-y-4 animate-fade-in">
+                  <div className="space-y-2 pt-1">
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={pinInput}
+                        onChange={(e) => setPinInput(e.target.value.replace(/\D/g, ''))}
+                        placeholder={appPin ? 'Masukkan PIN Baru (4 digit)' : 'Set 4-digit PIN Baru'}
+                        className="flex-1 px-3.5 py-2 bg-white border border-stone-200 rounded-xl text-stone-900 placeholder:text-stone-400 font-medium text-xs focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 tracking-widest text-center"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSavePin}
+                        className="px-3.5 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl cursor-pointer text-xs shrink-0 active:scale-95 transition-all shadow-2xs"
+                      >
+                        {appPin ? 'Ubah PIN' : 'Aktifkan PIN'}
+                      </button>
+                      {appPin && (
+                        <button
+                          type="button"
+                          onClick={handleRemovePin}
+                          className="px-3 py-2 bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold rounded-xl cursor-pointer text-xs shrink-0 active:scale-95 transition-all"
+                        >
+                          Matikan
+                        </button>
+                      )}
+                    </div>
+
+                    {pinMsg && (
+                      <p className={`text-[11px] font-bold ${pinMsg.includes('✓') ? 'text-emerald-800' : 'text-rose-600'}`}>
+                        {pinMsg}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 3: Asset Categories */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('categories')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-blue-100 text-blue-800 shrink-0">
+                  <Tag className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Manajemen Kategori Aset</h4>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">
+                      {categories.length} Kategori
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    Tambah, edit label, pilih ikon, dan sesuaikan klasifikasi aset
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.categories ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.categories && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-4 animate-fade-in">
               <div className="space-y-4 p-4 bg-stone-50 rounded-2xl border border-stone-200">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
@@ -1143,69 +1490,94 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <p className="text-[11px] font-bold text-rose-600">{categoryError}</p>
                     )}
 
-                    <div className="flex items-center justify-end gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsAddingCategory(false);
-                          setEditingCategoryId(null);
-                        }}
-                        className="px-3.5 py-1.5 text-stone-600 font-bold text-xs hover:bg-stone-100 rounded-lg cursor-pointer"
-                      >
-                        Batal
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleSaveCategory}
-                        className="px-4 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
-                      >
-                        {editingCategoryId ? 'Simpan Perubahan' : 'Tambah Kategori'}
-                      </button>
+                    <div className="flex items-center justify-between pt-1">
+                      <div>
+                        {editingCategoryId && (
+                          <button
+                            type="button"
+                            onClick={() => handleStartDeleteCategory(editingCategoryId)}
+                            className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs rounded-xl flex items-center gap-1 border border-rose-200 cursor-pointer transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                            <span>Hapus Kategori</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingCategory(false);
+                            setEditingCategoryId(null);
+                          }}
+                          className="px-3.5 py-1.5 text-stone-600 font-bold text-xs hover:bg-stone-100 rounded-lg cursor-pointer"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleSaveCategory}
+                          className="px-4 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
+                        >
+                          {editingCategoryId ? 'Simpan Perubahan' : 'Tambah Kategori'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Category Items List - Editable Cards without text truncation or button overlap */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                {/* Category Items List - Clean 2-column cards with full labels, Edit & Delete actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                   {categories.map((cat) => {
                     const IconComponent = getCategoryIcon(cat.iconName);
+                    const isDefault = ['device', 'devices', 'vehicle', 'vehicles', 'home', 'camera', 'gaming', 'other', 'perangkat', 'kendaraan', 'rumah', 'kamera', 'lainnya'].includes(cat.id.toLowerCase());
+
                     return (
                       <div
                         key={cat.id}
                         onClick={() => handleStartEditCategory(cat)}
-                        className="flex items-center justify-between p-2.5 bg-white rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 hover:shadow-xs transition-all group cursor-pointer"
+                        className="flex items-center justify-between p-3 bg-white rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600/50 hover:shadow-xs transition-all group cursor-pointer"
                       >
-                        <div className="flex items-center gap-2 min-w-0 pr-1 overflow-hidden">
-                          <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-50 text-emerald-800 shrink-0 group-hover:bg-emerald-100 transition-colors">
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 shrink-0 group-hover:bg-emerald-100 transition-colors">
                             <IconComponent className="w-4 h-4" />
                           </div>
-                          <span className="font-extrabold text-stone-800 text-xs truncate">
-                            {cat.label}
-                          </span>
+                          <div className="min-w-0">
+                            <span className="font-extrabold text-stone-800 text-xs sm:text-sm block truncate">
+                              {cat.label}
+                            </span>
+                            {isDefault && (
+                              <span className="text-[10px] text-stone-400 font-medium block">
+                                Kategori bawaan
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="flex items-center gap-0.5 shrink-0 ml-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                        {/* Actions: Edit & Delete with comfortable touch targets & subtle hover states */}
+                        <div className="flex items-center gap-1.5 shrink-0 ml-2">
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleStartEditCategory(cat);
                             }}
-                            className="p-1 text-stone-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg cursor-pointer transition-colors"
-                            title="Edit Kategori"
+                            className="p-2 text-stone-400 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer"
+                            title={`Edit kategori ${cat.label}`}
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteCategory(cat.id);
+                              handleStartDeleteCategory(cat.id);
                             }}
-                            className="p-1 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
-                            title="Hapus Kategori"
+                            className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                            title={`Hapus kategori ${cat.label}`}
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -1216,7 +1588,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex justify-end pt-1">
                   <button
                     type="button"
-                    onClick={handleResetDefaultCategories}
+                    onClick={() => setIsConfirmingResetCategories(true)}
                     className="text-[11px] font-bold text-stone-500 hover:text-emerald-800 underline cursor-pointer transition-colors"
                   >
                     ↺ Kembalikan Kategori Bawaan
@@ -1225,10 +1597,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             </div>
           )}
+        </div>
 
-          {/* TAB 4: Backup & Restore (JSON) */}
-          {activeTab === 'backup' && (
-            <div className="space-y-4 animate-fade-in">
+        {/* SECTION 4: Backup & Restore (JSON) */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('backup')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-100 text-purple-800 shrink-0">
+                  <Database className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Backup &amp; Restore Data (JSON)</h4>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
+                      JSON Engine
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    Ekspor salinan cadangan lengkap atau impor berkas JSON ke database
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.backup ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.backup && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-4 animate-fade-in">
               <div className="space-y-4 p-4 bg-stone-50 rounded-2xl border border-stone-200">
                 <div>
                   <span className="font-extrabold text-stone-900 text-sm block flex items-center gap-1.5">
@@ -1268,7 +1665,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div className="flex items-center justify-between border-b border-emerald-200/80 pb-2">
                       <span className="font-extrabold text-emerald-950 text-xs flex items-center gap-1.5">
                         <FileText className="w-4 h-4 text-emerald-700" />
-                        <span>Pratinjau Data JSON: {importPreviewData.fileName}</span>
+                        <span>Pratinjau Data JSON: {importPreviewData.filename}</span>
                       </span>
                       <button
                         type="button"
@@ -1289,12 +1686,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <span className="text-[10px] font-bold text-stone-600">Aset Utuh</span>
                       </div>
                       <div className="p-2 bg-white rounded-xl border border-emerald-200">
-                        <span className="block font-black text-emerald-800 text-base">{importPreviewData.warrantiesCount}</span>
-                        <span className="text-[10px] font-bold text-stone-600">Garansi</span>
+                        <span className="block font-black text-emerald-800 text-base">{importPreviewData.remindersCount}</span>
+                        <span className="text-[10px] font-bold text-stone-600">Pengingat</span>
                       </div>
                       <div className="p-2 bg-white rounded-xl border border-emerald-200">
-                        <span className="block font-black text-emerald-800 text-base">{importPreviewData.vehiclesCount}</span>
-                        <span className="text-[10px] font-bold text-stone-600">Kendaraan</span>
+                        <span className="block font-black text-emerald-800 text-base">{importPreviewData.categoriesCount}</span>
+                        <span className="text-[10px] font-bold text-stone-600">Kategori</span>
                       </div>
                       <div className="p-2 bg-white rounded-xl border border-emerald-200">
                         <span className="block font-black text-emerald-800 text-base">{importPreviewData.servicesCount}</span>
@@ -1332,84 +1729,470 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </p>
                 )}
               </div>
+            </div>
+            )}
+          </div>
 
-              {/* Demo Data Section */}
-              {hasDemoData && (
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <span className="font-extrabold text-amber-950 block text-xs">🧪 Data Contoh (Demo) Masih Aktif</span>
-                    <span className="text-[11px] text-amber-900 font-medium">
-                      Atur alur onboarding awal atau hapus data contoh tanpa mengganggu aset asli Anda.
+          {/* SECTION 5: Diagnostics / Contract Verification */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('diagnostics')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-teal-100 text-teal-800 shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Uji Kontrak &amp; Diagnostik Sistem</h4>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">
+                      Audit &amp; Test Suite
                     </span>
                   </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {onOpenDemoOnboarding && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onOpenDemoOnboarding();
-                          onClose();
-                        }}
-                        className="px-3 py-1.5 bg-amber-800 hover:bg-amber-900 text-white rounded-xl font-bold text-xs cursor-pointer active:scale-95 transition-all shadow-2xs"
-                      >
-                        Buka Onboarding
-                      </button>
-                    )}
-                    {onClearDemoData && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onClearDemoData();
-                        }}
-                        className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-xl font-bold text-xs cursor-pointer active:scale-95 transition-all"
-                      >
-                        Hapus Demo
-                      </button>
-                    )}
-                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    Uji kepatuhan runtime IndexedDB lokal dan inspeksi detail antrean mutasi
+                  </p>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 5: Danger Zone */}
-          {activeTab === 'danger' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="p-4 bg-rose-50/60 rounded-2xl border-2 border-rose-200 space-y-4">
-                <div className="flex items-center gap-2 text-rose-900 font-extrabold text-sm border-b border-rose-200 pb-2">
-                  <ShieldAlert className="w-5 h-5 text-rose-600" />
-                  <span>Zona Berbahaya (Tindakan Destruktif)</span>
-                </div>
-
-                {/* Disconnect Google Gateway */}
-                {dbManager.isConnectionVerified() && (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-white rounded-xl border border-rose-200">
+              </div>
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.diagnostics ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.diagnostics && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-4 animate-fade-in text-xs">
+                <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-bold text-stone-900 text-xs block">Putuskan Apps Script Gateway</span>
-                      <span className="text-[11px] text-stone-500 font-medium">
-                        Hapus kredensial endpoint dan verifikasi email Google Sheets.
+                      <span className="font-extrabold text-stone-900 text-sm block flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-800" />
+                        <span>Uji Kontrak Database Lokal (Phase 2C Contract Tests)</span>
+                      </span>
+                      <span className="text-[11px] text-stone-500 font-medium block mt-0.5">
+                        Uji kepatuhan runtime database lokal (IndexedDB), generasi riwayat audit otomatis, dan antrean sinkronisasi tanpa melibatkan jaringan luar.
                       </span>
                     </div>
+                  </div>
 
+                  <div className="pt-2">
                     <button
                       type="button"
-                      onClick={handleDisconnectGateway}
-                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold rounded-xl flex items-center justify-center gap-1 text-xs shrink-0 cursor-pointer transition-all active:scale-95"
+                      onClick={handleRunContractTests}
+                      disabled={isRunningTests}
+                      className="px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 active:scale-95 text-xs shadow-xs"
                     >
-                      <Unlink className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Putuskan Koneksi</span>
+                      {isRunningTests ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span>Sedang Menjalankan Uji Kontrak...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                          <span>Mulai Jalankan Tes Kontrak (Uji 2C)</span>
+                        </>
+                      )}
                     </button>
+                  </div>
+                </div>
+
+                {isRunningTests && (
+                  <div className="p-6 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col items-center justify-center space-y-3 animate-pulse">
+                    <RefreshCw className="w-8 h-8 text-emerald-800 animate-spin" />
+                    <p className="text-xs font-bold text-stone-700">Mengeksekusi asertasi &amp; penulisan IndexedDB...</p>
                   </div>
                 )}
 
-                {/* Clear Cache & Reset State */}
-                <div className="flex flex-col space-y-2 p-3 bg-white rounded-xl border border-rose-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-rose-700 block text-xs">Clear Cache &amp; Reset State Aplikasi</span>
-                      <span className="text-[11px] text-stone-500 font-medium">
-                        Hapus seluruh cache browser (`localStorage` &amp; `IndexedDB`) lalu muat ulang aplikasi.
+                {testResults && (
+                  <div className="space-y-4 animate-fade-in">
+                    <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+                      testResults.every(r => r.success)
+                        ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                        : 'bg-rose-50 text-rose-900 border-rose-200'
+                    }`}>
+                      <div>
+                        <span className="font-extrabold text-xs block">
+                          STATUS PENGUJIAN: {testResults.every(r => r.success) ? 'LULUS (PASS)' : 'GAGAL (FAIL)'}
+                        </span>
+                        <span className="text-[11px] font-medium block mt-0.5">
+                          Dijalankan pada pukul: {testsRunTimestamp} • {testResults.filter(r => r.success).length} dari {testResults.length} modul pengujian berhasil.
+                        </span>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase ${
+                        testResults.every(r => r.success)
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : 'bg-rose-100 text-rose-800 border-rose-300'
+                      }`}>
+                        {testResults.every(r => r.success) ? 'Ready' : 'Issues Found'}
+                      </span>
+                    </div>
+
+                    {/* Test Suites Accordion */}
+                    <div className="space-y-2">
+                      {testResults.map((suite) => (
+                        <div key={suite.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedSuiteId(expandedSuiteId === suite.id ? null : suite.id)}
+                            className="w-full p-3.5 flex items-center justify-between hover:bg-stone-50 transition-colors text-left cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${suite.success ? 'bg-emerald-600' : 'bg-rose-600'}`} />
+                              <span className="font-extrabold text-stone-800 truncate text-[11px] sm:text-xs">
+                                {suite.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[10px] text-stone-400 font-bold">{suite.duration}ms</span>
+                              <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${expandedSuiteId === suite.id ? 'rotate-180' : ''}`} />
+                            </div>
+                          </button>
+
+                          {expandedSuiteId === suite.id && (
+                            <div className="border-t border-stone-100 bg-stone-900 p-3 font-mono text-[10px] leading-relaxed text-stone-300 max-h-56 overflow-y-auto no-scrollbar space-y-1">
+                              {suite.logs.map((logLine, index) => (
+                                <div key={index} className={logLine.startsWith('❌') ? 'text-rose-400 font-bold' : logLine.startsWith('✓') ? 'text-emerald-400 font-bold' : ''}>
+                                  {logLine}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 6: Notifications (Phase 6-3E) */}
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('notifications')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100/80 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-100 text-indigo-800 shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Preferensi &amp; Saluran Notifikasi</h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      notiPrefs.globalEnabled ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-stone-200 text-stone-700'
+                    }`}>
+                      {notiPrefs.globalEnabled ? '✓ Aktif' : 'Muted'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                    In-app feeds, browser push alerts, dan email notifikasi via Google Gateway
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-stone-500 shrink-0 transition-transform duration-200 ${expandedSections.notifications ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.notifications && (
+              <div className="p-3.5 sm:p-5 border-t border-stone-200 space-y-4 animate-fade-in text-xs font-medium text-stone-700">
+              
+              {/* Card 1: Master Switch */}
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 pr-4">
+                    <span className="font-extrabold text-stone-900 text-sm block flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-emerald-700" />
+                      <span>Aktifkan Pusat Notifikasi MicroMate</span>
+                    </span>
+                    <span className="text-[11px] text-stone-600 block leading-relaxed max-w-xl">
+                      Mute seluruh visual badge angka dan feed notifikasi secara instan. Menonaktifkan master switch ini tidak akan merusak riwayat logs atau memutus audit log di database lokal.
+                    </span>
+                  </div>
+                  
+                  {/* Premium Switch */}
+                  <button
+                    type="button"
+                    onClick={handleToggleGlobal}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 ${
+                      notiPrefs.globalEnabled ? 'bg-emerald-600' : 'bg-stone-300'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                        notiPrefs.globalEnabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Card 2: Browser Push Notifications Integration */}
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-extrabold text-stone-900 text-sm block">
+                      Notifikasi Browser (Push Alerts)
+                    </span>
+                    <span className="text-[11px] text-stone-600 block leading-relaxed max-w-xl">
+                      Kirim alert instan langsung di pojok layar Anda meskipun aplikasi berjalan di latar belakang (memerlukan izin browser eksplisit).
+                    </span>
+                  </div>
+
+                  <div className="flex items-center shrink-0">
+                    {notiPrefs.browserPermissionState === 'granted' && (
+                      <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Diizinkan (Aktif)</span>
+                      </span>
+                    )}
+                    {notiPrefs.browserPermissionState === 'denied' && (
+                      <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                        Diblokir Browser
+                      </span>
+                    )}
+                    {notiPrefs.browserPermissionState === 'unsupported' && (
+                      <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-stone-200 text-stone-600 border border-stone-300">
+                        Tidak Didukung (Iframe Sandbox)
+                      </span>
+                    )}
+                    {notiPrefs.browserPermissionState === 'default' && (
+                      <button
+                        type="button"
+                        onClick={handleRequestPushPermission}
+                        className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-2xs active:scale-95 transition-all cursor-pointer"
+                      >
+                        Minta Izin Browser
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Preference Matrix */}
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+                <div className="border-b border-stone-200 pb-2">
+                  <span className="font-extrabold text-stone-900 text-sm block">
+                    Saluran Notifikasi Berdasarkan Kategori
+                  </span>
+                  <span className="text-[11px] text-stone-600 block mt-0.5">
+                    Pilih bagaimana Anda ingin menerima alert untuk setiap jenis aktivitas sistem. Notifikasi email dikirim otomatis melalui backend gateway Google Sheets (Phase 6-1C).
+                  </span>
+                </div>
+
+                {/* Desktop layout: multi-column matrix table (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="border-b border-stone-200">
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider w-1/2">
+                          Kategori Aktivitas
+                        </th>
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
+                          In-App (Feeds)
+                        </th>
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
+                          Browser Push
+                        </th>
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
+                          Email (Gateway)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {[
+                        {
+                          key: 'DOCUMENT_EXPIRING_SOON',
+                          label: 'Dokumen Hampir Kadaluarsa',
+                          desc: 'Pemberitahuan STNK, SIM, atau polis asuransi yang akan habis masa berlakunya dalam waktu dekat.'
+                        },
+                        {
+                          key: 'DOCUMENT_EXPIRED',
+                          label: 'Dokumen Telah Kadaluarsa',
+                          desc: 'Alert instan saat dokumen penting sudah melewati masa tenggang dan butuh pembaruan darurat.'
+                        },
+                        {
+                          key: 'MAINTENANCE_OVERDUE',
+                          label: 'Perawatan Melewati Batas',
+                          desc: 'Sinyal bahwa jadwal servis berkala kendaraan Anda sudah terlewati (melebihi batas aman).'
+                        },
+                        {
+                          key: 'COST_TREND_INCREASE',
+                          label: 'Kenaikan Tren Biaya TCO',
+                          desc: 'Analitik visual mendeteksi anomali pengeluaran bulanan atau lonjakan tren finansial aset.'
+                        }
+                      ].map((cat) => {
+                        const channelPrefs = notiPrefs.categories[cat.key as keyof typeof notiPrefs.categories];
+                        return (
+                          <tr key={cat.key} className="hover:bg-stone-100/50 transition-colors">
+                            <td className="py-3 pr-4">
+                              <span className="font-extrabold text-stone-900 text-xs block">
+                                {cat.label}
+                              </span>
+                              <span className="text-[10px] text-stone-500 font-medium block leading-normal mt-0.5 max-w-sm">
+                                {cat.desc}
+                              </span>
+                            </td>
+                            <td className="py-3 text-center px-2">
+                              <input
+                                type="checkbox"
+                                disabled={!notiPrefs.globalEnabled}
+                                checked={channelPrefs?.inApp || false}
+                                onChange={() => handleToggleChannel(cat.key as any, 'inApp')}
+                                className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="py-3 text-center px-2">
+                              <input
+                                type="checkbox"
+                                disabled={!notiPrefs.globalEnabled || notiPrefs.browserPermissionState !== 'granted'}
+                                checked={(channelPrefs?.browserPush && notiPrefs.browserPermissionState === 'granted') || false}
+                                onChange={() => handleToggleChannel(cat.key as any, 'browserPush')}
+                                className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              />
+                            </td>
+                            <td className="py-3 text-center px-2">
+                              <input
+                                type="checkbox"
+                                disabled={!notiPrefs.globalEnabled}
+                                checked={channelPrefs?.email || false}
+                                onChange={() => handleToggleChannel(cat.key as any, 'email')}
+                                className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile layout: stacked vertical card groups (block md:hidden) */}
+                <div className="block md:hidden space-y-3">
+                  {[
+                    {
+                      key: 'DOCUMENT_EXPIRING_SOON',
+                      label: 'Dokumen Hampir Kadaluarsa',
+                      desc: 'Pemberitahuan STNK, SIM, atau polis asuransi yang akan habis masa berlakunya dalam waktu dekat.'
+                    },
+                    {
+                      key: 'DOCUMENT_EXPIRED',
+                      label: 'Dokumen Telah Kadaluarsa',
+                      desc: 'Alert instan saat dokumen penting sudah melewati masa tenggang dan butuh pembaruan darurat.'
+                    },
+                    {
+                      key: 'MAINTENANCE_OVERDUE',
+                      label: 'Perawatan Melewati Batas',
+                      desc: 'Sinyal bahwa jadwal servis berkala kendaraan Anda sudah terlewati (melebihi batas aman).'
+                    },
+                    {
+                      key: 'COST_TREND_INCREASE',
+                      label: 'Kenaikan Tren Biaya TCO',
+                      desc: 'Analitik visual mendeteksi anomali pengeluaran bulanan atau lonjakan tren finansial aset.'
+                    }
+                  ].map((cat) => {
+                    const channelPrefs = notiPrefs.categories[cat.key as keyof typeof notiPrefs.categories];
+                    return (
+                      <div 
+                        key={`mobile-pref-${cat.key}`}
+                        className="p-3 bg-white rounded-xl border border-stone-200 space-y-3"
+                      >
+                        <div className="space-y-0.5">
+                          <span className="font-extrabold text-stone-950 text-xs block leading-tight">
+                            {cat.label}
+                          </span>
+                          <span className="text-[10px] text-stone-500 font-medium block leading-normal">
+                            {cat.desc}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-stone-100">
+                          {/* Channel 1: In-App */}
+                          <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
+                            <span className="text-[9px] font-bold text-stone-500 uppercase">In-App</span>
+                            <input
+                              type="checkbox"
+                              disabled={!notiPrefs.globalEnabled}
+                              checked={channelPrefs?.inApp || false}
+                              onChange={() => handleToggleChannel(cat.key as any, 'inApp')}
+                              className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1.5"
+                            />
+                          </label>
+
+                          {/* Channel 2: Browser Push */}
+                          <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
+                            <span className="text-[9px] font-bold text-stone-500 uppercase">Push</span>
+                            <input
+                              type="checkbox"
+                              disabled={!notiPrefs.globalEnabled || notiPrefs.browserPermissionState !== 'granted'}
+                              checked={(channelPrefs?.browserPush && notiPrefs.browserPermissionState === 'granted') || false}
+                              onChange={() => handleToggleChannel(cat.key as any, 'browserPush')}
+                              className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1.5"
+                            />
+                          </label>
+
+                          {/* Channel 3: Email */}
+                          <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
+                            <span className="text-[9px] font-bold text-stone-500 uppercase">Email</span>
+                            <input
+                              type="checkbox"
+                              disabled={!notiPrefs.globalEnabled}
+                              checked={channelPrefs?.email || false}
+                              onChange={() => handleToggleChannel(cat.key as any, 'email')}
+                              className="w-4 h-4 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-1.5"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 7: Danger Zone */}
+          <div className="rounded-2xl border border-rose-200 bg-white shadow-2xs overflow-hidden transition-all">
+            <button
+              type="button"
+              onClick={() => toggleSection('danger')}
+              className="w-full p-3.5 sm:p-4 text-left flex items-center justify-between bg-rose-50/60 hover:bg-rose-100/70 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-rose-100 text-rose-800 shrink-0">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-extrabold text-rose-950 text-xs sm:text-sm">Zona Bahaya (Reset &amp; Pemutusan)</h4>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
+                      Tindakan Kritis
+                    </span>
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-rose-700 font-medium mt-0.5">
+                    Reset data lokal ke wizard setup awal atau putuskan sambungan Google Apps Script
+                  </p>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-rose-600 shrink-0 transition-transform duration-200 ${expandedSections.danger ? 'rotate-180' : ''}`} />
+            </button>
+            {expandedSections.danger && (
+              <div className="p-3.5 sm:p-5 border-t border-rose-200 space-y-4 animate-fade-in">
+              <div className="p-4 bg-rose-50/60 rounded-2xl border-2 border-rose-200 space-y-4">
+                <div className="flex items-center gap-2 text-rose-900 font-extrabold text-sm border-b border-rose-200 pb-2">
+                  <ShieldAlert className="w-5 h-5 text-rose-600" />
+                  <span>Zona Berbahaya (Reset &amp; Pemutusan)</span>
+                </div>
+
+                {/* Primary Reset & Return to Initial Setup */}
+                <div className="flex flex-col space-y-2 p-3.5 bg-white rounded-xl border border-rose-200 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <span className="font-extrabold text-rose-900 block text-xs flex items-center gap-1.5">
+                        <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Reset Data &amp; Buka Setup Awal</span>
+                      </span>
+                      <span className="text-[11px] text-stone-600 font-medium block">
+                        Menghapus seluruh aset lokal &amp; cache penyimpanan, lalu langsung mengarahkan Anda ke layar wizard setup awal (pilihan Google Sheets atau Mode Lokal).
                       </span>
                     </div>
 
@@ -1417,10 +2200,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button
                         type="button"
                         onClick={() => setConfirmAction('clear_cache')}
-                        className="px-3 py-1.5 bg-rose-600 text-white hover:bg-rose-700 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs shrink-0"
+                        className="px-3.5 py-2 bg-rose-600 text-white hover:bg-rose-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-2xs shrink-0"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Clear Cache &amp; Reset</span>
+                        <span>Reset &amp; Buka Setup Awal</span>
                       </button>
                     )}
                   </div>
@@ -1428,26 +2211,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {confirmAction === 'clear_cache' && (
                     <div className="p-3 bg-rose-100 border border-rose-300 rounded-xl space-y-2 animate-fade-in mt-2">
                       <p className="text-xs font-bold text-rose-950">
-                        ⚠️ Konfirmasi: Hapus seluruh cache lokal &amp; muat ulang aplikasi sekarang?
+                        ⚠️ Konfirmasi: Hapus seluruh data lokal &amp; kembali ke wizard setup awal sekarang?
                       </p>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 pt-1">
                         <button
                           type="button"
                           onClick={() => {
                             setConfirmAction('none');
                             if (onClearCacheAndReset) {
                               onClearCacheAndReset();
-                            } else {
-                              localStorage.clear();
-                              if (window.indexedDB) {
-                                try { window.indexedDB.deleteDatabase('MicroMateDB'); } catch (e) {}
-                              }
-                              window.location.reload();
                             }
                           }}
-                          className="px-3.5 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg font-bold text-xs cursor-pointer shadow-2xs"
+                          className="px-3.5 py-1.5 bg-rose-700 hover:bg-rose-800 text-white rounded-lg font-bold text-xs cursor-pointer shadow-2xs active:scale-95"
                         >
-                          Ya, Hapus &amp; Reset
+                          Ya, Reset &amp; Buka Setup Awal
                         </button>
                         <button
                           type="button"
@@ -1461,64 +2238,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   )}
                 </div>
 
-                {/* Reset Seed Data */}
-                <div className="flex flex-col space-y-2 p-3 bg-white rounded-xl border border-rose-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-stone-800 block text-xs">Reset ke Seed Sampel Bawaan</span>
-                      <span className="text-[11px] text-stone-500 font-medium">
-                        Kembalikan seluruh data lokal ke sampel bawaan (MacBook, Vario, LG AC, Sony A7).
+                {/* Disconnect Google Gateway */}
+                {dbManager.isConnectionVerified() && (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-white rounded-xl border border-stone-200">
+                    <div className="space-y-0.5">
+                      <span className="font-extrabold text-stone-900 text-xs block flex items-center gap-1.5">
+                        <Unlink className="w-3.5 h-3.5 text-stone-600" />
+                        <span>Putuskan Apps Script Gateway</span>
+                      </span>
+                      <span className="text-[11px] text-stone-500 font-medium block">
+                        Hapus kredensial endpoint Google Sheets dari browser ini. Data lokal tidak akan terhapus.
                       </span>
                     </div>
 
-                    {confirmAction !== 'reset_seed' && (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmAction('reset_seed')}
-                        className="px-3 py-1.5 bg-stone-100 text-stone-700 hover:bg-stone-200 border border-stone-300 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition-all shrink-0"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Reset Data</span>
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={handleDisconnectGateway}
+                      className="px-3.5 py-2 bg-stone-50 hover:bg-rose-50 text-rose-800 border border-rose-200 font-bold rounded-xl flex items-center justify-center gap-1 text-xs shrink-0 cursor-pointer transition-all active:scale-95"
+                    >
+                      <Unlink className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Putuskan Koneksi</span>
+                    </button>
                   </div>
+                )}
 
-                  {confirmAction === 'reset_seed' && (
-                    <div className="p-3 bg-stone-100 border border-stone-300 rounded-xl space-y-2 animate-fade-in mt-2">
-                      <p className="text-xs font-bold text-stone-900">
-                        ⚠️ Konfirmasi: Kembalikan data ke kondisi awal (Seed Data)? Data baru Anda akan terhapus.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setConfirmAction('none');
-                            await dbManager.resetData();
-                            onDataReload();
-                            onClose();
-                          }}
-                          className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-xs cursor-pointer shadow-2xs"
-                        >
-                          Ya, Reset Data
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmAction('none')}
-                          className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-lg font-bold text-xs cursor-pointer"
-                        >
-                          Batal
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           )}
-
         </div>
 
       </div>
+    </div>
 
       {/* Code Helper Modal */}
       {showCodeGuide && (
@@ -1537,7 +2287,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </button>
             </div>
             <p className="text-xs text-stone-300">
-              Salin kode di bawah ini, buka <strong>script.google.com</strong>, buat New Project, lalu paste kode ini. Setelah itu, jalankan fungsi <code>testAuthAndEmail</code> sekali di editor untuk otorisasi, lalu klik Deploy &gt; New Deployment &gt; Web App (Execute as: Me, Access: Anyone).
+              Buat Google Sheet baru di <a href="https://sheet.new" target="_blank" rel="noreferrer" className="text-emerald-400 underline font-semibold">sheet.new</a>, buka menu <i>Extensions &gt; Apps Script</i>, lalu tempel kode di bawah ini. Setelah itu, jalankan fungsi <code>testAuthAndEmail</code> sekali di editor untuk otorisasi, lalu klik Deploy &gt; New Deployment &gt; Web App (Execute as: Me, Access: Anyone).
             </p>
             <div className="relative">
               <pre className="p-4 bg-stone-950 rounded-xl text-stone-300 font-mono text-[11px] max-h-64 overflow-y-auto border border-stone-800">
@@ -1559,6 +2309,93 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-white font-bold rounded-xl text-xs cursor-pointer"
               >
                 Mengerti, Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* In-App Category Delete Confirmation Modal */}
+      {deletingCategoryInfo && (
+        <div className="fixed inset-0 z-70 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 border border-stone-200 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-rose-50 text-rose-700 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-stone-900 text-base">Hapus Kategori?</h3>
+                <p className="text-xs text-stone-500 font-medium">Kategori: {deletingCategoryInfo.label}</p>
+              </div>
+            </div>
+
+            {deletingCategoryInfo.inUseCount > 0 ? (
+              <div className="p-3.5 bg-amber-50 rounded-2xl border border-amber-200/80 space-y-1.5">
+                <p className="text-xs font-extrabold text-amber-900 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Sedang digunakan oleh {deletingCategoryInfo.inUseCount} aset</span>
+                </p>
+                <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                  Aset tersebut tidak akan dihapus. Jika Anda melanjutkan, {deletingCategoryInfo.inUseCount} aset ini akan dipindahkan ke kategori <strong className="font-extrabold text-amber-950">"Lainnya"</strong>.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-stone-600 leading-relaxed font-medium">
+                Apakah Anda yakin ingin menghapus kategori <strong className="font-extrabold text-stone-900">"{deletingCategoryInfo.label}"</strong>?
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingCategoryInfo(null)}
+                className="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-xl font-bold text-xs cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteCategory}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                Ya, Hapus Kategori
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-App Reset Default Categories Confirmation Modal */}
+      {isConfirmingResetCategories && (
+        <div className="fixed inset-0 z-70 bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4 border border-stone-200 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-800 shrink-0">
+                <RotateCcw className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-stone-900 text-base">Reset Kategori Bawaan?</h3>
+                <p className="text-xs text-stone-500 font-medium">Pengaturan awal pabrik</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed font-medium">
+              Apakah Anda yakin ingin mengembalikan daftar kategori ke susunan bawaan (Device, Vehicle, Home, Camera, Gaming, Lainnya)?
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingResetCategories(false)}
+                className="px-4 py-2 text-stone-600 hover:bg-stone-100 rounded-xl font-bold text-xs cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmResetCategories}
+                className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                Ya, Reset Bawaan
               </button>
             </div>
           </div>

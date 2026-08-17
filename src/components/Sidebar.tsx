@@ -6,13 +6,8 @@ import {
   Bell, 
   PieChart, 
   Plus,
-  Car,
-  Laptop,
-  Home,
-  Camera,
-  Gamepad2,
-  Box,
   ShieldCheck,
+  ShieldAlert,
   BookOpen
 } from 'lucide-react';
 
@@ -28,36 +23,18 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onTabChange,
-  selectedCategory = 'all',
-  onCategorySelect,
   onQuickAdd,
   needsAttentionCount,
 }) => {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: needsAttentionCount > 0 ? needsAttentionCount : null },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'attention', label: 'Pusat Perhatian', icon: ShieldAlert, badge: needsAttentionCount > 0 ? needsAttentionCount : null },
     { id: 'assets', label: 'Aset Saya', icon: Package },
     { id: 'maintenance', label: 'Perawatan & Servis', icon: Wrench },
     { id: 'reminders', label: 'Reminder Center', icon: Bell },
     { id: 'expenses', label: 'Biaya & TCO', icon: PieChart },
     { id: 'docs', label: 'Panduan & Docs', icon: BookOpen },
   ];
-
-  const categoryItems = [
-    { id: 'device', label: 'Perangkat Elektronik', icon: Laptop },
-    { id: 'vehicle', label: 'Kendaraan & STNK', icon: Car },
-    { id: 'home', label: 'Perlengkapan Rumah', icon: Home },
-    { id: 'camera', label: 'Kamera & Fotografi', icon: Camera },
-    { id: 'gaming', label: 'Gaming & Konsol', icon: Gamepad2 },
-    { id: 'other', label: 'Lainnya', icon: Box },
-  ];
-
-  const handleCategoryClick = (catId: string) => {
-    if (onCategorySelect) {
-      onCategorySelect(catId);
-    } else {
-      onTabChange('assets');
-    }
-  };
 
   return (
     <aside className="w-64 hidden lg:flex flex-col border-r border-stone-200 bg-white min-h-[calc(100vh-4rem)] p-4 justify-between shrink-0 select-none">
@@ -108,32 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Quick Category Shortcuts */}
-        <div className="space-y-1 pt-4 border-t border-stone-200">
-          <p className="px-3 text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
-            Kategori Aset
-          </p>
-          {categoryItems.map((cat) => {
-            const Icon = cat.icon;
-            const isCatActive = activeTab === 'assets' && selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => handleCategoryClick(cat.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer border ${
-                  isCatActive
-                    ? 'bg-emerald-100 text-emerald-950 font-bold border-emerald-200'
-                    : 'text-stone-700 border-transparent hover:bg-stone-100'
-                }`}
-              >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isCatActive ? 'text-emerald-800' : 'text-emerald-700'}`} />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
       </div>
 
       {/* Footer info */}
@@ -149,4 +100,5 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+
 

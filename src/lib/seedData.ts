@@ -16,6 +16,7 @@ export const SEED_ASSETS: Asset[] = [
     purchase_price: 18500000,
     purchase_location: 'iBox Grand Indonesia',
     assigned_user: 'Budi Santoso (IT / Tim Kerja)',
+    location: 'Kantor Pusat Jakarta (Lantai 3)',
     status: 'active',
     notes: 'Unit utama kerja harian. Midnight color 8GB/256GB.',
     photo_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80',
@@ -23,6 +24,41 @@ export const SEED_ASSETS: Asset[] = [
     updated_at: '2026-08-01T12:00:00Z',
     is_demo: true,
     data_origin: 'demo',
+    history: [
+      {
+        event_id: 'evt_mb_03',
+        asset_id: 'ast_macbook_m2',
+        timestamp: '2026-04-02T09:00:00Z',
+        action: 'USER_CHANGED',
+        field: 'Pengguna',
+        old_value: 'Andi Pratama (IT Support)',
+        new_value: 'Budi Santoso (IT / Tim Kerja)',
+        performed_by: 'Budi Santoso',
+        notes: 'Serah terima unit karena pergantian divisi tim kerja.'
+      },
+      {
+        event_id: 'evt_mb_02',
+        asset_id: 'ast_macbook_m2',
+        timestamp: '2026-03-10T14:30:00Z',
+        action: 'METADATA_CHANGED',
+        field: 'Servis',
+        old_value: '-',
+        new_value: 'Rp 250.000',
+        performed_by: 'iBox Service Center',
+        notes: 'Pembersihan fan internal & penggantian pasta termal.'
+      },
+      {
+        event_id: 'evt_mb_01',
+        asset_id: 'ast_macbook_m2',
+        timestamp: '2025-09-15T10:00:00Z',
+        action: 'CREATED',
+        field: 'Pendaftaran',
+        old_value: '-',
+        new_value: 'MacBook Air M2 13-inch',
+        performed_by: 'Andi Pratama (IT Support)',
+        notes: 'Pembelian unit baru dari iBox Grand Indonesia.'
+      }
+    ],
     device_details: {
       device_id: 'dev_macbook_m2',
       asset_id: 'ast_macbook_m2',
@@ -60,8 +96,8 @@ export const SEED_ASSETS: Asset[] = [
         type: 'warranty',
         title: 'Masa Garansi MacBook Air M2 Berakhir',
         due_date: '2026-09-15',
-        repeat_rule: 'none',
-        status: 'upcoming',
+        repeat_rule: 'once',
+        status: 'pending',
         created_at: '2026-08-01T08:00:00Z',
         updated_at: '2026-08-01T08:00:00Z'
       }
@@ -170,7 +206,7 @@ export const SEED_ASSETS: Asset[] = [
         title: 'Jatuh Tempo Pajak STNK Tahunan (B 4982 SGF)',
         due_date: '2026-08-25',
         repeat_rule: 'annually',
-        status: 'upcoming',
+        status: 'pending',
         created_at: '2026-08-01T08:00:00Z',
         updated_at: '2026-08-01T08:00:00Z'
       },
@@ -182,7 +218,7 @@ export const SEED_ASSETS: Asset[] = [
         title: 'Ganti Oli Mesin Vario 160 (Target 12.500 km)',
         due_date: '2026-08-12',
         repeat_rule: 'custom_km',
-        status: 'overdue',
+        status: 'pending',
         created_at: '2026-08-01T08:00:00Z',
         updated_at: '2026-08-01T08:00:00Z'
       }
@@ -256,7 +292,7 @@ export const SEED_ASSETS: Asset[] = [
         title: 'Jadwal Cuci Rutin AC Kamar Utama (3 Bulanan)',
         due_date: '2026-08-20',
         repeat_rule: 'quarterly',
-        status: 'upcoming',
+        status: 'pending',
         created_at: '2026-08-01T08:00:00Z',
         updated_at: '2026-08-01T08:00:00Z'
       }
