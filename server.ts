@@ -1,31 +1,18 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import apiApp from "./api/index";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json({ limit: "10mb" }));
-
-  // API Route: Health Check
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", app: "MicroMate", version: "1.0.0" });
-  });
-
-  // API Route: Google Apps Script Web App API simulation / relay
-  app.post("/api/exec", (req, res) => {
-    const { action, workspaceId, data } = req.body || {};
-    console.log(`[API /exec] Action: ${action}, Workspace: ${workspaceId}`);
-    
-    res.json({
-      status: "success",
-      action: action || "ping",
-      workspaceId: workspaceId || "workspace_123",
-      timestamp: new Date().toISOString(),
-      receivedData: data || null
-    });
-  });
+  // Reuse the exact same API routes as the Vercel serverless deployment
+  // (api/index.ts) instead of duplicating /api/health and /api/exec here.
+  // The two copies had already drifted (e.g. /api/ai/query only existed
+  // in neither), which is the kind of divergence duplication invites.
+  app.use(apiApp);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
