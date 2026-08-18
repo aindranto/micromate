@@ -165,9 +165,8 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
   };
 
   // Action: Finish Onboarding (Step 8)
-  const handleFinishOnboarding = () => {
-    localStorage.setItem('micromate_setup_completed', 'true');
-    localStorage.setItem('micromate_onboarding_completed', 'true');
+  const handleFinishOnboarding = async () => {
+    await dbManager.setSetupCompleted(true);
     localStorage.setItem('micromate_storage_mode', storageMode);
     onComplete(storageMode, initialDataChoice);
   };

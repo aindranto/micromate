@@ -48,7 +48,7 @@ function ensureSheetTabs(ss) {
     {
       name: CONFIG.SHEET_NAME_ASSETS,
       headers: [
-        "Asset ID", "Category", "Name", "Brand", "Model", 
+        "Asset ID", "Asset Code", "Category", "Name", "Brand", "Model", 
         "Serial Number", "Purchase Date", "Purchase Price", "Location", "Status", 
         "Notes", "Photo URL", "Assigned User", "Created At", "Updated At", 
         "Deleted", "Vehicle Details", "Device Details", "Warranty"
@@ -1366,11 +1366,12 @@ function handleSyncAsset(ss, asset, mutationId, sessionHash, deviceId) {
   }
 
   setVal("Asset ID", targetId || ("AST-" + Date.now()));
+  setVal("Asset Code", asset.asset_code || asset.assetCode || asset.serial_number || asset.serialNumber || "");
   setVal("Category", asset.category || "Umum");
   setVal("Name", asset.name || "Aset Tanpa Nama");
   setVal("Brand", asset.brand || "");
   setVal("Model", asset.model || "");
-  setVal("Serial Number", asset.serial_number || asset.serialNumber || "Tidak memiliki S/N");
+  setVal("Serial Number", asset.serial_number || asset.serialNumber || asset.asset_code || asset.assetCode || "Tidak memiliki S/N");
   setVal("Purchase Date", formatDateStr(asset.purchase_date || asset.purchaseDate));
   setVal("Purchase Price", typeof asset.purchase_price === "number" ? asset.purchase_price : (Number(asset.purchase_price) || Number(asset.purchasePrice) || 0));
   setVal("Location", asset.location || "");

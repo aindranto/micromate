@@ -361,7 +361,7 @@ export class DatabaseManager {
         'uploadFile',
         {
           asset_id: asset.asset_id,
-          asset_code: asset.asset_id,
+          asset_code: asset.asset_code || asset.asset_id,
           file_category: 'photo',
           file_name: fileName,
           mime_type: mime,
@@ -397,7 +397,7 @@ export class DatabaseManager {
             'uploadFile',
             {
               asset_id: asset.asset_id,
-              asset_code: asset.asset_id,
+              asset_code: asset.asset_code || asset.asset_id,
               document_id: docId,
               file_category: docType,
               file_name: docName,
@@ -2502,6 +2502,38 @@ export class DatabaseManager {
       return assets.length > 0;
     } catch {
       return false;
+    }
+  }
+
+  // Check whether initial asset registration setup is completed (is_setup_completed = true)
+  public async isSetupCompleted(): Promise<boolean> {
+    const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
+      localStorage.getItem('micromate_onboarding_completed') === 'true';
+    
+    if (isCompleted) return true;
+
+    // Check if database has valid persisted state (e.g., assets already created in DB)
+    try {
+      const hasAssets = await this.hasValidPersistedState();
+      if (hasAssets) {
+        await this.setSetupCompleted(true);
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+
+    return false;
+  }
+
+  // Persist setup completion status in database & localStorage (is_setup_completed = true)
+  public async setSetupCompleted(completed: boolean): Promise<void> {
+    if (completed) {
+      localStorage.setItem('micromate_setup_completed', 'true');
+      localStorage.setItem('micromate_onboarding_completed', 'true');
+    } else {
+      localStorage.removeItem('micromate_setup_completed');
+      localStorage.removeItem('micromate_onboarding_completed');
     }
   }
 

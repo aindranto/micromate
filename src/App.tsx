@@ -22,6 +22,7 @@ import { AddDocumentModal } from './components/AddDocumentModal';
 import { SettingsModal } from './components/SettingsModal';
 import { DemoOnboardingModal } from './components/DemoOnboardingModal';
 import { OnboardingPage } from './components/OnboardingPage';
+import { LandingPage } from './components/LandingPage';
 import { PinLockModal } from './components/PinLockModal';
 
 import { getNeedsAttentionItems } from './lib/utils';
@@ -55,43 +56,41 @@ export default function App() {
       localStorage.getItem('micromate_onboarding_completed') === 'true';
   });
 
-  const [currentRoute, setCurrentRoute] = useState<'app' | 'setup' | 'setup-google'>(() => {
+  const [currentRoute, setCurrentRoute] = useState<'landing' | 'app' | 'setup' | 'setup-google'>(() => {
     const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
       localStorage.getItem('micromate_onboarding_completed') === 'true';
-
-    // If app is already initialized, stale #/setup or #/onboarding hash MUST NOT force setup view
-    if (isCompleted) {
-      return 'app';
-    }
 
     const hash = window.location.hash.toLowerCase();
     if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') return 'setup';
     if (hash === '#/setup/google' || hash === '#setup/google') return 'setup-google';
+    if ((hash === '#/app' || hash === '#app') && isCompleted) return 'app';
     
-    return 'setup';
+    return 'landing';
   });
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
-        localStorage.getItem('micromate_onboarding_completed') === 'true' ||
-        isSetupCompleted;
+    const handleHashChange = async () => {
+      const setupDone = await dbManager.isSetupCompleted();
+      setIsSetupCompleted(setupDone);
 
       const hash = window.location.hash.toLowerCase();
-      if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
-        // Stale setup hash on initialized app redirects canonically to app view
-        if (isCompleted) {
-          setCurrentRoute('app');
-          if (window.location.hash) {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        } else {
-          setCurrentRoute('setup');
-        }
+      
+      if (hash === '#/landing' || hash === '#landing' || hash === '#/home' || hash === '#home') {
+        setCurrentRoute('landing');
+      } else if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
+        setCurrentRoute('setup');
       } else if (hash === '#/setup/google' || hash === '#setup/google') {
-        setCurrentRoute(isCompleted ? 'app' : 'setup-google');
-      } else if (isCompleted) {
-        setCurrentRoute('app');
+        setCurrentRoute('setup-google');
+      } else if (hash === '#/app' || hash === '#app') {
+        if (setupDone) {
+          setCurrentRoute('app');
+        } else {
+          // STRICT FLOW GUARD: Direct link to app blocked if setup incomplete
+          setCurrentRoute('setup');
+          window.history.replaceState(null, '', '#setup');
+        }
+      } else {
+        setCurrentRoute('landing');
       }
     };
 
@@ -224,29 +223,25 @@ export default function App() {
     const initApp = async () => {
       await reloadData();
 
-      // Async Initialization Gate: Validate & Self-Heal Canonical Setup State
-      const currentFlag = localStorage.getItem('micromate_setup_completed') === 'true' ||
-        localStorage.getItem('micromate_onboarding_completed') === 'true';
+      // Conditional Check / Onboarding Status: Check database & storage completion status
+      const setupDone = await dbManager.isSetupCompleted();
+      setIsSetupCompleted(setupDone);
 
-      if (!currentFlag) {
-        // Inspect whether a valid, consistent persisted initialization state exists in storage
-        const hasValidState = await dbManager.hasValidPersistedState();
-        if (hasValidState) {
-          localStorage.setItem('micromate_setup_completed', 'true');
-          localStorage.setItem('micromate_onboarding_completed', 'true');
-          setIsSetupCompleted(true);
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
+        setCurrentRoute('setup');
+      } else if (hash === '#/setup/google' || hash === '#setup/google') {
+        setCurrentRoute('setup-google');
+      } else if (hash === '#/app' || hash === '#app') {
+        if (setupDone) {
           setCurrentRoute('app');
-          if (window.location.hash && (window.location.hash.toLowerCase().includes('setup') || window.location.hash.toLowerCase().includes('onboarding'))) {
-            window.history.replaceState(null, '', window.location.pathname);
-          }
+        } else {
+          // STRICT FLOW GUARD: Redirect un-setup direct link to setup
+          setCurrentRoute('setup');
+          window.history.replaceState(null, '', '#setup');
         }
       } else {
-        // If flag is valid and current route is stale setup hash, clean it
-        const hash = window.location.hash.toLowerCase();
-        if (hash === '#/setup' || hash === '#setup' || hash === '#/onboarding') {
-          setCurrentRoute('app');
-          window.history.replaceState(null, '', window.location.pathname);
-        }
+        setCurrentRoute('landing');
       }
 
       const scriptUrl = localStorage.getItem('micromate_apps_script_url');
@@ -342,8 +337,7 @@ export default function App() {
   };
 
   const handleClearCacheAndReset = async () => {
-    localStorage.removeItem('micromate_setup_completed');
-    localStorage.removeItem('micromate_onboarding_completed');
+    await dbManager.setSetupCompleted(false);
     localStorage.removeItem('micromate_db_seeded');
     localStorage.removeItem('micromate_demo_dismissed');
     localStorage.removeItem('micromate_apps_script_url');
@@ -363,11 +357,10 @@ export default function App() {
     mode: 'cloud' | 'local',
     initialDataChoice: 'existing' | 'empty' | 'demo'
   ) => {
-    localStorage.setItem('micromate_setup_completed', 'true');
-    localStorage.setItem('micromate_onboarding_completed', 'true');
+    await dbManager.setSetupCompleted(true);
     setIsSetupCompleted(true);
     setCurrentRoute('app');
-    window.location.hash = '';
+    window.location.hash = '#app';
 
     if (initialDataChoice === 'existing' && mode === 'cloud') {
       await handlePullFromSheets();
@@ -381,6 +374,19 @@ export default function App() {
     }
 
     await reloadData();
+  };
+
+  const handleMainAction = async () => {
+    const setupDone = await dbManager.isSetupCompleted();
+    setIsSetupCompleted(setupDone);
+
+    if (setupDone) {
+      setCurrentRoute('app');
+      window.location.hash = '#app';
+    } else {
+      setCurrentRoute('setup');
+      window.location.hash = '#setup';
+    }
   };
 
   const handleKeepDemoData = async () => {
@@ -521,15 +527,42 @@ export default function App() {
 
   const attentionItems = getNeedsAttentionItems(assets);
 
-  // Standalone Setup / Onboarding Route Check
-  if (!isSetupCompleted || currentRoute === 'setup' || currentRoute === 'setup-google') {
+  // Standalone Landing Page Route (Main Entry Marketing Page)
+  if (currentRoute === 'landing') {
+    return (
+      <LandingPage
+        onMainAction={handleMainAction}
+        isSetupCompleted={isSetupCompleted}
+      />
+    );
+  }
+
+  // Standalone Onboarding Route
+  if (currentRoute === 'setup' || currentRoute === 'setup-google') {
     return (
       <OnboardingPage
         initialStep={currentRoute === 'setup-google' ? 'google_setup' : 'welcome'}
         onComplete={handleCompleteSetup}
-        onClose={() => {
+        onClose={isSetupCompleted ? () => {
           setCurrentRoute('app');
-          window.location.hash = '';
+          window.location.hash = '#app';
+        } : () => {
+          setCurrentRoute('landing');
+          window.location.hash = '#landing';
+        }}
+      />
+    );
+  }
+
+  // Fallback Flow Guard: If trying to access main app without setup
+  if (currentRoute === 'app' && !isSetupCompleted) {
+    return (
+      <OnboardingPage
+        initialStep="welcome"
+        onComplete={handleCompleteSetup}
+        onClose={() => {
+          setCurrentRoute('landing');
+          window.location.hash = '#landing';
         }}
       />
     );

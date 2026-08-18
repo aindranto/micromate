@@ -140,19 +140,23 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center shadow-xs font-black text-base sm:text-lg shrink-0">
+        <a 
+          href="#landing" 
+          className="flex items-center gap-2.5 sm:gap-3 min-w-0 group cursor-pointer"
+          title="Ke Halaman Landing Page"
+        >
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center shadow-xs font-black text-base sm:text-lg shrink-0 group-hover:bg-emerald-700 transition-colors">
             <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate">
+            <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate group-hover:text-emerald-800 transition-colors">
               MicroMate
             </h1>
             <p className="text-[11px] text-stone-500 hidden sm:block font-medium truncate mt-0.5">
               Personal Asset Vault
             </p>
           </div>
-        </div>
+        </a>
 
         {/* Global Search Input (Desktop) */}
         <div className="flex-1 max-w-md hidden md:block">

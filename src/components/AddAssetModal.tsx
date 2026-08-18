@@ -221,13 +221,21 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
 
   const handleToggleNoSerialNumber = (checked: boolean) => {
     setValue('noSerialNumber', checked, { shouldDirty: true });
-    if (checked && !watchedValues.assetCode) {
-      setValue('assetCode', generateAssetCode(), { shouldDirty: true });
+    if (checked) {
+      const codeToUse = (watchedValues.assetCode && watchedValues.assetCode.trim())
+        ? watchedValues.assetCode.trim()
+        : generateAssetCode();
+      setValue('assetCode', codeToUse, { shouldDirty: true });
+      setValue('serialNumber', codeToUse, { shouldDirty: true });
     }
   };
 
   const handleRegenerateAssetCode = () => {
-    setValue('assetCode', generateAssetCode(), { shouldDirty: true });
+    const newCode = generateAssetCode();
+    setValue('assetCode', newCode, { shouldDirty: true });
+    if (watchedValues.noSerialNumber) {
+      setValue('serialNumber', newCode, { shouldDirty: true });
+    }
   };
 
   // Image compression (max 1600px, quality 0.82)
@@ -384,7 +392,8 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
   // Sync form values when assetToEdit changes or modal opens
   useEffect(() => {
     if (isOpen && assetToEdit) {
-      const isNoSn = assetToEdit.serial_number === 'Tidak memiliki S/N';
+      const codeToUse = assetToEdit.asset_code || (assetToEdit.serial_number?.startsWith('AST-') ? assetToEdit.serial_number : generateAssetCode());
+      const isNoSn = assetToEdit.serial_number === 'Tidak memiliki S/N' || assetToEdit.serial_number === codeToUse;
       reset({
         name: assetToEdit.name || '',
         category: assetToEdit.category || 'device',
@@ -394,8 +403,8 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
         assignedUser: assetToEdit.assigned_user || '',
         location: assetToEdit.location || '',
         noSerialNumber: isNoSn,
-        serialNumber: isNoSn ? '' : (assetToEdit.serial_number || ''),
-        assetCode: assetToEdit.asset_code || generateAssetCode(),
+        serialNumber: isNoSn ? codeToUse : (assetToEdit.serial_number || ''),
+        assetCode: codeToUse,
         purchaseDate: assetToEdit.purchase_date || todayStr,
         purchasePrice: assetToEdit.purchase_price !== undefined ? assetToEdit.purchase_price : '',
         purchaseLocation: assetToEdit.purchase_location || '',
@@ -533,9 +542,13 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
     }
 
     const assetId = assetToEdit ? assetToEdit.asset_id : `asset_${Date.now()}`;
+    const lockedAssetCode = (data.assetCode && data.assetCode.trim())
+      ? data.assetCode.trim()
+      : (assetToEdit?.asset_code || generateAssetCode());
+
     const cleanSerialNumber = data.noSerialNumber
-      ? 'Tidak memiliki S/N'
-      : (data.serialNumber.trim() || 'Tidak memiliki S/N');
+      ? lockedAssetCode
+      : (data.serialNumber.trim() || lockedAssetCode);
 
     const finalAsset: Asset = {
       asset_id: assetId,
@@ -546,7 +559,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       brand: data.brand.trim() || undefined,
       model: data.model.trim() || undefined,
       serial_number: cleanSerialNumber,
-      asset_code: data.assetCode || generateAssetCode(),
+      asset_code: lockedAssetCode,
       assigned_user: data.assignedUser.trim() || undefined,
       location: data.location.trim() || undefined,
       purchase_date: data.purchaseDate || undefined,
