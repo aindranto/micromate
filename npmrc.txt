@@ -1,0 +1,2 @@
+# Allow lifecycle scripts for native packages like esbuild on Vercel
+allow-scripts=true
