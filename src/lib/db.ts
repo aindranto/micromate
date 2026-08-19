@@ -2521,23 +2521,8 @@ export class DatabaseManager {
 
   // Check whether initial asset registration setup is completed (is_setup_completed = true)
   public async isSetupCompleted(): Promise<boolean> {
-    const isCompleted = localStorage.getItem('micromate_setup_completed') === 'true' ||
+    return localStorage.getItem('micromate_setup_completed') === 'true' ||
       localStorage.getItem('micromate_onboarding_completed') === 'true';
-    
-    if (isCompleted) return true;
-
-    // Check if database has valid persisted state (e.g., assets already created in DB)
-    try {
-      const hasAssets = await this.hasValidPersistedState();
-      if (hasAssets) {
-        await this.setSetupCompleted(true);
-        return true;
-      }
-    } catch {
-      // Fallback
-    }
-
-    return false;
   }
 
   // Persist setup completion status in database & localStorage (is_setup_completed = true)
