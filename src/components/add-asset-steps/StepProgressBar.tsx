@@ -4,7 +4,7 @@ import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
 import { styled } from '@mui/material/styles';
-import { Check, Layers, Smartphone, ShieldCheck, FileCheck } from 'lucide-react';
+import { Check, Layers, Smartphone, ShieldCheck, FileCheck, CheckCircle2 } from 'lucide-react';
 
 export interface StepItem {
   id: number;
@@ -54,27 +54,33 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
   const steps: StepItem[] = [
     {
       id: 1,
-      title: 'Kategori & Identitas',
-      subtitle: 'Nama, brand & nomor seri',
+      title: 'Informasi Dasar',
+      subtitle: 'Nama, kategori & lokasi',
       icon: <Layers className="w-4 h-4" />,
     },
     {
       id: 2,
       title: 'Spesifikasi Khusus',
-      subtitle: 'Detail perangkat, SIM / plat',
+      subtitle: 'Detail teknis & identitas',
       icon: <Smartphone className="w-4 h-4" />,
     },
     {
       id: 3,
-      title: 'Pembelian & Garansi',
-      subtitle: 'Harga, toko & masa garansi',
+      title: 'Garansi & Dokumen',
+      subtitle: 'Pembelian & garansi',
       icon: <ShieldCheck className="w-4 h-4" />,
     },
     {
       id: 4,
       title: 'Berkas & Review',
-      subtitle: 'Foto, invoice & konfirmasi',
+      subtitle: 'Upload foto, nota & review',
       icon: <FileCheck className="w-4 h-4" />,
+    },
+    {
+      id: 5,
+      title: 'Simpan & Konfirmasi',
+      subtitle: 'Verifikasi & simpan aset',
+      icon: <CheckCircle2 className="w-4 h-4" />,
     },
   ];
 

@@ -324,7 +324,8 @@ function doGet(e) {
     }
 
     if (action === "getAllAssets" || action === "getAssets" || action === "fetchAll") {
-      return handleGetAllAssets(ss);
+      var sinceTs = (e && e.parameter && (e.parameter.since_timestamp || e.parameter.since)) || "";
+      return handleGetAllAssets(ss, sinceTs);
     }
 
     return respondJSON({
@@ -582,7 +583,10 @@ function doPost(e) {
     try {
       // Route actions ke Handler yang tepat
       if (action === "getAllAssets" || action === "getAssets" || action === "fetchAll" || action === "pullAssets") {
-        return handleGetAllAssets(ss);
+        var sinceTs = data.since_timestamp || data.since || "";
+        return handleGetAllAssets(ss, sinceTs);
+      } else if (action === "batchSync" || action === "batchMutations") {
+        return handleBatchSync(ss, data.items || data.payload || [], mutationId, sessionHash, deviceId);
       } else if (action === "syncAsset" || action === "saveAsset") {
         return handleSyncAsset(ss, data.data || data.payload || data, mutationId, sessionHash, deviceId);
       } else if (action === "uploadFile" || action === "uploadDocument") {
@@ -652,10 +656,20 @@ function findHeaderCol(headers, aliases) {
   return -1;
 }
 
-function handleGetAllAssets(ss) {
+function handleGetAllAssets(ss, sinceTimestamp) {
   if (!ss) ss = getSpreadsheet();
   if (!ss) return respondJSON({ success: false, error: "SPREADSHEET_NOT_FOUND", message: "Google Sheet tidak dapat diakses." });
   ensureSheetTabs(ss);
+
+  var sinceMs = 0;
+  if (sinceTimestamp) {
+    try {
+      var dt = new Date(sinceTimestamp);
+      if (!isNaN(dt.getTime())) {
+        sinceMs = dt.getTime();
+      }
+    } catch (e) {}
+  }
 
   var assetSheet = ss.getSheetByName(CONFIG.SHEET_NAME_ASSETS) || 
                    ss.getSheetByName("Aset") || 
@@ -990,6 +1004,20 @@ function handleGetAllAssets(ss) {
     var createdAt = aCreatedCol !== -1 ? String(r[aCreatedCol] || "") : new Date().toISOString();
     var updatedAt = aUpdatedCol !== -1 ? String(r[aUpdatedCol] || "") : new Date().toISOString();
 
+    // Delta sync filter: if sinceMs is specified, skip assets modified before sinceMs
+    if (sinceMs > 0) {
+      var uMs = 0;
+      if (updatedAt) {
+        try {
+          var uDt = new Date(updatedAt);
+          if (!isNaN(uDt.getTime())) uMs = uDt.getTime();
+        } catch (e) {}
+      }
+      if (uMs > 0 && uMs < sinceMs) {
+        continue;
+      }
+    }
+
     var vehDetails = undefined;
     if (category === "vehicle" && aVehCol !== -1 && r[aVehCol]) {
       try { vehDetails = JSON.parse(String(r[aVehCol])); } catch (e) {}
@@ -1034,11 +1062,62 @@ function handleGetAllAssets(ss) {
     });
   }
 
+  var currentSyncTs = new Date().toISOString();
   return respondJSON({
     success: true,
     assets: assets,
-    count: assets.length
+    count: assets.length,
+    sync_timestamp: currentSyncTs,
+    is_delta: sinceMs > 0
   });
+}
+
+function handleBatchSync(ss, items, batchMutationId, sessionHash, deviceId) {
+  if (!ss) ss = getSpreadsheet();
+  ensureSheetTabs(ss);
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return respondJSON({ success: true, processed: 0, results: [] });
+  }
+
+  var results = [];
+  var processedCount = 0;
+
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i] || {};
+    var act = item.action || "";
+    var itemData = item.data || item.payload || item;
+    var mutId = item.mutation_id || item.mutationId || ("MUT-BATCH-" + i + "-" + Date.now());
+
+    try {
+      if (act === "saveAsset" || act === "syncAsset") {
+        handleSyncAsset(ss, itemData, mutId, sessionHash, deviceId);
+      } else if (act === "uploadFile" || act === "uploadDocument") {
+        handleUploadDocument(ss, itemData, mutId, sessionHash, deviceId);
+      } else if (act === "syncMaintenance" || act === "addMaintenance") {
+        handleSyncMaintenance(ss, itemData, mutId, sessionHash, deviceId);
+      } else if (act === "syncReminder" || act === "addReminder") {
+        handleSyncReminder(ss, itemData, mutId, sessionHash, deviceId);
+      } else if (act === "deleteAsset") {
+        handleDeleteAsset(ss, itemData, mutId, sessionHash, deviceId);
+      } else if (act === "syncExpense" || act === "addExpense") {
+        syncExpenseRecord(ss, itemData);
+      }
+
+      processedCount++;
+      results.push({ mutation_id: mutId, success: true });
+    } catch (err) {
+      results.push({ mutation_id: mutId, success: false, error: err.toString() });
+    }
+  }
+
+  try {
+    SpreadsheetApp.flush();
+  } catch (flushErr) {}
+
+  writeLogSync(ss, "BATCH_SYNC", "BATCH_" + items.length, "SUCCESS", "Processed " + processedCount + " batch items.", batchMutationId, sessionHash, deviceId);
+
+  return respondJSON({ success: true, processed: processedCount, total: items.length, results: results });
 }
 
 function syncSIMCard(ss, sim) {

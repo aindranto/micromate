@@ -81,7 +81,20 @@ export const AssetList: React.FC<AssetListProps> = ({
 }) => {
   const [internalCategory, setInternalCategory] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      const saved = localStorage.getItem('micromate_asset_view_mode');
+      if (saved === 'grid' || saved === 'list') return saved;
+    } catch (e) {}
+    return 'list';
+  });
+
+  const handleViewModeChange = (mode: 'grid' | 'list') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('micromate_asset_view_mode', mode);
+    } catch (e) {}
+  };
   const [isMobileCategoryExpanded, setIsMobileCategoryExpanded] = useState<boolean>(false);
   
   // Image Viewer Lightbox State
@@ -335,7 +348,7 @@ export const AssetList: React.FC<AssetListProps> = ({
           <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200">
             <button
               type="button"
-              onClick={() => setViewMode('grid')}
+              onClick={() => handleViewModeChange('grid')}
               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-white text-stone-900 shadow-xs'
@@ -347,7 +360,7 @@ export const AssetList: React.FC<AssetListProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => setViewMode('list')}
+              onClick={() => handleViewModeChange('list')}
               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                 viewMode === 'list'
                   ? 'bg-white text-stone-900 shadow-xs'

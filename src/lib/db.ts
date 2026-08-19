@@ -1,6 +1,7 @@
 import { Asset, SyncQueueItem, SyncStatus, ServiceHealth, MaintenanceRecord, Reminder, AssetDocument, Document, Expense, SyncEntity, SyncQueueItemStatus, SyncErrorType, DeviceSession, CrossDomainTransaction } from '../types';
 import { SEED_ASSETS, INITIAL_WORKSPACE_ID } from './seedData';
 import { ConflictResolutionEngine } from './conflictResolution';
+import { compressBase64Image } from './imageCompressor';
 import { completeReminderState, dismissReminderState, normalizeRepeatRule } from './reminderDomain';
 import { CreateMaintenanceInput, executeRecordServiceTransaction, recordOdometerCorrection } from './maintenanceDomain';
 import { CrossDomainTransactionLedger, ReplayReconciler } from './transactionLedger';
@@ -2327,16 +2328,20 @@ export class DatabaseManager {
     }
   }
 
-  // Tarik & sinkronkan seluruh data aset dari Google Sheets ke IndexedDB & LocalStorage dengan Cloud Reconciliation
-  public async pullFromGoogleSheets(): Promise<{ success: boolean; count: number; reconciledRemoved?: number; error?: string }> {
+  // Tarik & sinkronkan seluruh data aset dari Google Sheets ke IndexedDB & LocalStorage dengan Cloud Reconciliation & Delta Sync
+  public async pullFromGoogleSheets(options?: { fullSync?: boolean }): Promise<{ success: boolean; count: number; reconciledRemoved?: number; error?: string }> {
     const url = localStorage.getItem('micromate_apps_script_url');
     const token = localStorage.getItem('micromate_access_token') || '';
     if (!url || !url.trim()) {
       return { success: false, count: 0, error: 'Endpoint Google Apps Script belum dikonfigurasi.' };
     }
 
+    const lastSyncTs = options?.fullSync ? '' : (localStorage.getItem('micromate_last_sync_ts') || '');
+
     let remoteAssets: Asset[] = [];
     let fetched = false;
+    let isDeltaResponse = false;
+    let newSyncTs = '';
     let lastError = 'Gagal menarik data dari Apps Script Web App.';
 
     // 1. Coba request langsung ke Apps Script Endpoint via POST
@@ -2344,13 +2349,15 @@ export class DatabaseManager {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'getAllAssets', token })
+        body: JSON.stringify({ action: 'getAllAssets', token, since_timestamp: lastSyncTs })
       });
       if (res.ok) {
         const json = await res.json().catch(() => null);
         if (json && json.success && Array.isArray(json.assets)) {
           remoteAssets = json.assets;
           fetched = true;
+          isDeltaResponse = !!json.is_delta;
+          newSyncTs = json.sync_timestamp || new Date().toISOString();
         } else if (json && (json.message || json.error)) {
           lastError = json.message || json.error;
         }
@@ -2366,14 +2373,16 @@ export class DatabaseManager {
     if (!fetched) {
       try {
         const getUrl = url.includes('?') 
-          ? `${url}&action=getAllAssets&token=${encodeURIComponent(token)}` 
-          : `${url}?action=getAllAssets&token=${encodeURIComponent(token)}`;
+          ? `${url}&action=getAllAssets&token=${encodeURIComponent(token)}&since_timestamp=${encodeURIComponent(lastSyncTs)}` 
+          : `${url}?action=getAllAssets&token=${encodeURIComponent(token)}&since_timestamp=${encodeURIComponent(lastSyncTs)}`;
         const res = await fetch(getUrl, { method: 'GET' });
         if (res.ok) {
           const json = await res.json().catch(() => null);
           if (json && json.success && Array.isArray(json.assets)) {
             remoteAssets = json.assets;
             fetched = true;
+            isDeltaResponse = !!json.is_delta;
+            newSyncTs = json.sync_timestamp || new Date().toISOString();
           } else if (json && (json.message || json.error)) {
             lastError = json.message || json.error;
           }
@@ -2392,13 +2401,15 @@ export class DatabaseManager {
             'Content-Type': 'application/json',
             'X-Apps-Script-Url': url || ''
           },
-          body: JSON.stringify({ action: 'getAllAssets', token })
+          body: JSON.stringify({ action: 'getAllAssets', token, since_timestamp: lastSyncTs })
         });
         if (proxyRes.ok) {
           const json = await proxyRes.json();
           if (json && json.success && Array.isArray(json.assets)) {
             remoteAssets = json.assets;
             fetched = true;
+            isDeltaResponse = !!json.is_delta;
+            newSyncTs = json.sync_timestamp || new Date().toISOString();
           }
         }
       } catch (e) {
@@ -2408,6 +2419,9 @@ export class DatabaseManager {
 
     if (fetched) {
       localStorage.setItem('micromate_db_seeded', 'true');
+      if (newSyncTs) {
+        localStorage.setItem('micromate_last_sync_ts', newSyncTs);
+      }
 
       // Get current local assets & unsynced queue items
       const localAssets = await this.getAllAssetsInternal();
@@ -2471,9 +2485,9 @@ export class DatabaseManager {
         }
       }
 
-      // Cloud Reconciliation: Remove local assets that do not exist in Google Sheets and have no pending local sync actions
+      // Cloud Reconciliation: Remove local assets that do not exist in Google Sheets (ONLY on full non-delta sync)
       let reconciledRemoved = 0;
-      if (remoteAssets.length > 0) {
+      if (!isDeltaResponse && remoteAssets.length > 0) {
         for (const localAsset of localAssets) {
           if (!remoteAssetIds.has(localAsset.asset_id)) {
             // If asset is not in cloud AND has no pending local queue items, it was deleted remotely

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Asset, AssetDocument, DocumentType } from '../types';
 import { X, FileText, Upload, Link } from 'lucide-react';
+import { compressImageFile } from '../lib/imageCompressor';
 
 interface AddDocumentModalProps {
   isOpen: boolean;
@@ -50,14 +51,11 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       setName(file.name.replace(/\.[^/.]+$/, ''));
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setFileUrl(reader.result);
-      }
-    };
-    reader.onerror = () => setFileError('Gagal membaca file');
-    reader.readAsDataURL(file);
+    compressImageFile(file, { maxDimension: 1200, quality: 0.80 })
+      .then((compressedUrl) => {
+        setFileUrl(compressedUrl);
+      })
+      .catch(() => setFileError('Gagal membaca & mengompres file'));
   };
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { DocumentType } from '../../types';
 import { UI_CATEGORIES, UICategoryDefinition } from '../../lib/documentPresentation';
+import { compressImageFile } from '../../lib/imageCompressor';
 
 interface AddDocumentModalProps {
   isOpen: boolean;
@@ -86,16 +87,14 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     else if (lowerName.includes('asuransi') || lowerName.includes('polis')) setDocumentType('insurance');
     else if (selectedFile.type.startsWith('image/')) setDocumentType('condition_photo');
 
-    // Read base64
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setBase64Content(result);
-    };
-    reader.onerror = () => {
-      setError('Gagal membaca berkas lokal.');
-    };
-    reader.readAsDataURL(selectedFile);
+    // Read & compress base64
+    compressImageFile(selectedFile, { maxDimension: 1200, quality: 0.80 })
+      .then((result) => {
+        setBase64Content(result);
+      })
+      .catch(() => {
+        setError('Gagal membaca & mengompres berkas lokal.');
+      });
   };
 
   const handleDrop = (e: React.DragEvent) => {

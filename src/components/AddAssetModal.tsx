@@ -11,6 +11,8 @@ import { Step1Identity } from './add-asset-steps/Step1Identity';
 import { Step2Specs } from './add-asset-steps/Step2Specs';
 import { Step3Warranty } from './add-asset-steps/Step3Warranty';
 import { Step4Review } from './add-asset-steps/Step4Review';
+import { Step5Confirm } from './add-asset-steps/Step5Confirm';
+import { compressImageFile } from '../lib/imageCompressor';
 
 export interface AssetFormData {
   name: string;
@@ -158,9 +160,9 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
   // Watch form fields for reactive child component rendering
   const watchedValues = watch();
 
-  // Multi-step Wizard Navigation State (1: Identity, 2: Specs, 3: Warranty, 4: Review)
+  // Multi-step Wizard Navigation State (1: Identity, 2: Specs, 3: Warranty, 4: Review, 5: Confirm)
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
   const [step1Error, setStep1Error] = useState<string>('');
 
   // Confirmation Modal State
@@ -238,45 +240,9 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
     }
   };
 
-  // Image compression (max 1600px, quality 0.82)
+  // Image compression (max 1200px, quality 0.80)
   const compressImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 1600;
-
-          if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            } else {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
-            resolve(compressedDataUrl);
-          } else {
-            resolve(e.target?.result as string);
-          }
-        };
-        img.onerror = () => reject('Gagal memproses gambar');
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = () => reject('Gagal membaca file');
-      reader.readAsDataURL(file);
-    });
+    return compressImageFile(file, { maxDimension: 1200, quality: 0.80 });
   };
 
   const handlePhotoChange = async (file: File | undefined) => {
@@ -659,13 +625,15 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
     }
 
     setPendingAsset(finalAsset);
-    setIsConfirmModalOpen(true);
+    handleConfirmSave(finalAsset);
   };
 
-  const handleConfirmSave = async () => {
-    if (!pendingAsset || isSubmitting) return;
+  const handleConfirmSave = async (targetAsset?: Asset) => {
+    const assetToSave = targetAsset || pendingAsset;
+    if (!assetToSave || isSubmitting) return;
 
     setIsSubmitting(true);
+    setIsConfirmModalOpen(true);
     setSyncStepMessage('Menyimpan data aset ke database lokal...');
 
     try {
@@ -674,7 +642,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       setSyncStepMessage('Sedang menyinkronkan data ke Google Sheets...');
 
       // Step 2: Panggil callback onSave
-      await Promise.resolve(onSave(pendingAsset));
+      await Promise.resolve(onSave(assetToSave));
 
       // Step 3: Tampilkan status sukses
       await new Promise((resolve) => setTimeout(resolve, 600));
@@ -686,7 +654,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
       if (onShowToast) {
         onShowToast(
           'success',
-          `Aset "${pendingAsset.name}" Berhasil Disimpan & Disinkronkan!`
+          `Aset "${assetToSave.name}" Berhasil Disimpan & Disinkronkan!`
         );
       }
 
@@ -892,6 +860,37 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   notes={watchedValues.notes || ''}
                 />
               )}
+
+              {currentStep === 5 && (
+                <Step5Confirm
+                  assetToEdit={assetToEdit}
+                  name={watchedValues.name || ''}
+                  category={watchedValues.category}
+                  brand={watchedValues.brand || ''}
+                  model={watchedValues.model || ''}
+                  serialNumber={watchedValues.serialNumber || ''}
+                  assetCode={watchedValues.assetCode || ''}
+                  noSerialNumber={watchedValues.noSerialNumber}
+                  assignedUser={watchedValues.assignedUser || ''}
+                  location={watchedValues.location || ''}
+                  purchasePrice={watchedValues.purchasePrice}
+                  purchaseDate={watchedValues.purchaseDate || ''}
+                  purchaseLocation={watchedValues.purchaseLocation || ''}
+                  hasWarranty={watchedValues.hasWarranty}
+                  warrantyEndDate={watchedValues.warrantyEndDate || ''}
+                  warrantyProvider={watchedValues.warrantyProvider || ''}
+                  hasSimDetails={watchedValues.hasSimDetails}
+                  phoneNumber={watchedValues.phoneNumber || ''}
+                  simProvider={watchedValues.simProvider || ''}
+                  licensePlate={watchedValues.licensePlate || ''}
+                  photoFile={photoFile}
+                  photoUrl={watchedValues.photoUrl || ''}
+                  invoiceFile={invoiceFile}
+                  isSubmitting={isSubmitting}
+                  syncStepMessage={syncStepMessage}
+                  onConfirmSave={() => methods.handleSubmit(handleFinalFormSubmit)()}
+                />
+              )}
             </div>
 
             {/* Wizard Footer Navigation Controls */}
@@ -1041,7 +1040,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 <button
                   type="button"
                   disabled={isSubmitting}
-                  onClick={handleConfirmSave}
+                  onClick={() => handleConfirmSave()}
                   className="flex-1 py-3 bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
