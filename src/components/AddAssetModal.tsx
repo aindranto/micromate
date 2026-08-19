@@ -676,22 +676,22 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
   return (
     <FormProvider {...methods}>
       <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-        <div className="bg-white rounded-3xl border border-stone-200 w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+        <div className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-2xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
           
-          {/* Modal Header */}
-          <div className="p-4 sm:p-5 border-b border-stone-200 flex items-center justify-between shrink-0 bg-white">
+          {/* Modal Header (M3 Container Header) */}
+          <div className="p-4 sm:p-5 border-b border-stone-200/80 flex items-center justify-between shrink-0 bg-white">
             <div>
               <h3 className="font-bold text-stone-900 text-base sm:text-lg flex items-center gap-2">
                 {assetToEdit ? (
                   <>
-                    <Edit3 className="w-5 h-5 text-emerald-800" />
+                    <Edit3 className="w-5 h-5 text-emerald-900" />
                     <span>Edit Data Aset / Produk</span>
                   </>
                 ) : (
                   <span>Form Registrasi Aset Baru</span>
                 )}
               </h3>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-500 font-medium">
                 {assetToEdit 
                   ? 'Perbarui spesifikasi dan data inventaris secara bertahap.'
                   : 'Multi-step Form dengan validasi cerdas untuk pendataan aset yang komprehensif.'}
@@ -700,7 +700,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-stone-400 hover:text-stone-600 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer"
+              className="p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-all cursor-pointer active:scale-95"
             >
               <X className="w-5 h-5" />
             </button>
@@ -893,13 +893,13 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
               )}
             </div>
 
-            {/* Wizard Footer Navigation Controls */}
-            <div className="p-4 sm:p-5 border-t border-stone-200 flex items-center justify-between gap-3 bg-stone-50/80 shrink-0">
+            {/* Wizard Footer Navigation Controls (M3 Buttons) */}
+            <div className="p-4 sm:p-5 border-t border-stone-200/80 flex items-center justify-between gap-3 bg-stone-50/80 shrink-0">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-3.5 py-2 text-xs font-semibold text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 rounded-xl cursor-pointer transition-colors"
+                  className="px-4 py-2.5 text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 rounded-full cursor-pointer transition-all"
                 >
                   Batal
                 </button>
@@ -907,7 +907,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-stone-100 border border-stone-200 text-stone-800 text-xs font-bold rounded-xl shadow-2xs cursor-pointer active:scale-95 transition-all"
+                    className="flex items-center gap-1.5 px-4 py-2.5 bg-white hover:bg-stone-100 border border-stone-300/80 text-stone-800 text-xs font-bold rounded-full shadow-2xs cursor-pointer active:scale-95 transition-all"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Sebelumnya</span>
@@ -920,7 +920,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   <button
                     type="button"
                     onClick={handleNextStep}
-                    className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-2xs cursor-pointer active:scale-95 transition-all"
+                    className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white text-xs font-bold rounded-full shadow-2xs cursor-pointer active:scale-95 transition-all"
                   >
                     <span>Lanjut ke Langkah {currentStep + 1}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -928,7 +928,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 ) : (
                   <button
                     type="submit"
-                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl shadow-2xs cursor-pointer active:scale-95 transition-all"
+                    className="flex items-center gap-2 px-6 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white text-xs font-bold rounded-full shadow-2xs cursor-pointer active:scale-95 transition-all"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{assetToEdit ? 'Simpan Perubahan' : 'Konfirmasi & Simpan Aset'}</span>
@@ -940,10 +940,10 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
 
         </div>
 
-        {/* Confirmation Modal Before Saving */}
+        {/* Confirmation Modal Before Saving (M3 Dialog) */}
         {isConfirmModalOpen && pendingAsset && (
           <div className="fixed inset-0 z-60 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="relative bg-white rounded-3xl border border-stone-200 p-6 shadow-2xl w-full max-w-md space-y-5 overflow-hidden">
+            <div className="relative bg-white rounded-3xl border border-stone-200/80 p-6 shadow-2xl w-full max-w-md space-y-5 overflow-hidden">
               
               {/* Overlay Loader Saat Process Syncing */}
               {isSubmitting && (
@@ -980,48 +980,48 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   <h3 className="font-extrabold text-stone-900 text-base">
                     {assetToEdit ? 'Konfirmasi Perubahan Aset' : 'Konfirmasi Registrasi Aset'}
                   </h3>
-                  <p className="text-xs text-stone-500">
+                  <p className="text-xs text-stone-500 font-medium">
                     {assetToEdit ? 'Periksa kembali data sebelum disimpan' : 'Pastikan data yang diisikan sudah benar'}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200/80 space-y-2 text-xs">
+              <div className="bg-stone-50/80 rounded-2xl p-4 border border-stone-200/80 space-y-2 text-xs">
                 <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                  <span className="text-stone-500">Nama Aset:</span>
+                  <span className="text-stone-500 font-medium">Nama Aset:</span>
                   <span className="font-bold text-stone-900 text-right">{pendingAsset.name}</span>
                 </div>
                 <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                  <span className="text-stone-500">Kategori:</span>
+                  <span className="text-stone-500 font-medium">Kategori:</span>
                   <span className="font-semibold text-stone-800 uppercase">{pendingAsset.category}</span>
                 </div>
                 {pendingAsset.assigned_user && (
                   <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                    <span className="text-stone-500">Pengguna / Penanggung Jawab:</span>
+                    <span className="text-stone-500 font-medium">Pengguna / Penanggung Jawab:</span>
                     <span className="font-bold text-emerald-800">{pendingAsset.assigned_user}</span>
                   </div>
                 )}
                 {pendingAsset.brand && (
                   <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                    <span className="text-stone-500">Merek / Model:</span>
+                    <span className="text-stone-500 font-medium">Merek / Model:</span>
                     <span className="font-medium text-stone-800">{pendingAsset.brand} {pendingAsset.model || ''}</span>
                   </div>
                 )}
                 {pendingAsset.serial_number && (
                   <div className="flex justify-between border-b border-stone-200/60 pb-2">
-                    <span className="text-stone-500">Nomor Seri (S/N):</span>
+                    <span className="text-stone-500 font-medium">Nomor Seri (S/N):</span>
                     <span className="font-mono font-medium text-stone-800">{pendingAsset.serial_number}</span>
                   </div>
                 )}
                 {pendingAsset.purchase_price !== undefined && (
                   <div className="flex justify-between pt-1">
-                    <span className="text-stone-500">Harga Beli:</span>
+                    <span className="text-stone-500 font-medium">Harga Beli:</span>
                     <span className="font-bold text-emerald-800">{formatRupiah(pendingAsset.purchase_price)}</span>
                   </div>
                 )}
               </div>
 
-              <p className="text-xs text-stone-600 leading-relaxed">
+              <p className="text-xs text-stone-600 font-medium leading-relaxed">
                 {assetToEdit 
                   ? `Apakah Anda yakin ingin menyimpan perubahan informasi pada produk "${pendingAsset.name}"? Data di aplikasi dan Google Sheets akan disinkronkan.`
                   : `Apakah Anda yakin ingin mendaftarkan aset baru "${pendingAsset.name}" ini ke dalam sistem?`
@@ -1033,7 +1033,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => setIsConfirmModalOpen(false)}
-                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 font-bold text-xs rounded-xl transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 active:scale-95 text-stone-700 font-bold text-xs rounded-full transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Batal & Cek Lagi
                 </button>
@@ -1041,7 +1041,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                   type="button"
                   disabled={isSubmitting}
                   onClick={() => handleConfirmSave()}
-                  className="flex-1 py-3 bg-emerald-800 hover:bg-emerald-900 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-3 bg-emerald-900 hover:bg-emerald-950 active:scale-95 text-white font-bold text-xs rounded-full shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>

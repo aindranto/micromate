@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200 transition-colors">
-      <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="w-full px-3.5 sm:px-6 lg:px-8 xl:px-10 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         
         {/* Brand Logo & Name */}
         <a 
@@ -145,11 +145,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-2.5 sm:gap-3 min-w-0 group cursor-pointer"
           title="Ke Halaman Landing Page"
         >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center shadow-xs font-black text-base sm:text-lg shrink-0 group-hover:bg-emerald-700 transition-colors">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-900 text-white flex items-center justify-center shadow-2xs font-black text-base sm:text-lg shrink-0 group-hover:bg-emerald-950 transition-colors">
             <Box className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate group-hover:text-emerald-800 transition-colors">
+            <h1 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight leading-none truncate group-hover:text-emerald-900 transition-colors">
               MicroMate
             </h1>
             <p className="text-[11px] text-stone-500 hidden sm:block font-medium truncate mt-0.5">
@@ -158,16 +158,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </a>
 
-        {/* Global Search Input (Desktop) */}
+        {/* Global Search Input (Desktop M3 Search Bar) */}
         <div className="flex-1 max-w-md hidden md:block">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Cari aset, plat nomor, serial number, brand..."
-              className="w-full pl-9 pr-4 py-1.5 text-xs sm:text-sm bg-stone-50 focus:bg-white border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/40 text-stone-900 placeholder-stone-400 transition-all"
+              className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-stone-100/80 focus:bg-white border border-stone-200/80 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-600/40 text-stone-900 placeholder-stone-400 transition-all font-medium"
             />
           </div>
         </div>
@@ -175,12 +175,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Action Controls: Contextual Sync Status + Settings */}
         <div className="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
           
-          {/* Contextual Sync Status Badge */}
+          {/* Contextual Sync Status Badge (M3 Badge) */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setShowSyncPopover(!showSyncPopover)}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-extrabold rounded-xl border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full border transition-all cursor-pointer shadow-2xs ${badgeConfig.classes}`}
               title="Status Koneksi & Penyimpanan"
             >
               {badgeConfig.icon}
@@ -189,10 +189,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <ChevronDown className="w-3 h-3 text-stone-400" />
             </button>
 
-            {/* Sync Detail Popover Card */}
+            {/* Sync Detail Popover Card (M3 Container) */}
             {showSyncPopover && (
               <div 
-                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white rounded-2xl border border-stone-200 shadow-xl p-4 z-50 space-y-3.5 animate-in fade-in zoom-in-95 duration-150"
+                className="absolute right-0 mt-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md rounded-3xl border border-stone-200/80 shadow-2xl p-4.5 z-50 space-y-3.5 animate-in fade-in zoom-in-95 duration-150"
                 onMouseLeave={() => setShowSyncPopover(false)}
               >
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">

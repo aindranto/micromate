@@ -69,15 +69,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         ref={menuRef}
         className="fixed bottom-20 right-5 sm:bottom-22 sm:right-6 lg:bottom-8 lg:right-8 z-50 flex flex-col items-end"
       >
-        {/* Quick Action Popup Menu */}
+        {/* Quick Action Popup Menu (M3 Container) */}
         {isQuickActionOpen && (
-          <div className="mb-3 w-56 sm:w-60 bg-white rounded-2xl border border-stone-200 shadow-2xl p-2 z-50 space-y-1 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150">
-            <div className="px-3 py-1.5 border-b border-stone-100 flex items-center justify-between">
+          <div className="mb-3 w-60 bg-white/95 backdrop-blur-md rounded-3xl border border-stone-200/80 shadow-2xl p-2.5 z-50 space-y-1 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150">
+            <div className="px-3 py-2 border-b border-stone-100/80 flex items-center justify-between">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500">Aksi Cepat</span>
               <button 
                 type="button"
                 onClick={() => setIsQuickActionOpen(false)}
-                className="p-1 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-lg cursor-pointer"
+                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full cursor-pointer transition-colors"
                 aria-label="Tutup menu aksi cepat"
               >
                 <X className="w-3.5 h-3.5" />
@@ -88,14 +88,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <button
               type="button"
               onClick={() => handleActionClick(onQuickAddAsset)}
-              className="w-full px-3 py-2 text-left rounded-xl hover:bg-emerald-50 text-stone-800 hover:text-emerald-950 flex items-center gap-2.5 text-xs font-bold transition-colors cursor-pointer"
+              className="w-full px-3.5 py-2.5 text-left rounded-2xl hover:bg-emerald-50/80 text-stone-800 hover:text-emerald-950 flex items-center gap-3 text-xs font-bold transition-all cursor-pointer"
             >
-              <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center shrink-0 shadow-2xs">
                 <Box className="w-4 h-4" />
               </div>
               <div>
-                <span className="block font-bold">Aset Baru</span>
-                <span className="text-[10px] text-stone-400 font-normal block">Tambah perangkat / kendaraan</span>
+                <span className="block font-bold text-stone-900">Aset Baru</span>
+                <span className="text-[10px] text-stone-400 font-medium block">Tambah perangkat / kendaraan</span>
               </div>
             </button>
 
@@ -104,14 +104,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <button
                 type="button"
                 onClick={() => handleActionClick(onQuickAddMaintenance)}
-                className="w-full px-3 py-2 text-left rounded-xl hover:bg-emerald-50 text-stone-800 hover:text-emerald-950 flex items-center gap-2.5 text-xs font-bold transition-colors cursor-pointer"
+                className="w-full px-3.5 py-2.5 text-left rounded-2xl hover:bg-emerald-50/80 text-stone-800 hover:text-emerald-950 flex items-center gap-3 text-xs font-bold transition-all cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 shadow-2xs">
                   <Wrench className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block font-bold">Catat Servis</span>
-                  <span className="text-[10px] text-stone-400 font-normal block">Rekam perbaikan &amp; biaya</span>
+                  <span className="block font-bold text-stone-900">Catat Servis</span>
+                  <span className="text-[10px] text-stone-400 font-medium block">Rekam perbaikan &amp; biaya</span>
                 </div>
               </button>
             )}
@@ -121,25 +121,25 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <button
                 type="button"
                 onClick={() => handleActionClick(onQuickAddReminder)}
-                className="w-full px-3 py-2 text-left rounded-xl hover:bg-emerald-50 text-stone-800 hover:text-emerald-950 flex items-center gap-2.5 text-xs font-bold transition-colors cursor-pointer"
+                className="w-full px-3.5 py-2.5 text-left rounded-2xl hover:bg-emerald-50/80 text-stone-800 hover:text-emerald-950 flex items-center gap-3 text-xs font-bold transition-all cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-rose-100 text-rose-900 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-900 flex items-center justify-center shrink-0 shadow-2xs">
                   <Bell className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="block font-bold">Tambah Reminder</span>
-                  <span className="text-[10px] text-stone-400 font-normal block">Garansi, pajak, SIM &amp; jadwal</span>
+                  <span className="block font-bold text-stone-900">Tambah Reminder</span>
+                  <span className="text-[10px] text-stone-400 font-medium block">Garansi, pajak, SIM &amp; jadwal</span>
                 </div>
               </button>
             )}
           </div>
         )}
 
-        {/* Floating Action Button */}
+        {/* M3 Floating Action Button (FAB) */}
         <button
           type="button"
           onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
-          className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white flex items-center justify-center shadow-xl hover:shadow-2xl active:scale-95 transition-all border-2 border-white cursor-pointer ${
+          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-emerald-900 hover:bg-emerald-950 text-white flex items-center justify-center shadow-xl hover:shadow-2xl active:scale-95 transition-all border-2 border-white cursor-pointer ${
             isQuickActionOpen ? 'rotate-45 bg-stone-900 hover:bg-stone-950 shadow-2xl' : ''
           }`}
           title="Aksi Cepat (+)"
@@ -149,8 +149,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         </button>
       </div>
 
-      {/* Fixed Bottom Navigation Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200/90 shadow-lg px-2 sm:px-4 py-1.5 transition-colors pb-safe">
+      {/* Fixed M3 Bottom Navigation Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-lg px-2 sm:px-4 py-2 transition-all pb-safe">
         <div className="flex items-center justify-around max-w-md mx-auto relative">
           
           {/* 1. Home */}
@@ -160,10 +160,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               setIsQuickActionOpen(false);
               onTabChange('dashboard');
             }}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeTab === 'dashboard' 
-                ? 'bg-emerald-100/80 text-emerald-950 font-extrabold' 
-                : 'text-stone-500 font-medium hover:text-stone-800'
+                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
+                : 'text-stone-500 font-semibold hover:text-stone-800'
             }`}
           >
             <House className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-emerald-900' : 'text-stone-500'}`} />
@@ -177,27 +177,27 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               setIsQuickActionOpen(false);
               onTabChange('assets');
             }}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeTab === 'assets' 
-                ? 'bg-emerald-100/80 text-emerald-950 font-extrabold' 
-                : 'text-stone-500 font-medium hover:text-stone-800'
+                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
+                : 'text-stone-500 font-semibold hover:text-stone-800'
             }`}
           >
             <Box className={`w-5 h-5 ${activeTab === 'assets' ? 'text-emerald-900' : 'text-stone-500'}`} />
             <span className="text-[10px] tracking-tight">Aset</span>
           </button>
 
-          {/* 3. Reminder (with badge) */}
+          {/* 3. Reminder (with M3 badge) */}
           <button
             type="button"
             onClick={() => {
               setIsQuickActionOpen(false);
               onTabChange('reminders');
             }}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeTab === 'reminders' 
-                ? 'bg-emerald-100/80 text-emerald-950 font-extrabold' 
-                : 'text-stone-500 font-medium hover:text-stone-800'
+                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
+                : 'text-stone-500 font-semibold hover:text-stone-800'
             }`}
           >
             <div className="relative">
@@ -222,10 +222,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
                 onTabChange('settings');
               }
             }}
-            className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all cursor-pointer ${
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               activeTab === 'settings' 
-                ? 'bg-emerald-100/80 text-emerald-950 font-extrabold' 
-                : 'text-stone-500 font-medium hover:text-stone-800'
+                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
+                : 'text-stone-500 font-semibold hover:text-stone-800'
             }`}
           >
             <Settings className={`w-5 h-5 ${activeTab === 'settings' ? 'text-emerald-900' : 'text-stone-500'}`} />

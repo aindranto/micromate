@@ -217,7 +217,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 120 }}
           transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-          className={`relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-stone-200 z-10 flex flex-col max-h-[90vh] overflow-hidden ${
+          className={`relative bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl border-t sm:border border-stone-200/80 z-10 flex flex-col max-h-[90vh] overflow-hidden ${
             isTerminal ? 'opacity-90' : ''
           }`}
         >
@@ -225,13 +225,13 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           <div className="w-12 h-1 bg-stone-200 rounded-full mx-auto my-3 sm:hidden" />
 
           {/* Modal Header */}
-          <div className="px-5 pt-3 pb-4 border-b border-stone-100 flex items-center justify-between">
+          <div className="px-5 pt-3 pb-4 border-b border-stone-200/80 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md border ${styles.badge}`} aria-label={`Tingkat keparahan: ${notification.severity}`}>
+              <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border ${styles.badge}`} aria-label={`Tingkat keparahan: ${notification.severity}`}>
                 {notification.severity === 'CRITICAL' ? '[Kritis] ' : notification.severity === 'HIGH' ? '[Tinggi] ' : ''}
                 {notification.severity}
               </span>
-              <span className="text-[10px] font-bold text-stone-500 bg-stone-50 px-2 py-0.5 rounded-md border border-stone-200" aria-label={`Status: ${notification.client_state}`}>
+              <span className="text-[10px] font-bold text-stone-600 bg-stone-100/80 px-2.5 py-1 rounded-full border border-stone-200/80" aria-label={`Status: ${notification.client_state}`}>
                 {notification.client_state === 'UNREAD' ? 'Baru' : 
                  notification.client_state === 'OPENED' ? 'Sedang Ditinjau' :
                  notification.client_state === 'OBSOLETE' ? 'Kedaluwarsa' : 'Dibatalkan'}
@@ -239,8 +239,9 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
             </div>
             <button
               type="button"
+              id="btn-close-notification-modal"
               onClick={onClose}
-              className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-stone-100"
+              className="p-1.5 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-all active:scale-95 cursor-pointer"
               title="Tutup Detil"
               aria-label="Tutup peninjauan detil"
             >
@@ -347,12 +348,12 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
           </div>
 
           {/* Modal Footer Controls (6-3D-05) */}
-          <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex flex-col sm:flex-row gap-2.5">
+          <div className="px-6 py-4 border-t border-stone-200/80 bg-white flex flex-col sm:flex-row gap-2.5">
             {/* secondary dismiss button always available */}
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:order-1 py-3 text-xs font-bold text-stone-600 hover:text-stone-900 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1"
+              className="w-full sm:order-1 py-3 text-xs font-bold text-stone-700 hover:bg-stone-100 border border-stone-300/80 rounded-full transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95"
             >
               <span>Tutup Peninjauan</span>
             </button>
@@ -363,10 +364,10 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
                 id="modal-cta-action-btn"
                 type="button"
                 onClick={handleCtaClick}
-                className="w-full sm:order-2 py-3 text-xs font-black text-white bg-emerald-800 hover:bg-emerald-900 rounded-xl shadow-xs transition-all cursor-pointer flex items-center justify-center gap-2 border border-emerald-900"
+                className="w-full sm:order-2 py-3 text-xs font-bold text-white bg-emerald-900 hover:bg-emerald-950 rounded-full shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
               >
                 <span>Buka Formulir Tindakan</span>
-                <ExternalLink className="w-3.5 h-3.5 text-emerald-300" />
+                <ExternalLink className="w-3.5 h-3.5 text-emerald-200" />
               </button>
             )}
           </div>

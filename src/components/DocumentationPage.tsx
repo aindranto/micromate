@@ -117,7 +117,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 w-full pb-12">
       
       {/* Header Banner */}
       <div className="p-6 sm:p-8 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 text-white rounded-3xl shadow-md relative overflow-hidden">

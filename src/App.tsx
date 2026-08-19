@@ -632,8 +632,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Main Body Layout with Sidebar */}
-      <div className="flex-1 max-w-7xl w-full mx-auto flex">
+      {/* Main Body Layout with Sidebar (Fluid Full-Width Layout on Desktop) */}
+      <div className="flex-1 w-full flex">
         
         {/* Desktop Sidebar Navigation */}
         <Sidebar

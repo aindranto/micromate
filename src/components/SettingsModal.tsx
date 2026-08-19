@@ -659,25 +659,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-3xl border border-stone-200 w-full max-w-3xl shadow-2xl flex flex-col h-[620px] max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-3xl shadow-2xl flex flex-col h-[620px] max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="p-3 sm:p-4 md:p-5 border-b border-stone-200 flex items-center justify-between shrink-0 bg-white">
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="p-1.5 sm:p-2 bg-emerald-50 text-emerald-800 rounded-xl">
-              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+        <div className="p-4 sm:p-5 border-b border-stone-200/80 flex items-center justify-between shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2 sm:p-2.5 bg-emerald-100/90 text-emerald-950 rounded-2xl shadow-2xs">
+              <Settings className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-extrabold text-stone-900 text-sm sm:text-base md:text-lg leading-none">
                 Control Center MicroMate
               </h3>
-              <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5 sm:mt-1">
+              <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1">
                 Pusat Kontrol Penyimpanan, Keamanan &amp; Kategori
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-1.5 sm:p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-xl cursor-pointer transition-colors">
-            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          <button type="button" onClick={onClose} className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all active:scale-95">
+            <X className="w-5 h-5" />
           </button>
         </div>
 

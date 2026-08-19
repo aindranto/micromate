@@ -231,13 +231,13 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
     >
       <div 
         id={`modal-maint-card-${formId}`}
-        className="bg-white rounded-3xl border border-stone-200 w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-lg shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
       >
         
         {/* MODAL HEADER */}
-        <div className="p-5 sm:p-6 border-b border-stone-200 flex items-center justify-between shrink-0 bg-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shadow-2xs">
+        <div className="p-5 sm:p-6 border-b border-stone-200/80 flex items-center justify-between shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100/90 text-emerald-950 flex items-center justify-center shadow-2xs">
               <Wrench className="w-5 h-5" />
             </div>
             <div>
@@ -254,7 +254,7 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
             id={`btn-close-modal-${formId}`}
             onClick={onClose} 
             disabled={isSubmitting}
-            className="p-2 text-stone-400 hover:text-stone-700 rounded-xl hover:bg-stone-100 transition-colors cursor-pointer disabled:opacity-50"
+            className="p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
@@ -626,13 +626,13 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
           </div>
 
           {/* MODAL FOOTER BUTTONS */}
-          <div className="pt-3 border-t border-stone-200 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
+          <div className="pt-3 border-t border-stone-200/80 flex items-center justify-end gap-3 sticky bottom-0 bg-white">
             <button
               type="button"
               id={`btn-cancel-${formId}`}
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2.5 text-stone-700 font-semibold hover:bg-stone-100 rounded-xl cursor-pointer transition-colors disabled:opacity-50"
+              className="px-4 py-2.5 text-stone-700 font-bold text-xs sm:text-sm hover:bg-stone-100 rounded-full cursor-pointer transition-all disabled:opacity-50"
             >
               Batal
             </button>
@@ -640,7 +640,7 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
               type="submit"
               id={`btn-submit-maintenance-${formId}`}
               disabled={isSubmitting || !selectedAssetId || (calculatedCost <= 0 && cost === '')}
-              className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl shadow-xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold text-xs sm:text-sm rounded-full shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>

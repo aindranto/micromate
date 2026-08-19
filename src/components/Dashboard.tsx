@@ -79,34 +79,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-8 pb-12">
       
-      {/* Simplified Welcome Banner */}
-      <div className="bg-emerald-800 text-white rounded-2xl p-4 sm:p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Simplified Welcome Banner (M3 Primary Surface Container) */}
+      <div className="bg-emerald-900 text-white rounded-3xl p-5 sm:p-7 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1">
           <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white">
             Ringkasan Aset Hari Ini
           </h2>
-          <p className="text-emerald-100 text-xs sm:text-sm">
+          <p className="text-emerald-100/90 text-xs sm:text-sm font-medium">
             {attentionItems.length > 0 
               ? `Terdapat ${attentionItems.length} poin perhatian terkait garansi, servis, atau pajak.`
               : 'Semua aset dan jadwal perawatan Anda terkelola dengan baik.'}
           </p>
         </div>
 
-        {/* Quick Action Buttons */}
-        <div className="grid grid-cols-3 sm:flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto shrink-0">
+        {/* Quick Action Buttons (M3 Filled & Tonal Buttons) */}
+        <div className="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
           <button
             type="button"
             onClick={onQuickAddAsset}
-            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-2 sm:px-3.5 py-2 rounded-xl text-[11px] sm:text-xs shadow-2xs transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-3.5 sm:px-4 py-2.5 rounded-full text-[11px] sm:text-xs shadow-2xs transition-all cursor-pointer active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+            <Plus className="w-4 h-4 text-emerald-800 shrink-0" />
             <span>Aset Baru</span>
           </button>
 
           <button
             type="button"
             onClick={onQuickAddMaintenance}
-            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1.5 bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold px-3 sm:px-4 py-2.5 rounded-full text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
           >
             <Wrench className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
             <span>Servis</span>
@@ -115,7 +115,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             type="button"
             onClick={onQuickAddReminder}
-            className="flex items-center justify-center gap-1 sm:gap-1.5 bg-emerald-700/70 hover:bg-emerald-700 text-white font-semibold px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
+            className="flex items-center justify-center gap-1.5 bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold px-3 sm:px-4 py-2.5 rounded-full text-[11px] sm:text-xs border border-white/20 transition-all cursor-pointer active:scale-95"
           >
             <Bell className="w-3.5 h-3.5 text-amber-300 shrink-0" />
             <span>Reminder</span>
@@ -123,108 +123,108 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* KPI Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-4">
+      {/* KPI Stats Overview (M3 Container Cards) */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         
         {/* Total Devices */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('device') : onNavigateTab('assets')}
-          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
         >
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
-            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Devices</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
-              <Laptop className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Devices</span>
+            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
+              <Laptop className="w-4 h-4 text-emerald-800" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {devicesCount}
           </div>
-          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Laptop, Phone, Tablet</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1 truncate">Laptop, Phone, Tablet</p>
         </div>
 
         {/* Vehicles */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('vehicle') : onNavigateTab('assets')}
-          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
         >
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
-            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Vehicles</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
-              <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Vehicles</span>
+            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
+              <Car className="w-4 h-4 text-emerald-800" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {vehiclesCount}
           </div>
-          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Motor & Mobil</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1 truncate">Motor & Mobil</p>
         </div>
 
         {/* Home Appliances */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('home') : onNavigateTab('assets')}
-          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
         >
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
-            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Home</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
-              <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Home</span>
+            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
+              <Home className="w-4 h-4 text-emerald-800" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {homeCount}
           </div>
-          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">AC, TV, Elektronik</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1 truncate">AC, TV, Elektronik</p>
         </div>
 
         {/* Other Assets */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('other') : onNavigateTab('assets')}
-          className="bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
         >
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
-            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Kamera & Lainnya</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-stone-100 text-stone-800 shrink-0">
-              <Box className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Kamera & Lainnya</span>
+            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
+              <Box className="w-4 h-4 text-emerald-800" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {otherCount}
           </div>
-          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Hobi & Aksesori</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1 truncate">Hobi & Aksesori</p>
         </div>
 
         {/* Total Cost of Ownership */}
         <div 
           onClick={() => onNavigateTab('expenses')}
-          className="col-span-2 md:col-span-1 bg-white p-3 sm:p-4 rounded-2xl border border-stone-200 shadow-2xs hover:border-emerald-600 cursor-pointer transition-all min-w-0"
+          className="col-span-2 md:col-span-1 bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
         >
-          <div className="flex items-center justify-between mb-1.5 sm:mb-2 gap-1">
-            <span className="text-[11px] sm:text-xs font-semibold text-stone-600 truncate">Total Nilai & Biaya</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-50 text-emerald-800 shrink-0">
-              <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+          <div className="flex items-center justify-between mb-2 gap-1">
+            <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Total Nilai & Biaya</span>
+            <div className="p-2 rounded-2xl bg-emerald-100/80 text-emerald-900 shrink-0">
+              <TrendingUp className="w-4 h-4 text-emerald-800" />
             </div>
           </div>
           <div className="text-base sm:text-lg font-bold text-stone-900 truncate">
             {formatRupiah(totalTCO)}
           </div>
-          <p className="text-[10px] sm:text-[11px] text-stone-500 mt-1 truncate">Aset + Total Servis</p>
+          <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-1 truncate">Aset + Total Servis</p>
         </div>
 
       </div>
 
-      {/* "Needs Attention" Section */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-xs space-y-4">
+      {/* "Needs Attention" Section (M3 Container Card) */}
+      <div className="bg-white rounded-3xl border border-stone-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
         <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-xl bg-rose-50 text-rose-600 shrink-0">
+            <div className="p-2 rounded-2xl bg-rose-50 text-rose-600 shrink-0">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div className="min-w-0">
               <h3 className="font-bold text-stone-900 text-base sm:text-lg truncate">
                 Needs Attention
               </h3>
-              <p className="text-xs text-stone-500 truncate hidden xs:block">
+              <p className="text-xs text-stone-500 font-medium truncate hidden xs:block">
                 Aset yang membutuhkan perawatan, pembayaran pajak, atau perhatian garansi
               </p>
             </div>
@@ -233,7 +233,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('reminders')}
-            className="text-xs font-semibold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer shrink-0 self-end xs:self-center"
+            className="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer shrink-0 self-end xs:self-center"
           >
             <span>Semua Reminder</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -241,12 +241,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {attentionItems.length === 0 ? (
-          <div className="py-6 sm:py-8 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
+          <div className="py-6 sm:py-8 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
             <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-            <p className="text-sm font-semibold text-stone-800">
+            <p className="text-sm font-bold text-stone-800">
               Tidak ada agenda mendesak
             </p>
-            <p className="text-xs text-stone-500 max-w-sm mx-auto">
+            <p className="text-xs text-stone-500 font-medium max-w-sm mx-auto">
               Semua garansi masih berlaku dan belum ada jadwal service atau pajak STNK yang jatuh tempo.
             </p>
           </div>
@@ -271,15 +271,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               return (
                 <div
                   key={`dash-att-${item.id || ''}-${index}`}
-                  className={`p-3.5 sm:p-4 rounded-2xl border flex flex-col xs:flex-row xs:items-center justify-between gap-3 transition-all min-w-0 ${
+                  className={`p-4 rounded-2xl border flex flex-col xs:flex-row xs:items-center justify-between gap-3 transition-all min-w-0 ${
                     item.isOverdue
-                      ? 'bg-rose-50/80 border-rose-200 shadow-2xs'
-                      : 'bg-amber-50/80 border-amber-200 shadow-2xs'
+                      ? 'bg-rose-50/80 border-rose-200/80 shadow-2xs'
+                      : 'bg-amber-50/80 border-amber-200/80 shadow-2xs'
                   }`}
                 >
                   <div className="space-y-1 min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-extrabold tracking-wide uppercase rounded-md border ${
+                      <span className={`px-2.5 py-0.5 text-[9px] sm:text-[10px] font-extrabold tracking-wide uppercase rounded-full border ${
                         item.isOverdue
                           ? 'bg-rose-600 text-white border-rose-700'
                           : 'bg-amber-500 text-white border-amber-600'
@@ -316,7 +316,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </span>
                       )}
                       {item.dueDate && (
-                        <span className="text-stone-500 flex items-center gap-1 shrink-0">
+                        <span className="text-stone-500 font-medium flex items-center gap-1 shrink-0">
                           <Clock className="w-3 h-3" />
                           {formatDate(item.dueDate)}
                         </span>
@@ -329,17 +329,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <button
                         type="button"
                         onClick={() => onSelectAsset(targetAsset)}
-                        className="px-3 py-1.5 text-xs font-extrabold rounded-xl bg-emerald-800 text-white hover:bg-emerald-900 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex items-center gap-1.5"
+                        className="px-3.5 py-2 text-xs font-bold rounded-full bg-emerald-900 text-white hover:bg-emerald-950 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex items-center gap-1.5 active:scale-95"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>Lihat Detail Aset</span>
+                        <span>Detail Aset</span>
                       </button>
                     )}
                     {(item.category === 'maintenance' || item.category === 'custom') && (
                       <button
                         type="button"
                         onClick={() => onCompleteReminder(item.id)}
-                        className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-white text-emerald-900 border border-emerald-200 hover:bg-emerald-50 transition-colors cursor-pointer"
+                        className="px-3 py-2 text-xs font-bold rounded-full bg-white text-emerald-900 border border-emerald-300/80 hover:bg-emerald-50 transition-colors cursor-pointer"
                       >
                         Selesaikan
                       </button>

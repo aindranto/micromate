@@ -82,19 +82,19 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
     <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-150">
       <div 
         id="modal-add-reminder-content"
-        className="bg-white rounded-3xl border border-stone-200 w-full max-w-lg shadow-xl flex flex-col max-h-[90vh] overflow-hidden my-auto"
+        className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] overflow-hidden my-auto animate-in zoom-in-95 duration-200"
       >
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-stone-200 flex items-center justify-between shrink-0 bg-stone-50/50">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-800 border border-amber-200">
+        <div className="p-5 sm:p-6 border-b border-stone-200/80 flex items-center justify-between shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-100/90 text-amber-900 shadow-2xs">
               <Bell className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-stone-900 text-lg tracking-tight">
+              <h3 className="font-extrabold text-stone-900 text-base sm:text-lg tracking-tight">
                 Tambah Pengingat Baru
               </h3>
-              <p className="text-xs text-stone-500 font-medium">
+              <p className="text-xs text-stone-500 font-medium mt-0.5">
                 Buat jadwal pengingat untuk perawatan, pajak, atau garansi
               </p>
             </div>
@@ -103,24 +103,24 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
             type="button" 
             id="btn-close-add-reminder-modal"
             onClick={onClose} 
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl cursor-pointer transition-all"
+            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all active:scale-95"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 text-xs flex-1 overflow-y-auto no-scrollbar">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 text-xs sm:text-sm flex-1 overflow-y-auto no-scrollbar">
           {/* Target Asset */}
           <div>
-            <label className="font-bold text-stone-800 block mb-1.5">
+            <label className="font-bold text-stone-800 block mb-1.5 text-xs">
               Aset Terkait (Opsional)
             </label>
             <select
               id="input-reminder-asset"
               value={selectedAssetId}
               onChange={(e) => setSelectedAssetId(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 cursor-pointer"
+              className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl text-stone-900 font-medium focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 cursor-pointer transition-all"
             >
               <option value="">-- Tanpa Aset Khusus (Pengingat Global) --</option>
               {assets.map((a) => (
@@ -133,7 +133,7 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
 
           {/* Title */}
           <div>
-            <label className="font-bold text-stone-800 block mb-1.5">
+            <label className="font-bold text-stone-800 block mb-1.5 text-xs">
               Judul Pengingat *
             </label>
             <input
@@ -143,21 +143,21 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="misal: Pajak Tahunan STNK / Ganti Oli Mesin / Perpanjang AppleCare"
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-900 placeholder:text-stone-400 focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600"
+              className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl font-medium text-stone-900 placeholder:text-stone-400 focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all"
             />
           </div>
 
           {/* Category & Due Date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
-              <label className="font-bold text-stone-800 block mb-1.5">
+              <label className="font-bold text-stone-800 block mb-1.5 text-xs">
                 Kategori *
               </label>
               <select
                 id="input-reminder-type"
                 value={type}
                 onChange={(e) => setType(e.target.value as ReminderType)}
-                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium cursor-pointer"
+                className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl text-stone-900 font-medium cursor-pointer transition-all"
               >
                 <option value="maintenance">Perawatan / Servis</option>
                 <option value="warranty">Masa Garansi</option>
@@ -168,7 +168,7 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
             </div>
 
             <div>
-              <label className="font-bold text-stone-800 block mb-1.5">
+              <label className="font-bold text-stone-800 block mb-1.5 text-xs">
                 Tanggal Jatuh Tempo *
               </label>
               <input
@@ -177,21 +177,21 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
                 required
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium cursor-pointer"
+                className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl text-stone-900 font-medium cursor-pointer transition-all"
               />
             </div>
           </div>
 
           {/* Recurrence Rule */}
           <div className="space-y-2">
-            <label className="font-bold text-stone-800 block">
+            <label className="font-bold text-stone-800 block text-xs">
               Siklus Pengulangan
             </label>
             <select
               id="input-reminder-repeat-rule"
               value={repeatRule}
               onChange={(e) => setRepeatRule(e.target.value as ReminderRepeatRule)}
-              className="w-full px-3.5 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-900 font-medium cursor-pointer"
+              className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl text-stone-900 font-medium cursor-pointer transition-all"
             >
               <option value="once">Sekali Saja (Non-Recurring)</option>
               <option value="daily">Setiap Hari</option>
@@ -205,23 +205,23 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
 
             {repeatRule === 'custom_days' && (
               <div className="flex items-center gap-2 pt-1">
-                <span className="text-stone-600 font-semibold">Ulangi setiap</span>
+                <span className="text-stone-600 font-semibold text-xs">Ulangi setiap</span>
                 <input
                   type="number"
                   min="1"
                   max="3650"
                   value={customDays}
                   onChange={(e) => setCustomDays(parseInt(e.target.value, 10) || 30)}
-                  className="w-20 px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-xl font-bold text-stone-900 text-center"
+                  className="w-20 px-3 py-1.5 bg-stone-50/80 border border-stone-200/80 rounded-xl font-bold text-stone-900 text-center"
                 />
-                <span className="text-stone-600 font-semibold">hari</span>
+                <span className="text-stone-600 font-semibold text-xs">hari</span>
               </div>
             )}
           </div>
 
           {/* Notes */}
           <div>
-            <label className="font-bold text-stone-800 block mb-1.5">
+            <label className="font-bold text-stone-800 block mb-1.5 text-xs">
               Catatan Tambahan (Opsional)
             </label>
             <textarea
@@ -230,24 +230,24 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Contoh: Bawa buku servis dan KTP asli saat perpanjangan..."
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl font-medium text-stone-900 placeholder:text-stone-400 resize-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600"
+              className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl font-medium text-stone-900 placeholder:text-stone-400 resize-none focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-stone-200 flex items-center justify-end gap-3">
+          <div className="pt-4 border-t border-stone-200/80 flex items-center justify-end gap-3">
             <button
               type="button"
               id="btn-cancel-add-reminder"
               onClick={onClose}
-              className="px-4 py-2.5 text-stone-700 font-bold hover:bg-stone-100 rounded-xl cursor-pointer transition-all"
+              className="px-4 py-2.5 text-stone-700 font-bold hover:bg-stone-100 rounded-full cursor-pointer transition-all"
             >
               Batal
             </button>
             <button
               type="submit"
               id="btn-submit-add-reminder"
-              className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-black rounded-xl shadow-2xs transition-all cursor-pointer active:scale-95"
+              className="px-5 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-full shadow-2xs transition-all cursor-pointer active:scale-95"
             >
               Simpan Pengingat
             </button>

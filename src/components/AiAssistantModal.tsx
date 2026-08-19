@@ -143,24 +143,24 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-3xl border border-stone-200 w-full max-w-xl h-[80vh] shadow-xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-xl h-[80vh] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+        <div className="p-4 sm:p-5 border-b border-stone-200/80 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-900 text-white flex items-center justify-center font-bold shadow-2xs">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-stone-900 text-base">
+              <h3 className="font-extrabold text-stone-900 text-base">
                 MicroMate AI Assistant
               </h3>
-              <p className="text-xs text-stone-600 font-medium">
+              <p className="text-xs text-stone-500 font-medium">
                 Tanya seputar aset, jadwal ganti oli, garansi & biaya
               </p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="p-2 text-stone-400 hover:text-stone-600 rounded-xl cursor-pointer">
+          <button type="button" onClick={onClose} className="p-2 text-stone-400 hover:text-stone-700 rounded-full hover:bg-stone-100 cursor-pointer transition-all active:scale-95">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -175,7 +175,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
               }`}
             >
               {m.sender === 'ai' && (
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-900 border border-emerald-200 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-2xl bg-emerald-100/90 text-emerald-950 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-2xs">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
@@ -183,15 +183,15 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
               <div
                 className={`max-w-[80%] p-3.5 rounded-2xl whitespace-pre-wrap leading-relaxed ${
                   m.sender === 'user'
-                    ? 'bg-emerald-800 text-white font-medium shadow-2xs'
-                    : 'bg-stone-100 text-stone-900 border border-stone-200 font-medium'
+                    ? 'bg-emerald-900 text-white font-medium shadow-2xs'
+                    : 'bg-stone-100/90 text-stone-900 border border-stone-200/80 font-medium'
                 }`}
               >
                 {m.text}
               </div>
 
               {m.sender === 'user' && (
-                <div className="w-7 h-7 rounded-lg bg-stone-200 text-stone-800 flex items-center justify-center shrink-0 font-bold">
+                <div className="w-8 h-8 rounded-2xl bg-stone-200 text-stone-800 flex items-center justify-center shrink-0 font-bold shadow-2xs">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -200,20 +200,20 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
 
           {loading && (
             <div className="flex items-center gap-2 text-stone-600 text-xs py-2 font-medium">
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-700" />
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-800" />
               <span>MicroMate AI sedang menganalisis data aset Anda...</span>
             </div>
           )}
         </div>
 
-        {/* Sample Question Suggestions */}
-        <div className="px-4 py-2.5 bg-stone-50 border-t border-stone-200 overflow-x-auto flex items-center gap-2 no-scrollbar">
+        {/* Sample Question Suggestions (M3 Chips) */}
+        <div className="px-4 py-2.5 bg-stone-50/80 border-t border-stone-200/80 overflow-x-auto flex items-center gap-2 no-scrollbar">
           {sampleQuestions.map((q, i) => (
             <button
               key={i}
               type="button"
               onClick={() => handleSend(q)}
-              className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-[11px] font-semibold text-stone-700 hover:border-emerald-700 hover:text-emerald-900 whitespace-nowrap transition-colors cursor-pointer shadow-2xs"
+              className="px-3.5 py-1.5 bg-white border border-stone-300/80 rounded-full text-[11px] font-semibold text-stone-700 hover:border-emerald-800 hover:bg-emerald-50 hover:text-emerald-950 whitespace-nowrap transition-all cursor-pointer shadow-2xs active:scale-95"
             >
               {q}
             </button>
@@ -221,7 +221,7 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
         </div>
 
         {/* Prompt Input Box */}
-        <div className="p-4 border-t border-stone-200 bg-white">
+        <div className="p-4 border-t border-stone-200/80 bg-white">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -234,12 +234,12 @@ export const AiAssistantModal: React.FC<AiAssistantModalProps> = ({
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Tanyakan sesuatu tentang aset Anda..."
-              className="flex-1 px-4 py-2.5 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/30 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium"
+              className="flex-1 px-4 py-2.5 text-xs bg-stone-50/80 border border-stone-200/80 rounded-full focus:outline-none focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 text-stone-900 placeholder:text-stone-400 font-medium transition-all"
             />
             <button
               type="submit"
               disabled={loading || !prompt.trim()}
-              className="px-4 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl disabled:opacity-50 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+              className="px-4 py-2.5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-full disabled:opacity-50 transition-all flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 shadow-2xs"
             >
               <Send className="w-4 h-4" />
             </button>

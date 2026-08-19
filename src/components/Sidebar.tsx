@@ -37,24 +37,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 hidden lg:flex flex-col border-r border-stone-200 bg-white min-h-[calc(100vh-4rem)] p-4 justify-between shrink-0 select-none">
+    <aside className="w-64 hidden lg:flex flex-col border-r border-stone-200/80 bg-stone-50/50 min-h-[calc(100vh-4rem)] p-4 justify-between shrink-0 select-none">
       <div className="space-y-6">
         
-        {/* Quick Add Button */}
+        {/* M3 Extended FAB (Primary Action) */}
         <div>
           <button
             type="button"
             onClick={onQuickAdd}
-            className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+            className="w-full py-3 px-5 bg-emerald-900 hover:bg-emerald-950 text-white font-bold rounded-full text-xs sm:text-sm flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-emerald-200 shrink-0" />
             <span>Tambah Aset Baru</span>
           </button>
         </div>
 
-        {/* Primary Nav Menu */}
-        <nav className="space-y-1">
-          <p className="px-3 text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+        {/* Primary Nav Menu (M3 Navigation Rail Items) */}
+        <nav className="space-y-1.5">
+          <p className="px-4 text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
             Navigasi Utama
           </p>
           {navItems.map((item) => {
@@ -65,18 +65,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium border transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-full text-xs sm:text-sm transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-950 border-emerald-200 font-semibold'
-                    : 'bg-transparent text-stone-600 border-transparent hover:bg-stone-100 hover:text-stone-900'
+                    ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs'
+                    : 'bg-transparent text-stone-600 font-semibold hover:bg-stone-200/60 hover:text-stone-900'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-600' : 'text-stone-400'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-emerald-900' : 'text-stone-500'}`} />
                   <span className="truncate">{item.label}</span>
                 </div>
                 {item.badge ? (
-                  <span className="px-2 py-0.5 text-xs font-bold bg-rose-500 text-white rounded-full shrink-0">
+                  <span className="px-2 py-0.5 text-[10px] font-extrabold bg-rose-600 text-white rounded-full shrink-0 shadow-2xs">
                     {item.badge}
                   </span>
                 ) : null}
@@ -87,13 +87,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       </div>
 
-      {/* Footer info */}
-      <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
-        <div className="flex items-center gap-2 text-xs font-semibold text-stone-800">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+      {/* Footer Info Container (M3 Surface Card) */}
+      <div className="p-3.5 bg-white rounded-3xl border border-stone-200/80 shadow-2xs space-y-1">
+        <div className="flex items-center gap-2 text-xs font-bold text-stone-800">
+          <ShieldCheck className="w-4 h-4 text-emerald-800" />
           <span>Offline-First Storage</span>
         </div>
-        <p className="text-[11px] text-stone-500 leading-relaxed">
+        <p className="text-[11px] text-stone-500 font-medium leading-relaxed">
           Tersimpan aman di browser (IndexedDB) & tersinkronisasi.
         </p>
       </div>

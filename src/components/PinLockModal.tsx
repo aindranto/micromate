@@ -137,14 +137,14 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className={`bg-white rounded-3xl border border-stone-200 w-full max-w-sm p-6 shadow-2xl space-y-6 text-center ${shake ? 'animate-bounce' : ''}`}>
+      <div className={`bg-white rounded-3xl border border-stone-200/80 w-full max-w-sm p-6 shadow-2xl space-y-6 text-center ${shake ? 'animate-bounce' : ''}`}>
         
         {/* Header Icon */}
         <div className="space-y-2">
-          <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto text-emerald-800 shadow-2xs">
+          <div className="w-14 h-14 bg-emerald-100/90 border border-emerald-200/60 rounded-2xl flex items-center justify-center mx-auto text-emerald-950 shadow-2xs">
             <Lock className="w-7 h-7" />
           </div>
-          <h3 className="text-xl font-bold text-stone-900">
+          <h3 className="text-xl font-black text-stone-900">
             Aplikasi Terkunci
           </h3>
           <p className="text-xs text-stone-500 font-medium">
@@ -161,7 +161,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
                 key={index}
                 className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
                   filled
-                    ? 'bg-emerald-800 border-emerald-800 scale-110 shadow-xs'
+                    ? 'bg-emerald-900 border-emerald-900 scale-110 shadow-2xs'
                     : 'bg-stone-100 border-stone-300'
                 }`}
               />
