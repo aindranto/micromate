@@ -107,6 +107,39 @@ export default function App() {
   const [hasPromptedDemoOnboarding, setHasPromptedDemoOnboarding] = useState(false);
   const [syncToast, setSyncToast] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
 
+  // PWA update banner, driven by main.tsx (service worker prompt strategy).
+  const [pwaUpdateAvailable, setPwaUpdateAvailable] = useState(false);
+  useEffect(() => {
+    const onUpdate = () => setPwaUpdateAvailable(true);
+    const onReady = () => {
+      setSyncToast({
+        type: 'info',
+        message: 'MicroMate siap dipakai offline. Aplikasi sudah tersimpan di perangkat ini.'
+      });
+    };
+    window.addEventListener('micromate:pwa-update', onUpdate);
+    window.addEventListener('micromate:pwa-ready', onReady);
+    return () => {
+      window.removeEventListener('micromate:pwa-update', onUpdate);
+      window.removeEventListener('micromate:pwa-ready', onReady);
+    };
+  }, []);
+
+  const handlePwaReload = () => {
+    if (syncQueueCount > 0) {
+      const ok = window.confirm(
+        `Masih ada ${syncQueueCount} perubahan yang belum tersinkron. Muat ulang sekarang tetap aman karena perubahan tersimpan lokal, tapi status sync akan diperbarui setelah reload. Lanjutkan muat ulang?`
+      );
+      if (!ok) return;
+    }
+    const update = (window as any).micromatePWAUpdate;
+    if (typeof update === 'function') {
+      update(true);
+    } else {
+      window.location.reload();
+    }
+  };
+
   useEffect(() => {
     if (syncToast) {
       const timer = setTimeout(() => setSyncToast(null), 3000);
@@ -415,7 +448,11 @@ export default function App() {
     }
 
     setSyncStatus('syncing');
-    const success = await dbManager.flushSyncQueue();
+    // flushSyncQueue() returns an object, not a boolean. An object is always
+    // truthy, so checking it directly made every sync look successful.
+    // Use its .success field instead (see src/lib/db.ts).
+    const flushResult = await dbManager.flushSyncQueue();
+    const success = flushResult.success;
     if (success) {
       // Muat ulang data aset setelah sinkronisasi dan penarikan data dari Google Sheets
       const list = await dbManager.getAllAssets(INITIAL_WORKSPACE_ID);
@@ -427,7 +464,13 @@ export default function App() {
       }
 
       const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      setSyncQueueCount(0);
+      if (flushResult.failed === 0) {
+        setSyncQueueCount(0);
+      } else {
+        // Keep the real remaining queue visible instead of clearing it.
+        const remaining = await dbManager.getAllSyncQueueItems();
+        setSyncQueueCount(remaining.filter((i) => i.status !== 'COMPLETED').length);
+      }
       setLastSyncTime(nowStr);
       setSyncStatus('synced');
       setServiceHealth({
@@ -437,17 +480,28 @@ export default function App() {
         lastChecked: nowStr
       });
       if (isManual) {
-        setSyncToast({
-          type: 'success',
-          message: 'Sinkronisasi berhasil.'
-        });
+        if (flushResult.failed > 0) {
+          // Partial success: some items were sent, but some failed and
+          // will be retried. Do not claim a full success, and do not
+          // clear the queue count.
+          setSyncToast({
+            type: 'info',
+            message: `Sinkronisasi selesai sebagian: ${flushResult.processed} terkirim, ${flushResult.failed} gagal dan akan dicoba lagi.`
+          });
+        } else {
+          setSyncToast({
+            type: 'success',
+            message: 'Sinkronisasi berhasil.'
+          });
+        }
       }
     } else {
       setSyncStatus('error');
       if (isManual) {
+        const reason = flushResult.reason ? ` (${flushResult.reason})` : '';
         setSyncToast({
           type: 'error',
-          message: 'Gagal menyinkronkan data ke Google Sheets.'
+          message: `Gagal menyinkronkan data ke Google Sheets.${reason}`
         });
       }
     }
@@ -632,6 +686,37 @@ export default function App() {
         </div>
       )}
 
+      {/* PWA Update Banner: never reloads on its own, so an update cannot
+          silently interrupt a sync in progress. */}
+      {pwaUpdateAvailable && (
+        <div className="fixed bottom-20 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 max-w-sm w-full animate-in slide-in-from-bottom-2 duration-200">
+          <div className="p-3.5 rounded-2xl shadow-xl border border-emerald-800/40 bg-stone-900/95 text-stone-100 backdrop-blur-md">
+            <p className="text-xs font-semibold leading-tight">Versi baru MicroMate tersedia.</p>
+            <p className="mt-1 text-xs leading-snug text-stone-300">
+              {syncQueueCount > 0
+                ? `Masih ada ${syncQueueCount} perubahan belum tersinkron. Perubahan tersimpan lokal, tapi sinkronkan dulu kalau bisa sebelum memuat ulang.`
+                : 'Muat ulang untuk memakai versi terbaru.'}
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={handlePwaReload}
+                className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-xs font-semibold text-white cursor-pointer"
+              >
+                Muat ulang
+              </button>
+              <button
+                type="button"
+                onClick={() => setPwaUpdateAvailable(false)}
+                className="rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2 text-xs font-semibold cursor-pointer"
+              >
+                Nanti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Body Layout with Sidebar (Fluid Full-Width Layout on Desktop) */}
       <div className="flex-1 w-full flex">
         
@@ -651,8 +736,10 @@ export default function App() {
           needsAttentionCount={attentionItems.length}
         />
 
-        {/* Content Region */}
-        <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-full overflow-hidden">
+        {/* Content Region.
+            pb-24 on mobile leaves room for the fixed BottomNav; on desktop
+            the BottomNav is hidden, so the original padding returns. */}
+        <main className="flex-1 p-3 sm:p-6 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-hidden">
           
           {selectedAsset ? (
             <AssetDetail

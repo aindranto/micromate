@@ -1,8 +1,6 @@
 {
-  "name": "Remix MicroMate",
-  "description": "Personal Asset \u0026 Maintenance Manager — Know what you own. Know what needs attention.",
+  "name": "MicroMate",
+  "description": "Personal Asset & Maintenance Manager \u2014 Know what you own. Know what needs attention.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": []
 }

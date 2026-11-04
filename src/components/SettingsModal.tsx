@@ -538,11 +538,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsSyncingTwoWay(true);
     setPullMessage(null);
     try {
-      // 1. Flush local queue to cloud
-      await dbManager.flushSyncQueue();
+      // 1. Flush local queue to cloud. flushSyncQueue() returns an object,
+      // not a boolean, so its result must be checked explicitly.
+      const flushRes = await dbManager.flushSyncQueue();
       // 2. Pull latest from cloud
       const pullRes = await dbManager.pullFromGoogleSheets();
-      if (pullRes.success) {
+      if (!flushRes.success) {
+        const reason = flushRes.reason ? ` (${flushRes.reason})` : '';
+        setPullMessage(
+          `Gagal mengirim antrean sync ke Google Sheets.${reason} ` +
+            (pullRes.success
+              ? 'Data cloud tetap berhasil ditarik, tapi perubahan lokal belum terkirim.'
+              : 'Data cloud juga gagal ditarik.')
+        );
+      } else if (pullRes.success) {
         let msg = `✓ Sinkronisasi 2 arah berhasil! ${pullRes.count} data disinkronkan dengan Cloud.`;
         if (pullRes.reconciledRemoved && pullRes.reconciledRemoved > 0) {
           msg += ` (${pullRes.reconciledRemoved} aset yang dihapus di cloud telah disesuaikan)`;
@@ -585,11 +594,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       for (const asset of validAssets) {
         await dbManager.addToSyncQueue('saveAsset', asset);
       }
-      const success = await dbManager.flushSyncQueue();
-      if (success) {
-        setPullMessage(`Berhasil mengirim ${validAssets.length} data aset ke Google Sheets!`);
+      const flushRes = await dbManager.flushSyncQueue();
+      if (flushRes.success) {
+        if (flushRes.failed > 0) {
+          setPullMessage(`Pengiriman selesai sebagian: ${flushRes.processed} terkirim, ${flushRes.failed} gagal dan akan dicoba lagi.`);
+        } else {
+          setPullMessage(`Berhasil mengirim ${validAssets.length} data aset ke Google Sheets!`);
+        }
       } else {
-        setPullMessage('Gagal mengirim data. Pastikan Web App Apps Script sudah di-deploy sebagai "Anyone".');
+        const reason = flushRes.reason ? ` (${flushRes.reason})` : '';
+        setPullMessage(`Gagal mengirim data. Pastikan Web App Apps Script sudah di-deploy sebagai "Anyone".${reason}`);
       }
     } catch (e: any) {
       setPullMessage('Gagal push data: ' + (e?.message || 'Error koneksi'));

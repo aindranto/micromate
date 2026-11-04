@@ -129,13 +129,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Total Devices */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('device') : onNavigateTab('assets')}
-          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 cursor-pointer transition-all duration-200 min-w-0"
         >
           <div className="flex items-center justify-between mb-2 gap-1">
             <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Devices</span>
-            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
-              <Laptop className="w-4 h-4 text-emerald-800" />
-            </div>
+            <Laptop className="w-4 h-4 text-stone-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {devicesCount}
@@ -146,13 +144,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Vehicles */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('vehicle') : onNavigateTab('assets')}
-          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 cursor-pointer transition-all duration-200 min-w-0"
         >
           <div className="flex items-center justify-between mb-2 gap-1">
             <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Vehicles</span>
-            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
-              <Car className="w-4 h-4 text-emerald-800" />
-            </div>
+            <Car className="w-4 h-4 text-stone-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {vehiclesCount}
@@ -163,13 +159,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Home Appliances */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('home') : onNavigateTab('assets')}
-          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 cursor-pointer transition-all duration-200 min-w-0"
         >
           <div className="flex items-center justify-between mb-2 gap-1">
             <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Home</span>
-            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
-              <Home className="w-4 h-4 text-emerald-800" />
-            </div>
+            <Home className="w-4 h-4 text-stone-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {homeCount}
@@ -180,13 +174,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Other Assets */}
         <div 
           onClick={() => onCategorySelect ? onCategorySelect('other') : onNavigateTab('assets')}
-          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
+          className="bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 cursor-pointer transition-all duration-200 min-w-0"
         >
           <div className="flex items-center justify-between mb-2 gap-1">
             <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Kamera & Lainnya</span>
-            <div className="p-2 rounded-2xl bg-stone-100/80 text-stone-800 shrink-0">
-              <Box className="w-4 h-4 text-emerald-800" />
-            </div>
+            <Box className="w-4 h-4 text-stone-500" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-stone-900">
             {otherCount}
@@ -197,13 +189,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Total Cost of Ownership */}
         <div 
           onClick={() => onNavigateTab('expenses')}
-          className="col-span-2 md:col-span-1 bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 hover:shadow-md cursor-pointer transition-all duration-200 min-w-0"
+          className="col-span-2 md:col-span-1 bg-white p-4 sm:p-5 rounded-3xl border border-stone-200/80 shadow-2xs hover:border-emerald-600/70 cursor-pointer transition-all duration-200 min-w-0"
         >
           <div className="flex items-center justify-between mb-2 gap-1">
             <span className="text-[11px] sm:text-xs font-bold text-stone-600 truncate">Total Nilai & Biaya</span>
-            <div className="p-2 rounded-2xl bg-emerald-100/80 text-emerald-900 shrink-0">
-              <TrendingUp className="w-4 h-4 text-emerald-800" />
-            </div>
+            <TrendingUp className="w-4 h-4 text-stone-500" />
           </div>
           <div className="text-base sm:text-lg font-bold text-stone-900 truncate">
             {formatRupiah(totalTCO)}

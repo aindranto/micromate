@@ -1,28 +1,61 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Micromate design tokens (v0.2, frontend-design plan). One brand ground,
+   stone neutrals, amber for approaching deadlines, rose for overdue items.
+   No external webfont: the system sans stack keeps the PWA working offline. */
+:root {
+  --mm-brand: #064e3b;
+  --mm-surface: #ffffff;
+  --mm-ground: #fafaf9;
+  --mm-ink: #0c0a09;
+  --mm-muted: #57534e;
+  --mm-approaching: #f59e0b;
+  --mm-overdue: #e11d48;
+}
+
+body {
+  background-color: var(--mm-ground);
+  color: var(--mm-ink);
+  font-family: ui-sans-system, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Visible keyboard focus, as required by the design quality floor. */
+:focus-visible {
+  outline: 2px solid #047857;
+  outline-offset: 2px;
+}
+
+/* Respect reduced motion: entrance animations from tw-animate-css are
+   turned off, so motion never hides content for users who ask for it. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-fade-in {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
 
 @layer utilities {
-  /* Hide scrollbar utility classes */
+  /* Hide scrollbar only where a component explicitly asks for it
+     (tab strips, modal bodies). Hiding it globally removed the scroll
+     position indicator on desktop and in long lists. */
   .no-scrollbar::-webkit-scrollbar,
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
   .no-scrollbar,
   .scrollbar-none {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  /* iOS safe-area bottom padding for the fixed BottomNav. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
-
-/* Global native scrolling with hidden scrollbars for clean mobile-first UI */
-* {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-*::-webkit-scrollbar {
-  display: none;
-  width: 0px;
-  height: 0px;
-  background: transparent;
-}
-
