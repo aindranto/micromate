@@ -148,7 +148,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <span>micromate.app/dashboard</span>
               </div>
               <div className="w-12 text-right text-[10px] text-stone-300 font-mono">
-                PRIVAT
+                Privat
               </div>
             </div>
 
@@ -245,7 +245,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-emerald-400">
-              Fitur Lengkap
+              Fitur lengkap
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Segala yang Anda Butuhkan untuk Mengelola Aset
@@ -333,7 +333,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-emerald-400">
-              Mengapa Memilih MicroMate
+              Mengapa memilih MicroMate
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Beda dengan Aplikasi Manajemen Aset Lainnya
@@ -348,7 +348,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             
             {/* MicroMate Advantage Card */}
             <div className="bg-gradient-to-b from-emerald-950/60 to-stone-950 rounded-3xl p-6 sm:p-8 border-2 border-emerald-500/50 shadow-2xl relative flex flex-col justify-between">
-              <div className="absolute top-4 right-4 bg-emerald-500 text-stone-950 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
+              <div className="absolute top-4 right-4 bg-emerald-500 text-stone-950 text-[10px] font-black tracking-wider px-3 py-1 rounded-full">
                 Rekomendasi Utama
               </div>
               
@@ -469,7 +469,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-emerald-400">
-              Alur Penggunaan
+              Alur penggunaan
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               3 Langkah Mudah Memulai
@@ -524,7 +524,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           
           <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
             <span className="text-xs font-bold text-emerald-400">
-              Pertanyaan Umum
+              Pertanyaan umum
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               Pertanyaan yang Sering Diajukan

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.1 — Label sentence case + badge
+
+- Landing page: 4 label eyebrow dari Title Case menjadi sentence case
+  ("Fitur lengkap", "Mengapa memilih MicroMate", "Alur penggunaan",
+  "Pertanyaan umum"). Heading section dan label mockup tidak diubah.
+- Badge "PRIVAT" di mockup menjadi "Privat"; badge "Rekomendasi Utama"
+  tidak lagi dipaksa all-caps oleh class `uppercase` (teksnya memang
+  sudah sentence case, yang diubah hanya class-nya).
+- Footer: dicek ulang, ternyata bukan typo — kode `&copy;
+  {new Date().getFullYear()} MicroMate.` sudah me-render "© 2026
+  MicroMate." dengan spasi yang benar, jadi tidak diubah.
+- Versi package menjadi 0.2.1.
+
 ## 0.2.0 — Desain dengan 2 skill yang disetujui (frontend-design + design-taste)
 
 Skill yang dipakai adalah adaptasi untuk Muse dan Micromate, bukan install
