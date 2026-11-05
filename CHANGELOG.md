@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.2.3 — Stepper tanpa MUI, bundle lebih ringan
+
+- Stepper di AddAssetModal diganti dari Material UI ke Tailwind murni
+  (`src/components/add-asset-steps/StepProgressBar.tsx` ditulis ulang):
+  5 langkah, garis penghubung, dan status selesai/aktif/belum sama
+  seperti sebelumnya; tampilan mobile (header langkah + progress bar)
+  tidak berubah. Dependensi `@mui/material`, `@emotion/react`, dan
+  `@emotion/styled` dihapus dari package.json (51 paket terhapus dari
+  node_modules); `react-hook-form` tetap dipakai dan tidak tersentuh.
+- Hasil build: bundle JS utama 701,85 kB (gzip 150,83 kB), precache
+  17 entri / 1.088 KiB (sebelumnya 18 entri / 1.206 KiB di v0.2.2).
+- Koreksi catatan v0.2.2: folder `src/components/documents/` berisi
+  12 file, bukan 11 — total file mati yang dihapus tetap 13.
+- Versi package menjadi 0.2.3.
+
+## 0.2.2 — Tes sync pertama + bersih-bersih kode mati
+
+- Tes sync pertama: `src/tests/sync-queue-smoke.test.ts` (11 pengecekan,
+  jalan dengan `npm run test:sync-queue`). Menguji jalur antrean sync
+  yang diperbaiki di 0.1.0: item tersimpan dengan status PENDING dan
+  entity dari action, mutation_id yang sama hanya tersimpan sekali,
+  jadwal backoff (5/15/60/120/300 detik), klasifikasi error retryable
+  vs permanen, flush tanpa URL Apps Script, flush sukses, gagal karena
+  jaringan (FAILED_RETRYABLE + backoff), HTTP 400 (FAILED_PERMANENT),
+  pemulihan item PROCESSING yang macet lebih dari 60 detik, hapus item,
+  dan reset item gagal ke PENDING. Tes memakai `tsx` seperti skrip
+  `test:*` yang sudah ada, tanpa framework dan tanpa dependensi baru;
+  localStorage dan fetch di-mock, IndexedDB tidak ada di Node sehingga
+  yang diuji adalah jalur fallback localStorage — jalur yang sama
+  dipakai aplikasi di browser tanpa IndexedDB.
+- Bersih-bersih kode mati (13 file dihapus): seluruh folder
+  `src/components/documents/` (12 file, termasuk duplikat
+  AddDocumentModal dan DocumentVault) dan `src/lib/driveGatewayClient.ts`.
+  Folder documents/ hanya terjangkau lewat DocumentVault, dan
+  DocumentVault sendiri tidak pernah di-import dari mana pun, jadi
+  seluruh folder itu kode mati. Alur dokumen yang dipakai aplikasi
+  adalah `src/components/AddDocumentModal.tsx` lewat App.tsx dan
+  tidak tersentuh. driveGatewayClient tidak di-import oleh file
+  manapun dan membawa token default hardcode 'token_valid_123'.
+  Semua file yang dihapus masih ada di riwayat git kalau suatu saat
+  dibutuhkan lagi.
+- Catatan jujur: sekitar 50 skrip `test:*` lain di package.json masih
+  menunjuk ke file `src/tests/` yang tidak ada (warisan template);
+  yang dibuat di rilis ini hanya suite kecil di atas, bukan pemulihan
+  suite lama.
+- Versi package menjadi 0.2.2.
+
 ## 0.2.1 — Label sentence case + badge
 
 - Landing page: 4 label eyebrow dari Title Case menjadi sentence case

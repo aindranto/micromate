@@ -706,7 +706,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
             </button>
           </div>
 
-          {/* Multi-step Wizard Material UI Stepper */}
+          {/* Multi-step Wizard Stepper */}
           <StepProgressBar
             currentStep={currentStep}
             totalSteps={totalSteps}

@@ -1,9 +1,4 @@
 import React from 'react';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
-import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
-import { styled } from '@mui/material/styles';
 import { Check, Layers, Smartphone, ShieldCheck, FileCheck, CheckCircle2 } from 'lucide-react';
 
 export interface StepItem {
@@ -12,31 +7,6 @@ export interface StepItem {
   subtitle: string;
   icon: React.ReactNode;
 }
-
-// Custom Styled Connector for Material UI Stepper matching emerald/stone aesthetic
-const EmeraldStepConnector = styled(StepConnector)(() => ({
-  [`&.${stepConnectorClasses.alternativeLabel}`]: {
-    top: 22,
-  },
-  [`&.${stepConnectorClasses.active}`]: {
-    [`& .${stepConnectorClasses.line}`]: {
-      borderColor: '#065f46', // emerald-800
-      borderTopWidth: 2,
-    },
-  },
-  [`&.${stepConnectorClasses.completed}`]: {
-    [`& .${stepConnectorClasses.line}`]: {
-      borderColor: '#059669', // emerald-600
-      borderTopWidth: 2,
-    },
-  },
-  [`& .${stepConnectorClasses.line}`]: {
-    borderColor: '#e7e5e4', // stone-200
-    borderTopWidth: 2,
-    borderRadius: 1,
-    transition: 'all 0.3s ease',
-  },
-}));
 
 interface StepProgressBarProps {
   currentStep: number;
@@ -87,9 +57,6 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
   const currentStepData = steps.find((s) => s.id === currentStep) || steps[0];
   const progressPercent = Math.round((currentStep / totalSteps) * 100);
 
-  // Active step index in 0-based for MUI Stepper
-  const activeStepIndex = currentStep - 1;
-
   return (
     <div className="w-full bg-stone-50 border-b border-stone-200 px-4 sm:px-6 py-3.5 shrink-0">
       {/* Mobile Step Header */}
@@ -122,25 +89,29 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
         </div>
       </div>
 
-      {/* Desktop / Tablet Material UI Stepper Flow */}
+      {/* Desktop / Tablet Stepper Flow (Tailwind, no MUI) */}
       <div className="hidden sm:block">
-        <Stepper
-          activeStep={activeStepIndex}
-          connector={<EmeraldStepConnector />}
-          className="w-full"
-        >
-          {steps.map((step) => {
+        <ol className="flex w-full items-start">
+          {steps.map((step, idx) => {
             const isCompleted = currentStep > step.id;
             const isCurrent = currentStep === step.id;
             const isClickable = canNavigateToStep(step.id);
+            // Connector line after this step follows this step's state,
+            // same as the old MUI styled connector: emerald-600 when the
+            // step is done, emerald-800 while it is current, stone-200 after.
+            const lineClass = isCompleted
+              ? 'bg-emerald-600'
+              : isCurrent
+                ? 'bg-emerald-800'
+                : 'bg-stone-200';
 
             return (
-              <Step key={step.id} completed={isCompleted}>
+              <li key={step.id} className="flex min-w-0 flex-1 items-start last:flex-none">
                 <button
                   type="button"
                   disabled={!isClickable}
                   onClick={() => isClickable && onStepClick(step.id)}
-                  className={`w-full flex items-center gap-2.5 p-2 rounded-2xl border text-left transition-all cursor-pointer ${
+                  className={`flex min-w-0 flex-1 items-center gap-2.5 p-2 rounded-2xl border text-left transition-all cursor-pointer ${
                     isCurrent
                       ? 'bg-white border-emerald-700 shadow-2xs ring-2 ring-emerald-600/20'
                       : isCompleted
@@ -148,54 +119,54 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                       : 'bg-white/50 border-stone-200/80 text-stone-400 cursor-not-allowed opacity-75'
                   }`}
                 >
-                  <StepLabel
-                    icon={
-                      <div
-                        className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0 transition-all ${
-                          isCurrent
-                            ? 'bg-emerald-800 text-white shadow-2xs scale-105'
-                            : isCompleted
-                            ? 'bg-emerald-700 text-white'
-                            : 'bg-stone-200 text-stone-500'
-                        }`}
-                      >
-                        {isCompleted ? <Check className="w-4 h-4" /> : step.id}
-                      </div>
-                    }
-                    className="p-0 m-0 w-full"
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0 transition-all ${
+                      isCurrent
+                        ? 'bg-emerald-800 text-white shadow-2xs scale-105'
+                        : isCompleted
+                        ? 'bg-emerald-700 text-white'
+                        : 'bg-stone-200 text-stone-500'
+                    }`}
                   >
-                    <div className="min-w-0 flex-1 pl-1">
-                      <div className="flex items-center gap-1">
-                        <span
-                          className={`text-xs font-bold truncate block ${
-                            isCurrent
-                              ? 'text-stone-900'
-                              : isCompleted
-                              ? 'text-emerald-950'
-                              : 'text-stone-500'
-                          }`}
-                        >
-                          {step.title}
-                        </span>
-                      </div>
+                    {isCompleted ? <Check className="w-4 h-4" /> : step.id}
+                  </div>
+                  <div className="min-w-0 flex-1 pl-1">
+                    <div className="flex items-center gap-1">
                       <span
-                        className={`text-[10px] truncate block ${
+                        className={`text-xs font-bold truncate block ${
                           isCurrent
-                            ? 'text-emerald-700 font-semibold'
+                            ? 'text-stone-900'
                             : isCompleted
-                            ? 'text-stone-500'
-                            : 'text-stone-400'
+                            ? 'text-emerald-950'
+                            : 'text-stone-500'
                         }`}
                       >
-                        {step.subtitle}
+                        {step.title}
                       </span>
                     </div>
-                  </StepLabel>
+                    <span
+                      className={`text-[10px] truncate block ${
+                        isCurrent
+                          ? 'text-emerald-700 font-semibold'
+                          : isCompleted
+                          ? 'text-stone-500'
+                          : 'text-stone-400'
+                      }`}
+                    >
+                      {step.subtitle}
+                    </span>
+                  </div>
                 </button>
-              </Step>
+                {idx < steps.length - 1 && (
+                  <div
+                    aria-hidden="true"
+                    className={`mt-[22px] h-0.5 w-3 shrink-0 rounded-full transition-colors ${lineClass}`}
+                  />
+                )}
+              </li>
             );
           })}
-        </Stepper>
+        </ol>
       </div>
     </div>
   );

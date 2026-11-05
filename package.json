@@ -1,7 +1,7 @@
 {
   "name": "micromate",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -67,10 +67,7 @@
     "test:all": "tsx src/tests/sync-failure-engineering.test.ts && tsx src/tests/multi-device-consistency.test.ts && tsx src/tests/session-security.test.ts && tsx src/tests/phase3a-asset-crud-integration.test.ts && tsx src/tests/phase3b-asset-hub-lifecycle.test.ts && tsx src/tests/phase3c1-reminder-domain.test.ts && tsx src/tests/phase3c2-reminder-ui.test.ts && tsx src/tests/phase3c3-maintenance-domain.test.ts && tsx src/tests/phase3c4-maintenance-ui.test.ts && tsx src/tests/phase3c5-cross-domain-reconciler.test.ts && tsx src/tests/phase3c6-sync-failure-convergence.test.ts && tsx src/tests/phase3c-final-integrity-audit.test.ts && tsx src/tests/phase3d1-document-domain.test.ts && tsx src/tests/phase3d2-document-idempotency.test.ts && tsx src/tests/phase3d3-upload-failure-engine.test.ts && tsx src/tests/phase3d4-drive-gateway.test.ts && tsx src/tests/phase3d5-document-vault.test.ts && tsx src/tests/phase3d6-e2e-document-recovery.test.ts && tsx src/tests/phase3dR1-production-boundary-audit.test.ts && tsx src/tests/phase3dR2-real-environment-smoke.test.ts && tsx src/tests/phase3dR3-release-readiness-gate.test.ts && tsx src/tests/phase3e1-tco-analytics-engine.test.ts && tsx src/tests/phase3e2-tco-ui-presentation.test.ts && tsx src/tests/phase3f1-signal-extraction-engine.test.ts && tsx src/tests/phase3f4-adversarial-boundary.test.ts && tsx src/tests/phase3f5a-attention-presentation.test.ts && tsx src/tests/phase3f5c-attention-dashboard.test.ts && tsx src/tests/phase4-1-contract.test.ts && tsx src/tests/phase4-2-state-machine.test.ts && tsx src/tests/phase4-3-coordinated-mutation.test.ts && tsx src/tests/phase4-4-action-execution-gateway.test.ts && tsx src/tests/phase4-5-ui-execution-feedback.test.ts && tsx src/tests/phase4-6-e2e-verification-gate.test.ts && tsx src/tests/phase5-1-document-renewal-handler.test.ts && tsx src/tests/phase6-3-outreach-e2e-gate.test.ts"
   },
   "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
     "@google/genai": "^2.4.0",
-    "@mui/material": "^9.3.1",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
