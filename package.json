@@ -1,7 +1,7 @@
 {
   "name": "micromate",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -11,6 +11,7 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test:sync": "tsx src/tests/sync-failure-engineering.test.ts",
+    "test:sync-queue": "tsx src/tests/sync-queue-smoke.test.ts",
     "test:multi-device": "tsx src/tests/multi-device-consistency.test.ts",
     "test:security": "tsx src/tests/session-security.test.ts",
     "test:phase3a": "tsx src/tests/phase3a-asset-crud-integration.test.ts",
