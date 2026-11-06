@@ -1,6 +1,26 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Tailwind v4 theme tokens (v0.2.4, tahap 1 fondasi).
+   --breakpoint-xs memperbaiki class xs: di Dashboard.tsx dan
+   AssetDetail.tsx (sebelumnya tidak menghasilkan CSS karena Tailwind v4
+   tidak punya breakpoint xs). Skala tipe memakai nama peran; body memakai
+   leading lebih longgar daripada subheading pada ukuran yang sama. */
+@theme {
+  --breakpoint-xs: 30rem;
+
+  --text-display: 1.5rem;
+  --text-display--line-height: 2rem;
+  --text-section: 1.125rem;
+  --text-section--line-height: 1.75rem;
+  --text-subheading: 0.875rem;
+  --text-subheading--line-height: 1.25rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+}
+
 /* Micromate design tokens (v0.2, frontend-design plan). One brand ground,
    stone neutrals, amber for approaching deadlines, rose for overdue items.
    No external webfont: the system sans stack keeps the PWA working offline. */

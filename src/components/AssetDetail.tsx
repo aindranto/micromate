@@ -1035,7 +1035,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             {historyItems.length === 0 ? (
               <div className="p-8 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200">
                 <History className="w-10 h-10 text-stone-300 mx-auto mb-2" />
-                <p className="text-sm font-bold text-stone-700">Belum Ada Catatan Riwayat</p>
+                <p className="text-subheading font-bold text-stone-700">Belum ada catatan riwayat</p>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1">
                   Perubahan pengguna, lokasi, atau status aset akan dicatat secara otomatis di sini.
                 </p>
@@ -1150,7 +1150,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             {documentItems.length === 0 ? (
               <div className="py-12 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200">
                 <FileText className="w-10 h-10 text-stone-300 mx-auto mb-2" />
-                <p className="text-sm font-bold text-stone-700">Belum Ada Dokumen</p>
+                <p className="text-subheading font-bold text-stone-700">Belum ada dokumen</p>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1 mb-4">
                   Simpan bukti pembelian, sertifikat garansi, atau foto fisik untuk verifikasi kepemilikan.
                 </p>
@@ -1250,7 +1250,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
             {maintenanceItems.length === 0 ? (
               <div className="py-12 text-center bg-stone-50 rounded-2xl border border-dashed border-stone-200">
                 <Wrench className="w-10 h-10 text-stone-300 mx-auto mb-2" />
-                <p className="text-sm font-bold text-stone-700">Belum Ada Riwayat Servis</p>
+                <p className="text-subheading font-bold text-stone-700">Belum ada riwayat servis</p>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto mt-1 mb-4">
                   Aset belum memiliki rekaman perawatan atau perbaikan berkala.
                 </p>

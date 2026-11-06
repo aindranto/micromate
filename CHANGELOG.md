@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.2.4 — Fondasi desain: token, attention strip, empty state, breakpoint xs
+
+Tahap 1 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi sidebar
+→ v0.2.6 dashboard attention-first + landing). Tidak ada perubahan
+layout, model data, sync, PIN, atau fitur baru — hanya fondasi visual.
+
+- Token desain di `src/index.css` (`@theme` Tailwind v4): skala tipe
+  `text-display` (24px), `text-section` (18px), `text-subheading`
+  (14px), `text-body` (14px/20px), `text-label` (12px), semuanya dari
+  system sans stack (tanpa webfont eksternal, PWA tetap offline).
+  Radius konsisten: hero 24px, section 16px, baris 12px, pill penuh.
+- Perbaikan breakpoint `xs:` yang selama ini tidak berfungsi: Tailwind
+  v4 tidak punya `xs` bawaan, jadi ditambahkan `--breakpoint-xs: 30rem`
+  (480px) di `@theme`. Class `xs:` di Dashboard (5 pemakaian) dan
+  AssetDetail (1 pemakaian, select status) sekarang menghasilkan CSS.
+- Dashboard: kartu KPI memakai token tipe + radius `rounded-2xl` dan
+  label Bahasa Indonesia ("Perangkat", "Kendaraan", "Rumah"); banner
+  memakai token tipe. Section "Needs Attention" menjadi "Perlu
+  Perhatian": item dikelompokkan Terlambat (rose) lalu Mendatang
+  (amber) dengan header grup + jumlah, chip tanpa emoji dan tanpa
+  all-caps, teks relatif sentence case ("Terlambat 3 hari",
+  "Hari ini", "3 hari lagi"). Aksi satu klik tetap sama (Detail Aset,
+  Selesaikan).
+- Empty state baru (bingkai + ikon + aksi): dashboard tanpa aset
+  ("Belum ada aset" → Tambah Aset), tanpa agenda mendesak
+  ("Tidak ada agenda mendesak" → Tambah Reminder), tanpa riwayat
+  servis ("Belum ada riwayat servis" → Catat Servis); AssetDetail
+  tanpa riwayat/dokumen/servis ("Belum ada catatan riwayat",
+  "Belum ada dokumen", "Belum ada riwayat servis") — semua sentence
+  case, Bahasa Indonesia, data jujur (nol tetap nol, kosong tetap
+  kosong).
+- Versi package menjadi 0.2.4.
+
 ## 0.2.3 — Stepper tanpa MUI, bundle lebih ringan
 
 - Stepper di AddAssetModal diganti dari Material UI ke Tailwind murni
