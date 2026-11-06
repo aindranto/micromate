@@ -20,6 +20,12 @@ import {
   requestBrowserPushPermission 
 } from '../lib/notificationPreferenceService';
 
+// Versi aplikasi dibaca dari package.json (v0.2.5.1) agar label versi di
+// halaman Pengaturan selalu sama dengan rilis. Perlu "resolveJsonModule"
+// di tsconfig.json; Vite membundel JSON ini secara native.
+import packageJson from '../../package.json';
+const APP_VERSION: string = packageJson.version;
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -56,7 +62,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onRestartOnboarding,
   onClearCacheAndReset,
 }) => {
+  // Kunci scroll body hanya saat tampil sebagai modal overlay, supaya
+  // halaman di belakang modal tidak ikut bergerak. Sebagai halaman penuh
+  // (asPage) efek ini TIDAK boleh jalan: konten Pengaturan adalah isi
+  // halaman itu sendiri, dan mengunci body justru membuat halaman tidak
+  // bisa di-scroll (bug v0.2.5.1: Zona Bahaya tidak terjangkau di HP).
   useEffect(() => {
+    if (asPage) return;
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -65,7 +77,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, asPage]);
 
   const [appsScriptUrl, setAppsScriptUrl] = useState(
     localStorage.getItem('micromate_apps_script_url') || ''
@@ -2289,6 +2301,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
         </div>
+
+        {/* Label versi aplikasi (hanya mode halaman): kecil dan tenang di
+            bawah Zona Bahaya. Versi dibaca dari package.json. */}
+        {asPage && (
+          <p className="pt-1 pb-2 text-center text-[11px] font-medium text-stone-400">
+            MicroMate v{APP_VERSION}
+          </p>
+        )}
 
       </div>
     </div>

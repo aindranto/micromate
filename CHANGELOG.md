@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.5.1 — Perbaiki scroll Pengaturan di HP + label versi
+
+Patch atas v0.2.5, dari laporan langsung di HP: halaman Pengaturan tidak
+bisa di-scroll ke bawah, jadi tidak semua section terjangkau (Zona Bahaya
+di bawah tidak kelihatan). Juga menambah label versi di Pengaturan.
+
+- Akar masalah scroll: `SettingsModal` mengunci scroll body
+  (`document.body.style.overflow = 'hidden'`) setiap kali terbuka — efek
+  yang benar untuk mode modal overlay, tapi ikut jalan di mode halaman
+  penuh (`asPage`, v0.2.5). Saat Pengaturan dibuka sebagai halaman, body
+  terkunci dan halaman tidak bisa di-scroll. Di desktop tidak ketahuan
+  karena konten Pengaturan yang terlipat muat dalam satu viewport tinggi;
+  di HP konten yang sama lebih tinggi dari viewport sehingga kunci scroll
+  langsung terasa dan Zona Bahaya tidak terjangkau. Perbaikan: efek
+  kunci-scroll kini dilewati bila `asPage` (hanya jalan di mode modal).
+  `<main overflow-hidden>` tidak diubah — bukan penyebabnya (main
+  menyesuaikan tinggi konten; Dashboard dan Aset yang memakai `<main>`
+  yang sama tetap bisa di-scroll di HP).
+- Label versi: baris kecil "MicroMate v0.2.5.1" di bawah Zona Bahaya,
+  hanya di mode halaman. Versi dibaca dari `package.json` (JSON import
+  + `resolveJsonModule` di tsconfig) agar selalu sama dengan rilis.
+
 ## 0.2.5 — Navigasi sidebar + Pengaturan sebagai halaman
 
 Tahap 2 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi sidebar
