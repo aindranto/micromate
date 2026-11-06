@@ -402,8 +402,14 @@ export default function App() {
       if (mode === 'cloud') {
         await handleFlushSync();
       }
-    } else if (initialDataChoice === 'demo' && mode === 'cloud') {
-      await handleFlushSync();
+    } else if (initialDataChoice === 'demo') {
+      // Seed (or re-seed) the demo assets: the one-time init seeding only
+      // runs on a fresh store, so without this the "demo" choice shows an
+      // empty dashboard whenever demo data was cleared before.
+      await dbManager.seedDemoData();
+      if (mode === 'cloud') {
+        await handleFlushSync();
+      }
     }
 
     await reloadData();
@@ -687,9 +693,11 @@ export default function App() {
       )}
 
       {/* PWA Update Banner: never reloads on its own, so an update cannot
-          silently interrupt a sync in progress. */}
+          silently interrupt a sync in progress. It sits above the
+          floating "+" button (FAB top edge: 136px on phones, 152px on sm,
+          96px on lg) so both buttons stay clickable. */}
       {pwaUpdateAvailable && (
-        <div className="fixed bottom-20 lg:bottom-6 left-4 right-4 sm:left-auto sm:right-6 z-50 max-w-sm w-full animate-in slide-in-from-bottom-2 duration-200">
+        <div className="fixed bottom-40 sm:bottom-44 lg:bottom-28 left-4 right-4 sm:left-auto sm:right-6 z-50 max-w-sm w-full animate-in slide-in-from-bottom-2 duration-200">
           <div className="p-3.5 rounded-2xl shadow-xl border border-emerald-800/40 bg-stone-900/95 text-stone-100 backdrop-blur-md">
             <p className="text-xs font-semibold leading-tight">Versi baru MicroMate tersedia.</p>
             <p className="mt-1 text-xs leading-snug text-stone-300">

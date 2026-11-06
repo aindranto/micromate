@@ -498,6 +498,29 @@ export class DatabaseManager {
     }
   }
 
+  // Seed demo assets on demand (setup choice "Demo Assets"): restores the
+  // 4 demo assets that are missing, without touching user records.
+  // Idempotent: assets already present are left alone. Needed because the
+  // one-time init seeding (ensureSeedData*) only runs when the store is
+  // empty and the `micromate_db_seeded` flag is unset, so choosing "demo"
+  // in setup after demo data was cleared could never bring the demo
+  // assets back (the dashboard then reads an empty store).
+  public async seedDemoData(): Promise<number> {
+    const existing = await this.getAllAssetsInternal();
+    const present = new Set(existing.map((a) => a.asset_id));
+    let added = 0;
+    for (const asset of SEED_ASSETS) {
+      if (!present.has(asset.asset_id)) {
+        await this.saveAssetToDB({ ...asset, deleted: false });
+        added++;
+      }
+    }
+    if (added > 0) {
+      localStorage.setItem('micromate_db_seeded', 'true');
+    }
+    return added;
+  }
+
   private async saveAssetToDB(asset: Asset): Promise<void> {
     if (this.db) {
       return new Promise((resolve, reject) => {

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.2.4.1 — Perbaiki toast update + data demo setup
+
+Patch kecil (2 perbaikan, tanpa perubahan layout, model data, sync, PIN, atau fitur baru).
+
+- Toast update PWA tidak lagi tertutup tombol aksi cepat ("+"): banner
+  dipindah ke atas tombol (`bottom-40 sm:bottom-44 lg:bottom-28`,
+  jarak 24/24/16px dari ujung atas tombol), jadi "Muat ulang" dan
+  "Nanti" selalu bisa diklik dan teks tidak lagi tertutup.
+- Bug data demo diperbaiki: pilihan "Gunakan Data Contoh (Demo Assets)"
+  di setup kini benar-benar memunculkan 4 aset demo di dashboard.
+  Akar masalah: pilihan "demo" tidak pernah menulis data apa pun —
+  data demo hanya muncul lewat seeding satu kali di init yang terkunci
+  flag `micromate_db_seeded`, jadi setelah data demo pernah dihapus,
+  pilihan "demo" tidak bisa mengembalikannya. Kini
+  `DatabaseManager.seedDemoData()` menulis ulang aset demo yang hilang
+  (idempotent, tanpa menyentuh aset pengguna) saat setup selesai.
+- Tes regresi baru `src/tests/demo-seed-smoke.test.ts`
+  (`npm run test:demo-seed`): reproduksi bug, idempotensi, dan aset
+  pengguna yang tetap utuh.
+- Versi package menjadi 0.2.4.1.
+
 ## 0.2.4 — Fondasi desain: token, attention strip, empty state, breakpoint xs
 
 Tahap 1 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi sidebar
