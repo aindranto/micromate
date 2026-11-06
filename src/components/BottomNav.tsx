@@ -1,16 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  House, 
-  Box, 
-  Plus, 
-  Wrench, 
+import {
+  Box,
+  Plus,
+  Wrench,
   Bell,
-  Settings,
-  X,
-  PlusCircle,
-  Clock,
-  FileText
+  X
 } from 'lucide-react';
+import { BOTTOM_NAV_ITEMS } from '../lib/navigation';
 
 interface BottomNavProps {
   activeTab: string;
@@ -18,7 +14,6 @@ interface BottomNavProps {
   onQuickAddAsset: () => void;
   onQuickAddMaintenance?: () => void;
   onQuickAddReminder?: () => void;
-  onOpenSettings?: () => void;
   needsAttentionCount: number;
 }
 
@@ -28,7 +23,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onQuickAddAsset,
   onQuickAddMaintenance,
   onQuickAddReminder,
-  onOpenSettings,
   needsAttentionCount,
 }) => {
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
@@ -149,88 +143,45 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         </button>
       </div>
 
-      {/* Fixed M3 Bottom Navigation Bar */}
+      {/* Fixed M3 Bottom Navigation Bar.
+          Item, label pendek, ikon, dan urutan diambil dari daftar navigasi
+          bersama (src/lib/navigation.ts) — sama dengan sidebar desktop.
+          Badge jumlah perhatian menempel di Reminder: HP tidak punya slot
+          Pusat Perhatian, jadi badge menandai jumlah yang sama pada item
+          terdekat yang mewakilinya. */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-lg px-2 sm:px-4 py-2 transition-all pb-safe">
         <div className="flex items-center justify-around max-w-md mx-auto relative">
-          
-          {/* 1. Home */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsQuickActionOpen(false);
-              onTabChange('dashboard');
-            }}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-              activeTab === 'dashboard' 
-                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
-                : 'text-stone-500 font-semibold hover:text-stone-800'
-            }`}
-          >
-            <House className={`w-5 h-5 ${activeTab === 'dashboard' ? 'text-emerald-900' : 'text-stone-500'}`} />
-            <span className="text-[10px] tracking-tight">Home</span>
-          </button>
 
-          {/* 2. Aset */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsQuickActionOpen(false);
-              onTabChange('assets');
-            }}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-              activeTab === 'assets' 
-                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
-                : 'text-stone-500 font-semibold hover:text-stone-800'
-            }`}
-          >
-            <Box className={`w-5 h-5 ${activeTab === 'assets' ? 'text-emerald-900' : 'text-stone-500'}`} />
-            <span className="text-[10px] tracking-tight">Aset</span>
-          </button>
-
-          {/* 3. Reminder (with M3 badge) */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsQuickActionOpen(false);
-              onTabChange('reminders');
-            }}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-              activeTab === 'reminders' 
-                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
-                : 'text-stone-500 font-semibold hover:text-stone-800'
-            }`}
-          >
-            <div className="relative">
-              <Bell className={`w-5 h-5 ${activeTab === 'reminders' ? 'text-emerald-900' : 'text-stone-500'}`} />
-              {needsAttentionCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 px-1 py-0.2 min-w-[16px] h-[16px] rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
-                  {needsAttentionCount}
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] tracking-tight">Reminder</span>
-          </button>
-
-          {/* 4. Pengaturan (Settings) */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsQuickActionOpen(false);
-              if (onOpenSettings) {
-                onOpenSettings();
-              } else {
-                onTabChange('settings');
-              }
-            }}
-            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
-              activeTab === 'settings' 
-                ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs' 
-                : 'text-stone-500 font-semibold hover:text-stone-800'
-            }`}
-          >
-            <Settings className={`w-5 h-5 ${activeTab === 'settings' ? 'text-emerald-900' : 'text-stone-500'}`} />
-            <span className="text-[10px] tracking-tight">Pengaturan</span>
-          </button>
+          {BOTTOM_NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            const showBadge = item.id === 'reminders' && needsAttentionCount > 0;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  setIsQuickActionOpen(false);
+                  onTabChange(item.id);
+                }}
+                className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-full transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-emerald-100/90 text-emerald-950 font-extrabold shadow-2xs'
+                    : 'text-stone-500 font-semibold hover:text-stone-800'
+                }`}
+              >
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-900' : 'text-stone-500'}`} />
+                  {showBadge && (
+                    <span className="absolute -top-1.5 -right-2 px-1 py-0.2 min-w-[16px] h-[16px] rounded-full bg-rose-600 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white">
+                      {needsAttentionCount}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] tracking-tight">{item.shortLabel}</span>
+              </button>
+            );
+          })}
 
         </div>
       </div>

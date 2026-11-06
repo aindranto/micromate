@@ -102,7 +102,6 @@ export default function App() {
   const [isAddMaintenanceOpen, setIsAddMaintenanceOpen] = useState(false);
   const [isAddReminderOpen, setIsAddReminderOpen] = useState(false);
   const [isAddDocumentOpen, setIsAddDocumentOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDemoOnboardingOpen, setIsDemoOnboardingOpen] = useState(false);
   const [hasPromptedDemoOnboarding, setHasPromptedDemoOnboarding] = useState(false);
   const [syncToast, setSyncToast] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
@@ -166,6 +165,13 @@ export default function App() {
     setSelectedCategory(category);
     setActiveTab('assets');
     setSelectedAsset(null);
+  };
+
+  // v0.2.5: Pengaturan adalah tab biasa (halaman penuh), bukan modal.
+  // Semua pintu masuk Pengaturan memakai handler ini.
+  const goToSettings = () => {
+    setSelectedAsset(null);
+    setActiveTab('settings');
   };
 
   // Perform full health check & evaluate sync state
@@ -379,7 +385,6 @@ export default function App() {
     localStorage.removeItem('micromate_app_pin');
     localStorage.removeItem('micromate_notif_prefs');
     await dbManager.clearAllData();
-    setIsSettingsOpen(false);
     setIsSetupCompleted(false);
     setCurrentRoute('setup');
     window.location.hash = '#setup';
@@ -438,7 +443,7 @@ export default function App() {
   const handleFlushSync = async (isManual = false) => {
     const scriptUrl = localStorage.getItem('micromate_apps_script_url');
     if (!scriptUrl || !scriptUrl.trim()) {
-      if (isManual) setIsSettingsOpen(true);
+      if (isManual) goToSettings();
       return;
     }
 
@@ -516,7 +521,7 @@ export default function App() {
   const handlePullFromSheets = async () => {
     const scriptUrl = localStorage.getItem('micromate_apps_script_url');
     if (!scriptUrl || !scriptUrl.trim()) {
-      setIsSettingsOpen(true);
+      goToSettings();
       return;
     }
 
@@ -640,7 +645,7 @@ export default function App() {
         hasDemoData={hasDemoData}
         onSyncClick={() => handleFlushSync(true)}
         onPullClick={handlePullFromSheets}
-        onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenSettings={goToSettings}
         onNavigateDocs={() => {
           setActiveTab('docs');
           setSelectedAsset(null);
@@ -734,12 +739,7 @@ export default function App() {
           onTabChange={(tab) => {
             setActiveTab(tab);
             setSelectedAsset(null);
-            if (tab === 'assets') {
-              // keep current category or default to 'all' if navigating main nav
-            }
           }}
-          selectedCategory={selectedCategory}
-          onCategorySelect={handleCategorySelect}
           onQuickAdd={handleOpenAddAsset}
           needsAttentionCount={attentionItems.length}
         />
@@ -824,7 +824,7 @@ export default function App() {
             />
           ) : activeTab === 'docs' ? (
             <DocumentationPage
-              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenSettings={goToSettings}
               onQuickAddAsset={handleOpenAddAsset}
             />
           ) : activeTab === 'attention' ? (
@@ -833,6 +833,25 @@ export default function App() {
               onSelectAsset={(a) => setSelectedAsset(a)}
               onNavigateTab={(tab) => setActiveTab(tab)}
               onEditAsset={handleOpenEditAsset}
+            />
+          ) : activeTab === 'settings' ? (
+            <SettingsModal
+              asPage
+              isOpen
+              onClose={() => setActiveTab('dashboard')}
+              syncStatus={syncStatus}
+              serviceHealth={serviceHealth}
+              syncQueueCount={syncQueueCount}
+              hasDemoData={hasDemoData}
+              onFlushSync={handleFlushSync}
+              onDataReload={reloadData}
+              onVerifyConnection={verifySyncConnection}
+              onClearDemoData={handleClearDemoData}
+              onOpenDemoOnboarding={() => setIsDemoOnboardingOpen(true)}
+              onRestartOnboarding={() => {
+                setCurrentRoute('setup');
+              }}
+              onClearCacheAndReset={handleClearCacheAndReset}
             />
           ) : null}
 
@@ -856,7 +875,6 @@ export default function App() {
           setTargetAssetId(undefined);
           setIsAddReminderOpen(true);
         }}
-        onOpenSettings={() => setIsSettingsOpen(true)}
         needsAttentionCount={attentionItems.length}
       />
 
@@ -896,25 +914,6 @@ export default function App() {
           onSave={handleSaveDocument}
         />
       )}
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        syncStatus={syncStatus}
-        serviceHealth={serviceHealth}
-        syncQueueCount={syncQueueCount}
-        hasDemoData={hasDemoData}
-        onFlushSync={handleFlushSync}
-        onDataReload={reloadData}
-        onVerifyConnection={verifySyncConnection}
-        onClearDemoData={handleClearDemoData}
-        onOpenDemoOnboarding={() => setIsDemoOnboardingOpen(true)}
-        onRestartOnboarding={() => {
-          setIsSettingsOpen(false);
-          setCurrentRoute('setup');
-        }}
-        onClearCacheAndReset={handleClearCacheAndReset}
-      />
 
       <DemoOnboardingModal
         isOpen={isDemoOnboardingOpen}

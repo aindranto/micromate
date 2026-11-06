@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.2.5 — Navigasi sidebar + Pengaturan sebagai halaman
+
+Tahap 2 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi sidebar
+→ v0.2.6 dashboard attention-first + landing). Tidak ada perubahan
+model data, sync, PIN, demo seeding, atau fitur baru — hanya navigasi.
+
+- Satu sumber kebenaran navigasi (`src/lib/navigation.ts`): sidebar
+  desktop dan BottomNav membaca daftar item yang sama (id, label,
+  label pendek HP, ikon, kelompok), jadi label dan urutan tidak bisa
+  melenceng. BottomNav menampilkan Dashboard, Aset, Reminder,
+  Pengaturan dalam urutan sidebar yang sama.
+- Sidebar desktop (lg ke atas): branding MicroMate di atas (kotak
+  emerald-900 + nama), tombol "Tambah Aset Baru" tetap, label grup
+  menjadi sentence case ("Navigasi utama"), "Pengaturan" sebagai
+  kelompok terpisah di bawah dengan garis pemisah, dan sidebar kini
+  sticky (`top-16`, tinggi viewport dikurangi Navbar) sehingga tetap
+  terlihat saat konten di-scroll. Active state tetap pill netral.
+- BottomNav HP: 4 item dari daftar bersama (ikon disamakan dengan
+  sidebar: LayoutDashboard, Package, Bell, Settings); "Pengaturan"
+  kini membuka halaman Pengaturan, bukan modal. FAB "+" dan menu aksi
+  cepat tidak diubah. Badge jumlah perhatian tetap di Reminder (HP
+  tidak punya slot Pusat Perhatian).
+- Pengaturan kini halaman penuh (tab `'settings'`), bukan modal:
+  `SettingsModal` mendapat prop `asPage` — hanya 3 div pembungkus
+  luar yang berubah class (tanpa overlay, tanpa tinggi tetap, konten
+  ikut scroll halaman). Semua section (profil/PIN, storage & sync +
+  OTP, impor/ekspor, kategori, Zona Bahaya) dan semua handler tidak
+  disentuh; perilaku reset, sync, PIN, dan demo seeding tidak berubah.
+  Semua pintu masuk Pengaturan (sidebar, BottomNav, tombol gerigi
+  Navbar, popover sync, Panduan & Docs) menuju tab yang sama.
+  Mode modal dipertahankan di kode tapi tidak lagi dipakai pintu masuk
+  mana pun.
+- Banner demo ("Data contoh aktif") dipindah keluar dari `<header>`
+  sticky Navbar: tinggi header kini konstan (h-16 di lg) sehingga
+  offset sidebar sticky selalu benar; banner ikut ter-scroll dan
+  tidak lagi menimpa toast sync.
+- Versi package menjadi 0.2.5.
+
 ## 0.2.4.1 — Perbaiki toast update + data demo setup
 
 Patch kecil (2 perbaikan, tanpa perubahan layout, model data, sync, PIN, atau fitur baru).

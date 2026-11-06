@@ -23,6 +23,10 @@ import {
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // v0.2.5: bila true, Pengaturan dirender sebagai halaman penuh di dalam
+  // <main> (tab 'settings'), bukan overlay modal. Hanya pembungkus luar
+  // yang berubah; semua section dan handler tidak disentuh.
+  asPage?: boolean;
   syncStatus: SyncStatus;
   serviceHealth: ServiceHealth;
   syncQueueCount: number;
@@ -39,6 +43,7 @@ interface SettingsModalProps {
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
+  asPage,
   syncStatus,
   serviceHealth,
   syncQueueCount,
@@ -672,8 +677,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-3xl border border-stone-200/80 w-full max-w-3xl shadow-2xl flex flex-col h-[620px] max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200">
+    <div className={asPage ? '' : 'fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4'}>
+      <div className={asPage
+        ? 'bg-white rounded-3xl border border-stone-200/80 w-full max-w-3xl shadow-2xs'
+        : 'bg-white rounded-3xl border border-stone-200/80 w-full max-w-3xl shadow-2xl flex flex-col h-[620px] max-h-[92vh] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200'}>
         
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-stone-200/80 flex items-center justify-between shrink-0 bg-white">
@@ -721,7 +728,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        <div className="p-3.5 sm:p-5 md:p-6 space-y-3.5 text-xs flex-1 overflow-y-auto no-scrollbar">
+        <div className={asPage
+          ? 'p-3.5 sm:p-5 md:p-6 space-y-3.5 text-xs'
+          : 'p-3.5 sm:p-5 md:p-6 space-y-3.5 text-xs flex-1 overflow-y-auto no-scrollbar'}>
           
           {/* SECTION 1: Storage & Sync */}
           <div className="rounded-2xl border border-stone-200 bg-white shadow-2xs overflow-hidden transition-all">

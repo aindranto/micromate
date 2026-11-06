@@ -136,6 +136,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const badgeConfig = getHeaderBadgeConfig();
 
   return (
+    <>
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-stone-200 transition-colors">
       <div className="w-full px-3.5 sm:px-6 lg:px-8 xl:px-10 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
         
@@ -333,8 +334,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         </div>
       </div>
+    </header>
 
-      {/* Contextual Demo Data Notification Banner */}
+    {/* Contextual Demo Data Notification Banner.
+        v0.2.5: dipindah keluar dari header sticky supaya tinggi header
+        konstan (h-16 di lg) — offset sidebar sticky (top-16) bergantung
+        padanya, dan banner tidak lagi menempel saat di-scroll. */}
       {hasDemoData && isDemoBannerVisible && (
         <div className="bg-amber-50/90 border-b border-amber-200/80 px-3 py-1 text-[11px] font-medium text-amber-950 flex items-center justify-between gap-2 transition-all">
           <div className="flex items-center gap-1.5 min-w-0 truncate">
@@ -363,7 +368,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 };
 
