@@ -94,6 +94,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
           : `${mostUrgent.daysDiff} hari lagi`
       : '';
 
+  // Baris hero: tanda kurung hanya muncul kalau ada teks relatif
+  // (item oli tidak punya daysDiff, jadi tanpa "(...)" kosong).
+  const mostUrgentLine = mostUrgent
+    ? `Paling mendesak: ${mostUrgent.title}${mostUrgentRelativeText ? ` (${mostUrgentRelativeText})` : ''}.`
+    : '';
+
   const renderAttentionCard = (item: (typeof attentionItems)[number], index: number) => {
     const targetAsset = assets.find((a) => a.asset_id === item.assetId);
     const days = item.daysDiff;
@@ -207,7 +213,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h2>
           <p className="text-emerald-100/90 text-label sm:text-subheading font-medium">
             {attentionItems.length > 0 && mostUrgent
-              ? `Paling mendesak: ${mostUrgent.title} (${mostUrgentRelativeText}).`
+              ? mostUrgentLine
               : 'Semua garansi masih berlaku dan belum ada jadwal servis atau pajak yang jatuh tempo.'}
           </p>
         </div>

@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.2.6.4 — Perbaiki temuan audit anti-slop fase 3 (struktur landing, hitungan reminder, kata demo)
+
+Fase 3 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan
+7–9 dari 9). Hanya perbaikan struktur landing, logika hitungan
+reminder, dan kata-kata data demo — tidak ada perubahan model data,
+sync engine, PIN, navigasi, atau desain visual di luar yang disebut.
+Temuan 1–3 sudah diperbaiki di v0.2.6.2; temuan 4–6 di v0.2.6.3.
+Dengan versi ini kesembilan temuan audit selesai diperbaiki.
+
+- Struktur landing (R-05/R-14): enam kartu fitur yang tadinya seragam
+  dalam satu grid kini dibagi dua kelompok sesuai hierarki isi, tanpa
+  mengubah teks kartu mana pun. Kelompok "Mencatat dan menyimpan":
+  Katalog Aset Digital, Manajemen Garansi & Dokumen, Riwayat Servis &
+  Total Cost (TCO). Kelompok "Mengingatkan dan menyinkronkan":
+  Reminder & Pengingat Otomatis, Sinkronisasi Google Drive & Sheets,
+  Akses Cepat Offline-First. Judul bagian yang generik ("Segala yang
+  Anda Butuhkan untuk Mengelola Aset") diganti yang spesifik: "Catat,
+  rawat, dan pantau aset Anda" — sejalan dengan subjudul yang sudah ada
+  ("mencatat, merawat, dan memantau"). Bagian "Cara Kerja" (3 langkah)
+  dan FAQ dibiarkan karena prosesnya nyata dan pertanyaannya spesifik
+  produk.
+- Hitungan Reminder Center (C-4): halaman ini menampilkan dua angka
+  dari dua sumber berbeda tanpa penjelasan — bagian "Perlu Perhatian"
+  menghitung set gabungan (garansi, pajak, dan oli yang dihitung dari
+  data aset, ditambah pengingat yang jatuh tempo), sedangkan filter di
+  bawah menghitung pengingat yang tersimpan saja. Sekarang ada satu
+  baris penjelas di antara keduanya: "Angka pada bagian Perlu Perhatian
+  menghitung garansi, pajak, oli, dan pengingat yang jatuh tempo.
+  Filter di bawah ini menghitung pengingat yang tersimpan saja."
+  Judul daftar bawah (carry-over dari cek live v0.2.6.2) diubah dari
+  "Jatuh Tempo (Overdue)" menjadi "Jatuh tempo (overdue)".
+- Satu definisi terlambat (C-4): item oli memakai dua definisi yang
+  berbeda — pengelompokan Terlambat/Mendatang berbasis sisa kilometer,
+  sedangkan teks relatifnya memakai `daysDiff` palsu
+  (`Math.floor(kmRemaining / 50)`, kilometer yang disulap jadi hari).
+  `daysDiff` untuk item oli dihapus: kartu oli kini hanya menampilkan
+  judul berbasis km ("Jadwal Ganti Oli Mesin Tinggal 50 km lagi") dan
+  pengelompokan memakai `isOverdue` berbasis km. Baris hero dashboard
+  ikut diperbaiki supaya tidak menampilkan "(...)" kosong ketika item
+  paling mendesak adalah item oli tanpa `daysDiff`.
+- Kata data demo: pengingat tersimpan "Jatuh Tempo Pajak STNK Tahunan
+  (B 4982 SGF)" dihapus dari data demo — kartu yang sama sudah muncul
+  otomatis dari `vehicle_details.annual_tax_date`, sehingga pajak STNK
+  tampil dua kali di Perlu Perhatian (judul turunan "Jatuh Tempo Pajak
+  STNK Lewat (25 Agu 2026)" + kartu tersimpan). Komentar penjelas
+  ditambahkan di `seedData.ts` supaya duplikat ini tidak dibuat lagi.
+  Pasangan oli tersimpan ("Ganti Oli Mesin Vario 160 (Target 12.500
+  km)") sengaja dibiarkan: pemicunya berbeda (berbasis tanggal vs
+  berbasis kilometer), bukan duplikat yang sama. Dua judul aneh dari
+  laporan audit — "Kunci Butuh Pelayan (Service AC Daikin)" dan
+  "Perpanjangan TOP UP Carousel" — tidak ditemukan di mana pun di
+  kode maupun riwayat git; keduanya hanya ada di data demo lama yang
+  tersimpan di profil browser saat audit (aset lama: MacBook Pro 2019,
+  Vario 150, AC Daikin — sudah tidak ada di data demo sekarang).
+  Setup demo baru tidak mengandung judul tersebut; data lama di
+  perangkat tidak diubah oleh versi ini.
+
 ## 0.2.6.3 — Perbaiki temuan audit anti-slop fase 2 (klaim kompetitor, gradasi, ikon)
 
 Fase 2 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan

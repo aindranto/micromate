@@ -251,14 +251,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Fitur lengkap
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
-              Segala yang Anda Butuhkan untuk Mengelola Aset
+              Catat, rawat, dan pantau aset Anda
             </h2>
             <p className="text-sm sm:text-base text-stone-300">
               Dirancang khusus untuk membantu Anda mencatat, merawat, dan memantau status aset secara terstruktur tanpa kerumitan.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-10">
+            <div>
+              <h3 className="text-sm font-bold text-emerald-400 mb-5">Mencatat dan menyimpan</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             {/* Feature 1 */}
             <div className="bg-stone-900/80 rounded-2xl p-6 border border-stone-800 hover:border-emerald-500/40 transition-all hover:-translate-y-1 group">
@@ -292,7 +295,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Rekam setiap perbaikan, perantian suku cadang, dan biaya pemeliharaan untuk mengetahui total nilai investasi aset secara transparan.
               </p>
             </div>
-
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-emerald-400 mb-5">Mengingatkan dan menyinkronkan</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
             {/* Feature 4 */}
             <div className="bg-stone-900/80 rounded-2xl p-6 border border-stone-800 hover:border-emerald-500/40 transition-all hover:-translate-y-1 group">
               <div className="w-12 h-12 rounded-2xl bg-emerald-950 text-emerald-400 flex items-center justify-center border border-emerald-800/60 mb-5 group-hover:scale-110 transition-transform">
@@ -325,7 +333,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Aplikasi tetap dapat dibuka dan digunakan meskipun tanpa koneksi internet. Data lokal akan otomatis disinkronkan saat terhubung kembali.
               </p>
             </div>
-
+              </div>
+            </div>
           </div>
         </div>
       </section>

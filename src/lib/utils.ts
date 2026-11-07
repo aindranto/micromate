@@ -331,7 +331,10 @@ export function getNeedsAttentionItems(assets: Asset[]): AttentionItem[] {
               ? `Sudah Waktunya Ganti Oli Mesin! (Saat ini: ${veh.current_mileage.toLocaleString('id-ID')} km)`
               : `Jadwal Ganti Oli Mesin Tinggal ${kmRemaining} km lagi`,
             category: 'oil',
-            daysDiff: Math.floor(kmRemaining / 50),
+            // Sengaja tanpa daysDiff: sisa jarak (km) bukan hitungan hari.
+            // Judul kartu sudah membawa info km ("Tinggal 50 km lagi") dan
+            // pengelompokan Terlambat/Mendatang memakai isOverdue yang
+            // berbasis km — satu definisi saja, tanpa teks hari palsu.
             isOverdue: kmRemaining <= 0,
             severity: kmRemaining <= 0 ? 'high' : 'medium',
             actionLabel: 'Catat Service'

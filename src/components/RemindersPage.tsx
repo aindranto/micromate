@@ -515,6 +515,13 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
         )}
       </div>
 
+      {/* Penjelas angka: bagian Perlu Perhatian menghitung garansi, pajak,
+          oli, dan pengingat yang jatuh tempo; filter di bawah menghitung
+          pengingat yang tersimpan saja. */}
+      <p className="text-label text-stone-500 font-medium px-1">
+        Angka pada bagian Perlu Perhatian menghitung garansi, pajak, oli, dan pengingat yang jatuh tempo. Filter di bawah ini menghitung pengingat yang tersimpan saja.
+      </p>
+
       {/* Primary Tab Filter with Live Counters */}
       <div className="flex items-center gap-1.5 bg-stone-100/90 p-1.5 rounded-2xl border border-stone-200 flex-wrap">
         {[
@@ -633,7 +640,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h3 className="font-black text-sm text-rose-900 flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" /> Jatuh Tempo (Overdue)
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" /> Jatuh tempo (overdue)
                   </h3>
                   <span className="px-2 py-0.5 text-xs font-black bg-rose-100 text-rose-800 rounded-md border border-rose-200">
                     {overdueItems.length}

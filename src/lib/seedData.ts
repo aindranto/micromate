@@ -197,19 +197,11 @@ export const SEED_ASSETS: Asset[] = [
         created_at: '2026-01-15T15:00:00Z'
       }
     ],
+    // Catatan: tidak ada pengingat pajak tersimpan — pajak STNK sudah
+    // dimunculkan otomatis dari vehicle_details.annual_tax_date
+    // (getNeedsAttentionItems). Menyimpan duplikatnya di sini membuat
+    // kartu yang sama muncul dua kali di Perlu Perhatian.
     reminders: [
-      {
-        reminder_id: 'rem_vario_tax',
-        asset_id: 'ast_vario_160',
-        asset_name: 'Honda Vario 160 ABS',
-        type: 'vehicle',
-        title: 'Jatuh Tempo Pajak STNK Tahunan (B 4982 SGF)',
-        due_date: '2026-08-25',
-        repeat_rule: 'annually',
-        status: 'pending',
-        created_at: '2026-08-01T08:00:00Z',
-        updated_at: '2026-08-01T08:00:00Z'
-      },
       {
         reminder_id: 'rem_vario_oil',
         asset_id: 'ast_vario_160',
