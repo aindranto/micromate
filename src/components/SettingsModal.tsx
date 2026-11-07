@@ -788,7 +788,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             <p className="text-stone-600 leading-relaxed font-medium">
-              Seluruh data aset, garansi, kendaraan, dan riwayat perawatan tersimpan secara offline-first di browser lokal. MicroMate mengeksekusi mutasi dengan antrean berurutan (FIFO) dan mekanisme retry otomatis berstandar enterprise.
+              Seluruh data aset, garansi, kendaraan, dan riwayat perawatan tersimpan secara offline-first di browser lokal. MicroMate mengeksekusi mutasi dengan antrean berurutan (FIFO) dan mekanisme coba ulang otomatis.
             </p>
 
             {/* Sync Queue Summary Stats */}
@@ -800,7 +800,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </span>
               </div>
               <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-center">
-                <span className="text-[10px] text-amber-600 font-bold block">Sedang Retry</span>
+                <span className="text-[10px] text-amber-600 font-bold block">Butuh Coba Ulang</span>
                 <span className="text-sm font-extrabold text-amber-900">
                   {queueItems.filter(i => i.status === 'FAILED_RETRYABLE').length}
                 </span>
@@ -904,7 +904,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase border ${
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-black border ${
                                 isFailedPerm
                                   ? 'bg-rose-200 text-rose-900 border-rose-300'
                                   : isRetryable
@@ -913,7 +913,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                   ? 'bg-blue-200 text-blue-900 border-blue-300'
                                   : 'bg-stone-100 text-stone-700 border-stone-300'
                               }`}>
-                                {item.status}
+                                {isFailedPerm ? 'Gagal permanen' : isRetryable ? 'Butuh coba ulang' : isProcessing ? 'Diproses' : 'Menunggu'}
                               </span>
                               <span className="font-extrabold">{item.action}</span>
                               <span className="text-[10px] text-stone-500 font-mono">[{item.entity || 'GENERAL'}]</span>
@@ -1235,7 +1235,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div>
                   <span className="font-extrabold text-sm text-white flex items-center gap-1.5">
                     <RefreshCw className={`w-4 h-4 text-emerald-300 ${isSyncingTwoWay ? 'animate-spin' : ''}`} />
-                    <span>Sinkronisasi 2 Arah (Unified Sync)</span>
+                    <span>Sinkronisasi 2 Arah</span>
                   </span>
                   <span className="text-[11px] text-emerald-200 font-medium block mt-0.5">
                     Kirim data lokal terbaru sekaligus tarik data terbaru dari Google Sheets secara otomatis.
@@ -1649,7 +1649,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="flex items-center gap-2">
                     <h4 className="font-extrabold text-stone-900 text-xs sm:text-sm">Backup &amp; Restore Data (JSON)</h4>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
-                      JSON Engine
+                      JSON
                     </span>
                   </div>
                   <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
@@ -1852,7 +1852,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           Dijalankan pada pukul: {testsRunTimestamp} • {testResults.filter(r => r.success).length} dari {testResults.length} modul pengujian berhasil.
                         </span>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border uppercase ${
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black border ${
                         testResults.every(r => r.success)
                           ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
                           : 'bg-rose-100 text-rose-800 border-rose-300'
@@ -2018,16 +2018,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <table className="w-full text-left border-collapse min-w-[500px]">
                     <thead>
                       <tr className="border-b border-stone-200">
-                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider w-1/2">
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] w-1/2">
                           Kategori Aktivitas
                         </th>
-                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
-                          In-App (Feeds)
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] text-center px-2">
+                          In-app (Feeds)
                         </th>
-                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] text-center px-2">
                           Browser Push
                         </th>
-                        <th className="pb-2 font-bold text-stone-800 text-[11px] uppercase tracking-wider text-center px-2">
+                        <th className="pb-2 font-bold text-stone-800 text-[11px] text-center px-2">
                           Email (Gateway)
                         </th>
                       </tr>
@@ -2142,7 +2142,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="grid grid-cols-3 gap-2 pt-2 border-t border-stone-100">
                           {/* Channel 1: In-App */}
                           <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
-                            <span className="text-[9px] font-bold text-stone-500 uppercase">In-App</span>
+                            <span className="text-[9px] font-bold text-stone-500">In-app</span>
                             <input
                               type="checkbox"
                               disabled={!notiPrefs.globalEnabled}
@@ -2154,7 +2154,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                           {/* Channel 2: Browser Push */}
                           <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
-                            <span className="text-[9px] font-bold text-stone-500 uppercase">Push</span>
+                            <span className="text-[9px] font-bold text-stone-500">Push</span>
                             <input
                               type="checkbox"
                               disabled={!notiPrefs.globalEnabled || notiPrefs.browserPermissionState !== 'granted'}
@@ -2166,7 +2166,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                           {/* Channel 3: Email */}
                           <label className="flex flex-col items-center justify-between p-2 rounded-lg bg-stone-50/60 border border-stone-150 min-h-[50px] cursor-pointer">
-                            <span className="text-[9px] font-bold text-stone-500 uppercase">Email</span>
+                            <span className="text-[9px] font-bold text-stone-500">Email</span>
                             <input
                               type="checkbox"
                               disabled={!notiPrefs.globalEnabled}

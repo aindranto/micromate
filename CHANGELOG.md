@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.2.6.2 — Perbaiki temuan audit anti-slop fase 1 (em dash, huruf besar, jargon)
+
+Fase 1 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan
+1–3 dari 9). Hanya perbaikan teks dan label — tidak ada perubahan model
+data, sync engine, PIN, demo seeding, navigasi, atau layout. Temuan 4–9
+dikerjakan di fase berikutnya, bukan di versi ini.
+
+- Em dash (R-02): semua em dash pada teks yang dilihat pengguna diganti
+  koma/titik dua — subheadline landing ("...dan pajak yang mendekat,
+  sebelum terlambat."), hero dashboard ("Paling mendesak: ..."),
+  subheading Reminder Center ("...yang jatuh tempo, dari semua aset."),
+  label opsi aset di form servis ("Nama (Kategori) [B 1234 ABC]"),
+  opsi "Tanpa Aset Khusus (Pengingat Global)", dan 5 nama suite di
+  Uji Kontrak (TEST A–E: " — " → ": "). Em dash di komentar kode
+  dibiarkan.
+- Huruf besar (R-06): class `uppercase` (+ `tracking-wider`/`tracking-wide`
+  yang berpasangan) dihapus dari semua label — badge status, heading
+  grup Terlambat/Mendatang, "Aksi Cepat", header tabel Pengaturan,
+  label kanal notifikasi, label statistik, badge kategori, dan seluruh
+  label formulir tambah aset. Label kini tampil sesuai penulisannya
+  (akronim tetap kapital: PIN, OTP, JSON, TCO, STNK). Nilai mentah
+  yang tadinya tampil apa adanya kini dipetakan ke label: id kategori
+  ("device" → "Device" via `getCategoryLabel`), status bisnis
+  ("AKTIF" → "Aktif"), tipe servis ("routine_service" → "Servis
+  Berkala / Tune Up" via `MAINTENANCE_TYPE_LABELS`), tipe dokumen
+  ("warranty_card" → "Kartu Garansi" via helper baru
+  `getDocumentTypeLabel` di `documentDomain.ts`), status antrean
+  sinkronisasi ("FAILED_RETRYABLE" → "Butuh coba ulang"), dan status
+  registrasi SIM ("unregistered" → "Belum Terdaftar"). Kanal
+  notifikasi kini "In-app", "Push", "Email". Satu-satunya `uppercase`
+  yang dipertahankan: input plat nomor di Step2Specs (transformasi
+  tampilan fungsional saat mengetik, bukan label).
+- Jargon (R-16/R-36): "mekanisme retry otomatis berstandar enterprise"
+  → "mekanisme coba ulang otomatis" (FIFO tetap, dijelaskan "antrean
+  berurutan"); FAQ "akan di-hydrate otomatis" → "akan dimuat otomatis";
+  "Sinkronisasi 2 Arah (Unified Sync)" → "Sinkronisasi 2 Arah"; pill
+  "Task-Oriented" di heading Reminder Center dihapus; badge "JSON
+  Engine" → "JSON"; label penghitung antrean "Sedang Retry" → "Butuh
+  Coba Ulang". "toolchain" tidak ditemukan di kode — teks perbandingan
+  di landing sudah berbunyi "tanpa terkunci platform" (kutipan audit
+  ternyata keliru). Jargon di komentar kode, nama komponen di halaman
+  dokumentasi, dan nama data uji dibiarkan.
+
+Verifikasi: lint (`tsc --noEmit`) lolos; test sync-queue 11/11;
+test demo-seed 4/4; build lolos (JS utama 612.675 byte / gzip
+131.498 byte, CSS 106.596 byte, precache 17 entri / 995,12 KiB).
+
 ## 0.2.6.1 — Bersih-bersih menu duplikat (logo sidebar, ikon navbar, prop mati)
 
 Sisa dari bersih-bersih menu duplikat yang dilaporkan Agung 6 Nov 2026

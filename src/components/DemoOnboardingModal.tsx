@@ -33,7 +33,7 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
         
         {/* Compact Header Banner */}
         <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-white p-4 sm:p-5 relative">
-          <div className="flex items-center gap-1.5 text-amber-300 text-[11px] font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-1.5 text-amber-300 text-[11px] font-bold mb-1">
             <Box className="w-3.5 h-3.5 text-amber-400" />
             <span>Manajemen Data Simulasi</span>
           </div>

@@ -28,7 +28,7 @@ import {
   Check
 } from 'lucide-react';
 import { ImageViewerModal, MediaItem } from './ImageViewerModal';
-import { useCategories, getCategoryIcon } from '../lib/categories';
+import { useCategories, getCategoryIcon, getCategoryLabel } from '../lib/categories';
 
 interface AssetListProps {
   assets: Asset[];
@@ -55,7 +55,7 @@ const getBusinessStatusConfig = (status?: string) => {
     case 'disposed':
       return { label: 'Dibuang', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' };
     default:
-      return { label: s.toUpperCase(), badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
+      return { label: s.charAt(0).toUpperCase() + s.slice(1), badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
   }
 };
 
@@ -223,7 +223,7 @@ export const AssetList: React.FC<AssetListProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Kategori Terpilih</span>
+                  <span className="text-[10px] font-bold text-stone-400">Kategori Terpilih</span>
                   <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-200">
                     {getCategoryAssetCount(activeCategoryObj.id)} aset
                   </span>
@@ -434,11 +434,11 @@ export const AssetList: React.FC<AssetListProps> = ({
                     )}
 
                     <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                      <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-stone-900/80 backdrop-blur-md text-white rounded-full">
-                        {asset.category}
+                      <span className="px-2.5 py-0.5 text-[10px] font-bold bg-stone-900/80 backdrop-blur-md text-white rounded-full">
+                        {getCategoryLabel(asset.category)}
                       </span>
                       {/* Business Lifecycle Badge */}
-                      <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full border ${statusConfig.badgeClass}`}>
+                      <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${statusConfig.badgeClass}`}>
                         {statusConfig.label}
                       </span>
                     </div>
@@ -548,7 +548,7 @@ export const AssetList: React.FC<AssetListProps> = ({
                       <h3 className="font-bold text-stone-900 text-sm group-hover:text-emerald-800 transition-colors truncate">
                         {asset.name}
                       </h3>
-                      <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-full border ${statusConfig.badgeClass}`}>
+                      <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full border ${statusConfig.badgeClass}`}>
                         {statusConfig.label}
                       </span>
                       <span className="flex items-center gap-1 text-[10px]">

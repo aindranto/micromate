@@ -53,7 +53,7 @@ export async function runContractTests(): Promise<TestLogEntry[]> {
   // ---------------------------------------------------------
   // TEST A: Local Persistence (Save & Read Complex Entities)
   // ---------------------------------------------------------
-  await runSuite('test_a_persistence', 'TEST A — Local Persistence (Dexie / IndexedDB)', async (logs) => {
+  await runSuite('test_a_persistence', 'TEST A: Local Persistence (Dexie / IndexedDB)', async (logs) => {
     logs.push('Mempersiapkan objek aset kompleks dengan SIM, Kendaraan, Pengingat, dan Dokumen.');
 
     const sampleAsset: Asset = {
@@ -229,7 +229,7 @@ export async function runContractTests(): Promise<TestLogEntry[]> {
   // ---------------------------------------------------------
   // TEST B: History Generation (Audit Logging Engine)
   // ---------------------------------------------------------
-  await runSuite('test_b_history', 'TEST B — Automated Lifecycle History Generation', async (logs) => {
+  await runSuite('test_b_history', 'TEST B: Automated Lifecycle History Generation', async (logs) => {
     logs.push(`Mengambil aset uji "${testAssetId}" untuk melakukan pengujian pelacakan mutasi.`);
     const asset = await dbManager.getAssetById(testAssetId, 'ws_personal');
     if (!asset) {
@@ -299,7 +299,7 @@ export async function runContractTests(): Promise<TestLogEntry[]> {
   // ---------------------------------------------------------
   // TEST C: Sync Queue Verification (Offline Synchronization)
   // ---------------------------------------------------------
-  await runSuite('test_c_sync_queue', 'TEST C — Sync Queue Mutation Lifecycle (Offline Sync)', async (logs) => {
+  await runSuite('test_c_sync_queue', 'TEST C: Sync Queue Mutation Lifecycle (Offline Sync)', async (logs) => {
     logs.push('Membaca seluruh item di dalam antrean sinkronisasi (Sync Queue)...');
     const queue = await dbManager.getAllSyncQueueItems();
     logs.push(`Ditemukan ${queue.length} transaksi di antrean sinkronisasi.`);
@@ -339,7 +339,7 @@ export async function runContractTests(): Promise<TestLogEntry[]> {
   // ---------------------------------------------------------
   // TEST D: Cloud Reconciliation & Multi-Device Conflict Resolution (Phase 2E)
   // ---------------------------------------------------------
-  await runSuite('test_d_multi_device_conflict', 'TEST D — Multi-Device Consistency & Tombstone Priority (Phase 2E)', async (logs) => {
+  await runSuite('test_d_multi_device_conflict', 'TEST D: Multi-Device Consistency & Tombstone Priority (Phase 2E)', async (logs) => {
     logs.push('Memulai pengujian multi-device conflict resolution & tombstone priority...');
     
     // Test 1: Tombstone Priority (DELETE > UPDATE)
@@ -431,7 +431,7 @@ export async function runContractTests(): Promise<TestLogEntry[]> {
   // ---------------------------------------------------------
   // TEST E: Sync Failure Engineering Contracts (Phase 2D)
   // ---------------------------------------------------------
-  await runSuite('test_e_failure_engineering', 'TEST E — Sync Failure Engineering & Backoff Contracts (Phase 2D)', async (logs) => {
+  await runSuite('test_e_failure_engineering', 'TEST E: Sync Failure Engineering & Backoff Contracts (Phase 2D)', async (logs) => {
     logs.push('Memverifikasi kontrak kegagalan sinkronisasi...');
     
     // Immutable mutation_id check

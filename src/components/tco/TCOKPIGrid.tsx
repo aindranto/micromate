@@ -12,7 +12,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 1. Grand Total Cost */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2 relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Total Biaya (TCO)
           </span>
           <div className="p-2 bg-emerald-50 text-emerald-800 rounded-xl">
@@ -33,7 +33,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 2. Operational Cost */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Biaya Operasional
           </span>
           <div className="p-2 bg-amber-50 text-amber-700 rounded-xl">
@@ -51,7 +51,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 3. Monthly Average Cost */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Rata-Rata Biaya
           </span>
           <div className="p-2 bg-blue-50 text-blue-700 rounded-xl">
@@ -69,7 +69,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 4. Cost Per Km (if available) */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Biaya Per Kilometer
           </span>
           <div className="p-2 bg-indigo-50 text-indigo-700 rounded-xl">
@@ -87,7 +87,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 5. Current Month Operational Cost */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Biaya Bulan Ini
           </span>
           <div className="p-2 bg-purple-50 text-purple-700 rounded-xl">
@@ -105,7 +105,7 @@ export const TCOKPIGrid: React.FC<TCOKPIGridProps> = ({ metrics }) => {
       {/* 6. Cost Trend % */}
       <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-2xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider">
+          <span className="text-xs font-bold text-stone-500">
             Tren Biaya (MoM)
           </span>
           <div className={`p-2 rounded-xl ${

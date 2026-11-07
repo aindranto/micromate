@@ -297,7 +297,7 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
             >
               {assets.map((a) => (
                 <option key={a.asset_id} value={a.asset_id}>
-                  {a.name} ({a.category}) {a.vehicle_details ? `— [${a.vehicle_details.license_plate}]` : ''}
+                  {a.name} ({a.category}) {a.vehicle_details ? `[${a.vehicle_details.license_plate}]` : ''}
                 </option>
               ))}
             </select>
@@ -591,7 +591,7 @@ export const AddMaintenanceModal: React.FC<AddMaintenanceModalProps> = ({
             id={`preview-transaction-impact-${formId}`}
             className="p-3.5 bg-stone-100/80 rounded-2xl border border-stone-200 text-[11px] space-y-1.5 text-stone-700"
           >
-            <span className="font-extrabold text-stone-900 uppercase tracking-wider block text-[10px] flex items-center gap-1.5">
+            <span className="font-extrabold text-stone-900 block text-[10px] flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-emerald-700" />
               <span>Dampak Transaksi Setelah Disimpan:</span>
             </span>

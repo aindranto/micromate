@@ -44,7 +44,10 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
       case 'battery': return 'Aki & Baterai';
       case 'brake': return 'Kampas Rem';
       case 'repair': return 'Perbaikan';
-      default: return type.replace('_', ' ').toUpperCase();
+      default: {
+        const label = type.replace(/_/g, ' ');
+        return label.charAt(0).toUpperCase() + label.slice(1);
+      }
     }
   };
 
@@ -68,7 +71,7 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
             <span className="text-base sm:text-lg font-black text-stone-900 block leading-tight">
               {filteredLogs.length}
             </span>
-            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold block mt-0.5">
               Catatan Servis
             </span>
           </div>
@@ -77,7 +80,7 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
             <span className="text-base sm:text-lg font-black text-emerald-900 block leading-tight">
               {formatCompactCurrency(totalCost)}
             </span>
-            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold block mt-0.5">
               Total Biaya
             </span>
           </div>
@@ -86,7 +89,7 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
             <span className="text-base sm:text-lg font-black text-emerald-800 block leading-tight">
               {totalAssetsWithMaintenance}/{assets.length}
             </span>
-            <span className="text-[10px] sm:text-xs text-stone-500 font-bold uppercase tracking-wider block mt-0.5">
+            <span className="text-[10px] sm:text-xs text-stone-500 font-bold block mt-0.5">
               Aset Dirawat
             </span>
           </div>
@@ -149,7 +152,7 @@ export const MaintenancePage: React.FC<MaintenancePageProps> = ({
                       <Wrench className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                       <span className="truncate">{log.assetName}</span>
                     </button>
-                    <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 rounded-md shrink-0">
+                    <span className="px-2 py-0.5 text-[10px] font-black bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 rounded-md shrink-0">
                       {getTypeLabel(log.type)}
                     </span>
                   </div>

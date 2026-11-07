@@ -122,7 +122,7 @@ export const AddReminderModal: React.FC<AddReminderModalProps> = ({
               onChange={(e) => setSelectedAssetId(e.target.value)}
               className="w-full px-4 py-2.5 bg-stone-50/80 border border-stone-200/80 rounded-2xl text-stone-900 font-medium focus:bg-white focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 cursor-pointer transition-all"
             >
-              <option value="">-- Tanpa Aset Khusus (Pengingat Global) --</option>
+              <option value="">Tanpa Aset Khusus (Pengingat Global)</option>
               {assets.map((a) => (
                 <option key={a.asset_id} value={a.asset_id}>
                   {a.name} ({a.category || 'Aset'})

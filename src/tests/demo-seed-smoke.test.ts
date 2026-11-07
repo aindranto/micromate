@@ -130,7 +130,7 @@ await check('demo: seedDemoData into an empty store with the flag already true (
   assert.equal((await visibleAssets(db)).length, 4);
 });
 
-await check('demo: seedDemoData is idempotent — second call adds nothing, no duplicates', async () => {
+await check('demo: seedDemoData is idempotent: second call adds nothing, no duplicates', async () => {
   reset();
   const db = new DatabaseManager();
   await db.init();

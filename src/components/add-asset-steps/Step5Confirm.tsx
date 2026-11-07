@@ -85,7 +85,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
             </p>
           </div>
         </div>
-        <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white border border-white/20 uppercase tracking-wide">
+        <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white border border-white/20">
           {assetToEdit ? 'Mode Edit' : 'Aset Baru'}
         </span>
       </div>
@@ -105,7 +105,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
             )}
             <div>
               <h3 className="font-extrabold text-stone-900 text-base">{name || 'Aset Tanpa Nama'}</h3>
-              <p className="text-xs font-semibold text-emerald-800 uppercase tracking-wide">
+              <p className="text-xs font-semibold text-emerald-800">
                 Kategori: {categoryLabel}
               </p>
             </div>
@@ -118,7 +118,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
         {/* Detailed Grid Summary */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80">
-            <span className="text-[10px] text-stone-500 font-bold uppercase block mb-1">Identitas & Brand</span>
+            <span className="text-[10px] text-stone-500 font-bold block mb-1">Identitas & Brand</span>
             <div className="font-bold text-stone-900">
               {brand ? `${brand} ${model || ''}` : 'Merek/Model tidak diisi'}
             </div>
@@ -128,7 +128,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
           </div>
 
           <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80">
-            <span className="text-[10px] text-stone-500 font-bold uppercase block mb-1">Penanggung Jawab & Lokasi</span>
+            <span className="text-[10px] text-stone-500 font-bold block mb-1">Penanggung Jawab & Lokasi</span>
             <div className="font-bold text-stone-900 flex items-center gap-1.5">
               <UserCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
               <span>{assignedUser || 'Belum ditugaskan'}</span>
@@ -140,7 +140,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
           </div>
 
           <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80">
-            <span className="text-[10px] text-stone-500 font-bold uppercase block mb-1">Informasi Pembelian</span>
+            <span className="text-[10px] text-stone-500 font-bold block mb-1">Informasi Pembelian</span>
             <div className="font-extrabold text-emerald-800">
               {typeof purchasePrice === 'number' && purchasePrice > 0 ? formatRupiah(purchasePrice) : 'Harga tidak dicantumkan'}
             </div>
@@ -150,7 +150,7 @@ export const Step5Confirm: React.FC<Step5ConfirmProps> = ({
           </div>
 
           <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200/80">
-            <span className="text-[10px] text-stone-500 font-bold uppercase block mb-1">Status Garansi & Dokumen</span>
+            <span className="text-[10px] text-stone-500 font-bold block mb-1">Status Garansi & Dokumen</span>
             <div className="font-bold text-stone-900 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
               <span>{hasWarranty ? `Garansi ${warrantyProvider || 'Resmi'}` : 'Tanpa Garansi'}</span>

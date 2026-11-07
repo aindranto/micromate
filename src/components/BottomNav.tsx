@@ -67,7 +67,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {isQuickActionOpen && (
           <div className="mb-3 w-60 bg-white/95 backdrop-blur-md rounded-3xl border border-stone-200/80 shadow-2xl p-2.5 z-50 space-y-1 animate-in fade-in zoom-in-95 slide-in-from-bottom-2 duration-150">
             <div className="px-3 py-2 border-b border-stone-100/80 flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-stone-500">Aksi Cepat</span>
+              <span className="text-[11px] font-extrabold text-stone-500">Aksi Cepat</span>
               <button 
                 type="button"
                 onClick={() => setIsQuickActionOpen(false)}

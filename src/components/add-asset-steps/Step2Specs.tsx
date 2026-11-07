@@ -90,7 +90,7 @@ export const Step2Specs: React.FC<Step2SpecsProps> = ({
       {/* 1. Vehicle Specific Details (When category is vehicle) */}
       {isVehicle && (
         <div className="p-4 sm:p-5 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-4">
-          <div className="flex items-center gap-2 text-amber-950 font-bold text-xs uppercase tracking-wide">
+          <div className="flex items-center gap-2 text-amber-950 font-bold text-xs">
             <Car className="w-4 h-4 text-amber-800" />
             <span>Spesifikasi Khusus Kendaraan & Pajak STNK</span>
           </div>

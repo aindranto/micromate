@@ -293,7 +293,7 @@ export const NotificationDetailModal: React.FC<NotificationDetailModalProps> = (
 
             {/* Meta Specifications & Evidence Grid (6-3D-04) */}
             <div className={`bg-stone-50/50 border border-stone-150 rounded-2xl p-4 space-y-3 ${isTerminal ? 'opacity-65' : ''}`}>
-              <h4 className="text-[10px] font-extrabold uppercase tracking-wider text-stone-400">
+              <h4 className="text-[10px] font-extrabold text-stone-400">
                 Spesifikasi Sinyal &amp; Konteks Aset
               </h4>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Asset, MaintenanceRecord, AssetStatus, AssetDocument, Document } from '../types';
+import { MAINTENANCE_TYPE_LABELS } from '../lib/maintenanceDomain';
 import { 
   formatRupiah, 
   formatDate, 
@@ -12,7 +13,8 @@ import {
   getDocumentPrimaryUrl,
   getDocumentPreviewUrl,
   getDocumentDisplayTitle,
-  getDocumentDisplayType
+  getDocumentDisplayType,
+  getDocumentTypeLabel
 } from '../lib/documentDomain';
 import { 
   ArrowLeft, 
@@ -73,17 +75,17 @@ const getBusinessStatusBadge = (status?: string) => {
   const s = (status || 'active').toLowerCase();
   switch (s) {
     case 'active':
-      return { label: 'AKTIF', badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
+      return { label: 'Aktif', badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200' };
     case 'under_repair':
-      return { label: 'DISERVIS', badgeClass: 'bg-amber-50 text-amber-800 border-amber-200' };
+      return { label: 'Diservis', badgeClass: 'bg-amber-50 text-amber-800 border-amber-200' };
     case 'stored':
-      return { label: 'DISIMPAN', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
+      return { label: 'Disimpan', badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
     case 'sold':
-      return { label: 'TERJUAL', badgeClass: 'bg-blue-50 text-blue-800 border-blue-200' };
+      return { label: 'Terjual', badgeClass: 'bg-blue-50 text-blue-800 border-blue-200' };
     case 'disposed':
-      return { label: 'DIBUANG', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' };
+      return { label: 'Dibuang', badgeClass: 'bg-rose-50 text-rose-800 border-rose-200' };
     default:
-      return { label: s.toUpperCase(), badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
+      return { label: s.charAt(0).toUpperCase() + s.slice(1), badgeClass: 'bg-stone-100 text-stone-700 border-stone-200' };
   }
 };
 
@@ -452,7 +454,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                 const IconComponent = getCategoryIcon(foundCategory?.iconName || 'Box');
                 const label = getCategoryLabel(asset.category, categories);
                 return (
-                  <span className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-stone-900 text-white rounded-md flex items-center gap-1.5">
+                  <span className="px-2.5 py-0.5 text-[10px] font-bold bg-stone-900 text-white rounded-md flex items-center gap-1.5">
                     <IconComponent className="w-3 h-3 text-emerald-400" />
                     <span>{label}</span>
                   </span>
@@ -460,7 +462,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               })()}
 
               {/* Business Lifecycle Status Badge */}
-              <span className={`px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-md border ${statusBadge.badgeClass}`}>
+              <span className={`px-2.5 py-0.5 text-[10px] font-extrabold rounded-md border ${statusBadge.badgeClass}`}>
                 {statusBadge.label}
               </span>
 
@@ -506,28 +508,28 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
           {/* Quick Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
             <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Harga Beli</span>
+              <span className="text-[10px] font-bold text-stone-400 block">Harga Beli</span>
               <span className="font-bold text-stone-900 text-xs sm:text-sm">
                 {formatRupiah(asset.purchase_price)}
               </span>
             </div>
 
             <div className="p-2.5 sm:p-3 bg-emerald-50/70 rounded-xl border border-emerald-200">
-              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Total Biaya (TCO)</span>
+              <span className="text-[10px] font-bold text-emerald-800 block">Total Biaya (TCO)</span>
               <span className="font-bold text-emerald-900 text-xs sm:text-sm">
                 {formatRupiah(tcoInfo.totalCostOfOwnership)}
               </span>
             </div>
 
             <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Penanggung Jawab</span>
+              <span className="text-[10px] font-bold text-stone-400 block">Penanggung Jawab</span>
               <span className="font-bold text-stone-800 text-xs sm:text-sm truncate block">
                 {asset.assigned_user || 'Belum Ditugaskan'}
               </span>
             </div>
 
             <div className="p-2.5 sm:p-3 bg-stone-50 rounded-xl border border-stone-200">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Lokasi Aset</span>
+              <span className="text-[10px] font-bold text-stone-400 block">Lokasi Aset</span>
               <span className="font-bold text-stone-800 text-xs sm:text-sm truncate block">
                 {asset.location || asset.purchase_location || 'Kantor / Rumah'}
               </span>
@@ -558,7 +560,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Tab Aktif</span>
+                  <span className="text-[10px] font-bold text-stone-400">Tab Aktif</span>
                   {activeTab === 'activity' && historyItems.length > 0 && (
                     <span className="px-1.5 py-0.2 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-200">
                       {historyItems.length} riwayat
@@ -756,7 +758,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div className="p-4 bg-stone-50 rounded-xl border border-stone-200/80 space-y-2.5">
-                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Identitas Aset</span>
+                  <span className="text-[11px] font-bold text-stone-400 block">Identitas Aset</span>
                   <div className="flex justify-between py-1 border-b border-stone-200/60">
                     <span className="text-stone-500">Nama Aset:</span>
                     <span className="font-bold text-stone-900">{asset.name}</span>
@@ -780,7 +782,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                 </div>
 
                 <div className="p-4 bg-stone-50 rounded-xl border border-stone-200/80 space-y-2.5">
-                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Penugasan & Pembelian</span>
+                  <span className="text-[11px] font-bold text-stone-400 block">Penugasan & Pembelian</span>
                   <div className="flex justify-between py-1 border-b border-stone-200/60">
                     <span className="text-stone-500">Penanggung Jawab Saat Ini:</span>
                     <span className="font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
@@ -818,15 +820,15 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-stone-700">
                     <div>
-                      <span className="text-[10px] text-stone-400 font-bold block uppercase">Penyedia Garansi</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Penyedia Garansi</span>
                       <span className="font-semibold text-stone-900">{asset.warranty.provider || 'Garansi Resmi'}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-stone-400 font-bold block uppercase">Tanggal Mulai</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Tanggal Mulai</span>
                       <span className="font-semibold text-stone-900">{formatDate(asset.warranty.start_date)}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-stone-400 font-bold block uppercase">Tanggal Berakhir</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Tanggal Berakhir</span>
                       <span className="font-semibold text-stone-900">{formatDate(asset.warranty.end_date)}</span>
                     </div>
                   </div>
@@ -843,28 +845,28 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Plat Nomor</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Plat Nomor</span>
                       <span className="font-extrabold text-stone-900 text-sm">
                         {asset.vehicle_details.license_plate}
                       </span>
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Odometer</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Odometer</span>
                       <span className="font-bold text-stone-900 text-sm">
                         {asset.vehicle_details.current_mileage.toLocaleString('id-ID')} km
                       </span>
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Pajak STNK Tahunan</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Pajak STNK Tahunan</span>
                       <span className="font-semibold text-stone-900 text-xs">
                         {formatDate(asset.vehicle_details.annual_tax_date)}
                       </span>
                     </div>
 
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Target Ganti Oli</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Target Ganti Oli</span>
                       <span className="font-semibold text-stone-900 text-xs">
                         {asset.vehicle_details.next_oil_change_mileage ? `${asset.vehicle_details.next_oil_change_mileage.toLocaleString('id-ID')} km` : '-'}
                       </span>
@@ -884,19 +886,19 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                     {asset.device_details.model_number && (
                       <div className="bg-white p-3 rounded-xl border border-blue-100">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block">Model Number</span>
+                        <span className="text-[10px] text-stone-400 font-bold block">Model Number</span>
                         <span className="font-semibold text-stone-900">{asset.device_details.model_number}</span>
                       </div>
                     )}
                     {asset.device_details.imei && (
                       <div className="bg-white p-3 rounded-xl border border-blue-100">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block">IMEI</span>
+                        <span className="text-[10px] text-stone-400 font-bold block">IMEI</span>
                         <span className="font-semibold font-mono text-stone-900">{asset.device_details.imei}</span>
                       </div>
                     )}
                     {asset.device_details.accessories && asset.device_details.accessories.length > 0 && (
                       <div className="bg-white p-3 rounded-xl border border-blue-100 col-span-1 md:col-span-3">
-                        <span className="text-[10px] text-stone-400 uppercase font-bold block mb-1">Aksesori Bawaan:</span>
+                        <span className="text-[10px] text-stone-400 font-bold block mb-1">Aksesori Bawaan:</span>
                         <div className="flex flex-wrap gap-1.5">
                           {asset.device_details.accessories.map((acc, idx) => (
                             <span key={`acc-${idx}-${acc}`} className="px-2 py-0.5 bg-stone-100 text-stone-700 rounded text-[11px] font-medium">
@@ -919,27 +921,27 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                       <span>Detail Kartu SIM & Pelacak Akun Digital</span>
                     </div>
                     {asset.sim_details.registration_status && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200 uppercase">
-                        {asset.sim_details.registration_status === 'registered' ? 'Terdaftar Dukcapil' : asset.sim_details.registration_status}
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
+                        {asset.sim_details.registration_status === 'registered' ? 'Terdaftar Dukcapil' : 'Belum Terdaftar'}
                       </span>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Nomor Telepon / SIM</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Nomor Telepon / SIM</span>
                       <span className="font-extrabold text-stone-900 font-mono text-sm tracking-wide">
                         {asset.sim_details.phone_number || '-'}
                       </span>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Provider Operator</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Provider Operator</span>
                       <span className="font-bold text-emerald-900 text-xs">
                         {asset.sim_details.provider || '-'}
                       </span>
                     </div>
                     <div className="bg-white p-3 rounded-xl border border-emerald-100">
-                      <span className="text-[10px] text-stone-400 uppercase font-bold block">Masa Aktif</span>
+                      <span className="text-[10px] text-stone-400 font-bold block">Masa Aktif</span>
                       <span className="font-semibold text-stone-800 text-xs">
                         {asset.sim_details.active_until ? formatDate(asset.sim_details.active_until) : 'Tidak Tercatat'}
                       </span>
@@ -1011,7 +1013,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Penanggung Jawab Saat Ini</span>
+                  <span className="text-[10px] font-bold text-emerald-800 block">Penanggung Jawab Saat Ini</span>
                   <span className="font-extrabold text-stone-900 text-sm">
                     {asset.assigned_user || 'Belum Ditugaskan'}
                   </span>
@@ -1023,7 +1025,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Lokasi Penempatan</span>
+                  <span className="text-[10px] font-bold text-emerald-800 block">Lokasi Penempatan</span>
                   <span className="font-bold text-stone-900 text-sm">
                     {asset.location || asset.purchase_location || 'Tidak Ditentukan'}
                   </span>
@@ -1074,7 +1076,7 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                       <div className="bg-stone-50/80 hover:bg-stone-50 border border-stone-200 p-4 rounded-2xl space-y-2 transition-all">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-stone-200/60 pb-2">
                           <div className="flex items-center gap-2">
-                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border uppercase tracking-wider ${badgeBg}`}>
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${badgeBg}`}>
                               {item.title}
                             </span>
                           </div>
@@ -1184,8 +1186,8 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                           <h4 className="font-bold text-xs text-stone-900 truncate" title={docTitle}>
                             {docTitle}
                           </h4>
-                          <p className="text-[10px] text-stone-500 uppercase font-semibold mt-0.5">
-                            {docType} • {formatDate(doc.created_at)}
+                          <p className="text-[10px] text-stone-500 font-semibold mt-0.5">
+                            {getDocumentTypeLabel(docType)} • {formatDate(doc.created_at)}
                           </p>
                         </div>
                       </div>
@@ -1272,8 +1274,8 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
                   >
                     <div className="space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-100 text-emerald-900 border border-emerald-200">
-                          {item.type}
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-900 border border-emerald-200">
+                          {MAINTENANCE_TYPE_LABELS[item.type] ?? item.type}
                         </span>
                         {item.title && (
                           <span className="text-xs font-bold text-stone-900">
@@ -1328,19 +1330,19 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">Harga Beli Awal</span>
+                <span className="text-[11px] font-bold text-stone-500 block">Harga Beli Awal</span>
                 <span className="text-xl font-black text-stone-900 block">{formatRupiah(asset.purchase_price)}</span>
                 <p className="text-[11px] text-stone-500">Dibeli {formatDate(asset.purchase_date)}</p>
               </div>
 
               <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-1">
-                <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block">Total Biaya Perawatan</span>
+                <span className="text-[11px] font-bold text-stone-500 block">Total Biaya Perawatan</span>
                 <span className="text-xl font-black text-stone-900 block">{formatRupiah(tcoInfo.maintenanceTotal + tcoInfo.repairTotal)}</span>
                 <p className="text-[11px] text-stone-500">{tcoInfo.maintenanceRatioPercent}% dari harga pembelian</p>
               </div>
 
               <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-1">
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Total Kepemilikan (TCO)</span>
+                <span className="text-[11px] font-bold text-emerald-800 block">Total Kepemilikan (TCO)</span>
                 <span className="text-xl font-black text-emerald-950 block">{formatRupiah(tcoInfo.totalCostOfOwnership)}</span>
                 <p className="text-[11px] text-emerald-800 font-medium">Estimasi ~{formatRupiah(tcoInfo.costPerYear)}/tahun</p>
               </div>

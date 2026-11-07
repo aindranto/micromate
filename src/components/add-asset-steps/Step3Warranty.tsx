@@ -78,7 +78,7 @@ export const Step3Warranty: React.FC<Step3WarrantyProps> = ({
       
       {/* 1. Purchase Details */}
       <div className="p-4 sm:p-5 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-4">
-        <div className="flex items-center gap-2 text-stone-900 font-bold text-xs uppercase tracking-wide">
+        <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
           <DollarSign className="w-4 h-4 text-emerald-800" />
           <span>Informasi Pembelian & Biaya Aset</span>
         </div>

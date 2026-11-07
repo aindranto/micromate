@@ -100,7 +100,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Subheadline */}
             <p className="text-base sm:text-lg text-stone-300 font-normal leading-relaxed max-w-2xl mx-auto">
-              MicroMate mengingatkan garansi yang mau habis, servis yang jatuh tempo, dan pajak yang mendekat — sebelum terlambat. Semua aset, dokumen, dan biaya tercatat rapi dalam satu vault yang <strong>100% privat &amp; aman</strong>.
+              MicroMate mengingatkan garansi yang mau habis, servis yang jatuh tempo, dan pajak yang mendekat, sebelum terlambat. Semua aset, dokumen, dan biaya tercatat rapi dalam satu vault yang <strong>100% privat &amp; aman</strong>.
             </p>
 
             {/* CTA Buttons - Single Action Button */}
@@ -551,7 +551,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               },
               {
                 q: 'Apa yang terjadi jika saya mengganti HP atau komputer?',
-                a: 'Cukup buka website ini di perangkat baru dan hubungkan URL Apps Script Google Drive Anda yang sudah disiapkan sebelumnya. Semua data aset dan dokumen akan di-hydrate otomatis.'
+                a: 'Cukup buka website ini di perangkat baru dan hubungkan URL Apps Script Google Drive Anda yang sudah disiapkan sebelumnya. Semua data aset dan dokumen akan dimuat otomatis.'
               }
             ].map((faq, idx) => (
               <div 

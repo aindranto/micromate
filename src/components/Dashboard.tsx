@@ -207,7 +207,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h2>
           <p className="text-emerald-100/90 text-label sm:text-subheading font-medium">
             {attentionItems.length > 0 && mostUrgent
-              ? `Paling mendesak — ${mostUrgent.title} (${mostUrgentRelativeText}).`
+              ? `Paling mendesak: ${mostUrgent.title} (${mostUrgentRelativeText}).`
               : 'Semua garansi masih berlaku dan belum ada jadwal servis atau pajak yang jatuh tempo.'}
           </p>
         </div>

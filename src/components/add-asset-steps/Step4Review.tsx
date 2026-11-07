@@ -100,7 +100,7 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
       {/* 1. Upload Section: Foto Aset & Invoice */}
       <div className="p-4 sm:p-5 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-stone-900 font-bold text-xs uppercase tracking-wide">
+          <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
             <Upload className="w-4 h-4 text-emerald-800" />
             <span>Upload Berkas & Foto Bukti Fisik</span>
           </div>
@@ -254,7 +254,7 @@ export const Step4Review: React.FC<Step4ReviewProps> = ({
               </p>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-800 text-emerald-100 uppercase tracking-wider">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-800 text-emerald-100">
             {categoryLabel}
           </span>
         </div>

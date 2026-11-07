@@ -13,6 +13,7 @@ import {
   Maximize2
 } from 'lucide-react';
 import { formatImageUrl } from '../lib/utils';
+import { getDocumentTypeLabel } from '../lib/documentDomain';
 
 export interface MediaItem {
   url: string;
@@ -150,8 +151,8 @@ export const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
             </h3>
             <div className="flex items-center gap-2 text-xs text-stone-400">
               {currentItem.category && (
-                <span className="px-2 py-0.5 rounded-md bg-stone-800 text-stone-300 font-semibold uppercase text-[10px]">
-                  {currentItem.category}
+                <span className="px-2 py-0.5 rounded-md bg-stone-800 text-stone-300 font-semibold text-[10px]">
+                  {getDocumentTypeLabel(currentItem.category)}
                 </span>
               )}
               {items.length > 1 && (

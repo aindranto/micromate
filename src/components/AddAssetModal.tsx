@@ -3,6 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import { Asset, AssetCategory, VehicleType, AssetDocument } from '../types';
 import { INITIAL_WORKSPACE_ID } from '../lib/seedData';
 import { formatRupiah } from '../lib/utils';
+import { getCategoryLabel } from '../lib/categories';
 import { 
   X, CheckCircle2, AlertTriangle, ArrowRight, ArrowLeft, Edit3, Loader2, CloudUpload
 } from 'lucide-react';
@@ -993,7 +994,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({
                 </div>
                 <div className="flex justify-between border-b border-stone-200/60 pb-2">
                   <span className="text-stone-500 font-medium">Kategori:</span>
-                  <span className="font-semibold text-stone-800 uppercase">{pendingAsset.category}</span>
+                  <span className="font-semibold text-stone-800">{getCategoryLabel(pendingAsset.category)}</span>
                 </div>
                 {pendingAsset.assigned_user && (
                   <div className="flex justify-between border-b border-stone-200/60 pb-2">

@@ -200,7 +200,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
           </div>
           <div>
             <span className="font-black text-white text-base tracking-tight block leading-none">MicroMate</span>
-            <span className="text-[10px] text-stone-400 font-bold uppercase tracking-wider">Personal Asset Vault</span>
+            <span className="text-[10px] text-stone-400 font-bold">Personal Asset Vault</span>
           </div>
         </div>
 
@@ -229,7 +229,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
         {/* STEP INDICATOR (For steps > welcome) */}
         {currentStep !== 'welcome' && (
           <div className="mb-8 space-y-2 max-w-md mx-auto w-full">
-            <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-stone-400">
+            <div className="flex items-center justify-between text-[11px] font-extrabold text-stone-400">
               <span>Setup MicroMate</span>
               <span className="text-emerald-400">
                 Langkah {getStepNumber()} / 5
@@ -281,7 +281,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                 MicroMate
               </h1>
-              <p className="text-sm font-extrabold text-emerald-400 tracking-wider uppercase">
+              <p className="text-sm font-extrabold text-emerald-400">
                 Personal Asset Manager
               </p>
               <p className="text-stone-300 text-xs sm:text-sm font-medium leading-relaxed max-w-sm mx-auto pt-1">
@@ -431,7 +431,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Kembali</span>
               </button>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+              <span className="text-[10px] font-black text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
                 ☁️ Setup Google Storage
               </span>
             </div>
@@ -539,7 +539,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Lihat Kode &amp; Panduan</span>
               </button>
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
+              <span className="text-[10px] font-black text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
                 Langkah 3 / 5
               </span>
             </div>

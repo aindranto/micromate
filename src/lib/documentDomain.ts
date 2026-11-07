@@ -279,3 +279,21 @@ export function getDocumentDisplayType(doc: any): string {
   return doc.document_type || doc.type || 'other';
 }
 
+/**
+ * Sentence-case Indonesian label for a document type id, for badges.
+ * Raw ids ('invoice', 'warranty_card', ...) are not user-facing text.
+ */
+export function getDocumentTypeLabel(typeId: string): string {
+  switch ((typeId || 'other').toLowerCase()) {
+    case 'invoice': return 'Invoice';
+    case 'manual': return 'Manual';
+    case 'warranty': return 'Garansi';
+    case 'warranty_card': return 'Kartu Garansi';
+    case 'other': return 'Lainnya';
+    default: {
+      const label = typeId.replace(/_/g, ' ');
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+  }
+}
+

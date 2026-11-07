@@ -55,7 +55,7 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({
       {/* 1. Category Selection Grid */}
       <div className="p-4 sm:p-5 bg-stone-50/90 rounded-2xl border border-stone-200 space-y-3">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-stone-800 uppercase tracking-wider flex items-center gap-1.5">
+          <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5 text-emerald-800" />
             <span>Pilih Kategori Aset *</span>
           </label>

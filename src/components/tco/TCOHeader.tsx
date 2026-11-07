@@ -29,7 +29,7 @@ export const TCOHeader: React.FC<TCOHeaderProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Asset Switcher */}
         <div className="space-y-1">
-          <label htmlFor="tco-asset-select" className="text-xs font-bold text-stone-500 uppercase tracking-wider block">
+          <label htmlFor="tco-asset-select" className="text-xs font-bold text-stone-500 block">
             Pilih Aset Analisis
           </label>
           <div className="relative inline-block w-full sm:w-72">
@@ -52,7 +52,7 @@ export const TCOHeader: React.FC<TCOHeaderProps> = ({
 
         {/* Time Range Selector */}
         <div className="space-y-1">
-          <span className="text-xs font-bold text-stone-500 uppercase tracking-wider block">
+          <span className="text-xs font-bold text-stone-500 block">
             Periode Laporan
           </span>
           <div className="inline-flex p-1 bg-stone-100 rounded-xl border border-stone-200/80">
