@@ -223,7 +223,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
           <div className="flex items-center gap-2 flex-wrap">
             {/* Status Pill */}
             <span
-              className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold border ${
+              className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold inline-flex items-center gap-1 border ${
                 isOverdue
                   ? 'bg-rose-600 text-white border-rose-700 shadow-2xs'
                   : isDueToday
@@ -233,7 +233,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
                   : 'bg-emerald-100 text-emerald-900 border-emerald-200'
               }`}
             >
-              {isOverdue ? '🔴 Overdue' : isDueToday ? '🟡 Hari Ini' : isCompleted ? '🟢 Selesai' : '🔵 Mendatang'}
+              {isOverdue ? (<><span className="w-2 h-2 rounded-full bg-rose-600" /> Overdue</>) : isDueToday ? (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Hari Ini</>) : isCompleted ? (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Selesai</>) : (<><span className="w-2 h-2 rounded-full bg-emerald-600" /> Mendatang</>)}
             </span>
 
             {/* Relative Delta Label */}
@@ -632,9 +632,8 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-pulse" />
-                  <h3 className="font-black text-sm text-rose-900">
-                    ⚠️ Jatuh Tempo (Overdue)
+                  <h3 className="font-black text-sm text-rose-900 flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" /> Jatuh Tempo (Overdue)
                   </h3>
                   <span className="px-2 py-0.5 text-xs font-black bg-rose-100 text-rose-800 rounded-md border border-rose-200">
                     {overdueItems.length}
@@ -655,7 +654,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                   <h3 className="font-black text-sm text-amber-950">
-                    📅 Hari Ini (Due Today)
+                    Hari Ini (Due Today)
                   </h3>
                   <span className="px-2 py-0.5 text-xs font-black bg-amber-100 text-amber-900 rounded-md border border-amber-200">
                     {todayItems.length}
@@ -676,7 +675,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   <h3 className="font-black text-sm text-stone-900">
-                    🔵 Mendatang (Upcoming)
+                    Mendatang (Upcoming)
                   </h3>
                   <span className="px-2 py-0.5 text-xs font-black bg-stone-100 text-stone-700 rounded-md border border-stone-200">
                     {upcomingItems.length}
@@ -696,7 +695,7 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-stone-400" />
                 <h3 className="font-black text-sm text-stone-600">
-                  🟢 Selesai (Completed)
+                  Selesai (Completed)
                 </h3>
                 <span className="px-2 py-0.5 text-xs font-black bg-stone-100 text-stone-600 rounded-md border border-stone-200">
                   {completedItems.length}

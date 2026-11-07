@@ -16,7 +16,10 @@ import {
   Zap, 
   ChevronDown, 
   ChevronUp, 
-  Sparkles,
+  AlertTriangle,
+  Camera,
+  Car,
+  Laptop,
   ExternalLink,
   DollarSign,
   Clock,
@@ -45,7 +48,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo Brand */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-white font-black text-lg shadow-md shadow-emerald-950/40 border border-emerald-400/30">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-emerald-950/40 border border-emerald-400/30">
               M
             </div>
             <div>
@@ -81,7 +84,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </header>
 
       {/* 2. Hero Section */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden bg-gradient-to-b from-stone-900 via-stone-900 to-stone-950">
+      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden bg-stone-950">
         {/* Glow ambient effects */}
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -89,7 +92,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             
             {/* Tagline Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold shadow-inner">
-              <Sparkles className="w-3.5 h-3.5" />
+              <Bell className="w-3.5 h-3.5" />
               <span>Tahu apa yang perlu perhatian, sebelum terlambat</span>
             </div>
 
@@ -195,7 +198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="bg-stone-900/70 rounded-2xl p-3.5 border border-stone-800/80 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-stone-800 flex items-center justify-center shrink-0 font-bold text-emerald-400 border border-stone-700">
-                  💻
+                  <Laptop className="w-6 h-6" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
@@ -209,7 +212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <div className="bg-stone-900/70 rounded-2xl p-3.5 border border-stone-800/80 flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-stone-800 flex items-center justify-center shrink-0 font-bold text-amber-400 border border-stone-700">
-                  🚗
+                  <Car className="w-6 h-6" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
@@ -217,13 +220,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <span className="text-[9px] font-mono bg-stone-800 text-stone-300 px-1.5 py-0.5 rounded border border-stone-700">B 1234 ABC</span>
                   </div>
                   <span className="text-[11px] text-stone-300 block truncate">Kendaraan • Ganti Oli + STNK</span>
-                  <span className="text-[10px] text-rose-400 font-semibold block mt-1">⚠️ Servis Rutin (7 Hari Lagi)</span>
+                  <span className="text-[10px] text-rose-400 font-semibold flex items-center gap-1 mt-1"><AlertTriangle className="w-3 h-3 shrink-0" /> Servis Rutin (7 Hari Lagi)</span>
                 </div>
               </div>
 
               <div className="hidden lg:flex bg-stone-900/70 rounded-2xl p-3.5 border border-stone-800/80 items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-stone-800 flex items-center justify-center shrink-0 font-bold text-emerald-400 border border-stone-700">
-                  📷
+                  <Camera className="w-6 h-6" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
@@ -347,7 +350,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
             
             {/* MicroMate Advantage Card */}
-            <div className="bg-gradient-to-b from-emerald-950/60 to-stone-950 rounded-3xl p-6 sm:p-8 border-2 border-emerald-500/50 shadow-2xl relative flex flex-col justify-between">
+            <div className="bg-stone-950 rounded-3xl p-6 sm:p-8 border-2 border-emerald-500/50 shadow-2xl relative flex flex-col justify-between">
               <div className="absolute top-4 right-4 bg-emerald-500 text-stone-950 text-[10px] font-black tracking-wider px-3 py-1 rounded-full">
                 Rekomendasi Utama
               </div>
@@ -425,21 +428,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <span className="text-stone-300 font-bold shrink-0 mt-0.5">✕</span>
                     <span className="text-xs sm:text-sm text-stone-300">
                       <strong className="text-stone-300 block font-semibold">Tersimpan di Server Luar:</strong>
-                      Data dan foto dokumen penting disimpan di server perusahaan lain yang rentan peretasan atau perubahan kebijakan privasi.
+                      Data dan foto dokumen penting tersimpan di server perusahaan lain, sehingga keamanan dan aksesnya mengikuti kebijakan perusahaan tersebut.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-stone-300 font-bold shrink-0 mt-0.5">✕</span>
                     <span className="text-xs sm:text-sm text-stone-300">
                       <strong className="text-stone-300 block font-semibold">Skema Biaya Berlangganan:</strong>
-                      Sering meminta biaya bulanan/tahunan berulang untuk membuka batasan jumlah aset atau fitur lampiran berkas.
+                      Biaya bulanan/tahunan bisa menjadi syarat untuk membuka batasan jumlah aset atau fitur lampiran berkas.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-stone-300 font-bold shrink-0 mt-0.5">✕</span>
                     <span className="text-xs sm:text-sm text-stone-300">
                       <strong className="text-stone-300 block font-semibold">Ketergantungan Internet:</strong>
-                      Aplikasi sering kali lambat atau tidak bisa dibuka jika sinyal internet terputus.
+                      Aplikasi yang bergantung pada server tidak bisa dibuka saat sinyal internet terputus.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
@@ -583,7 +586,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       </section>
 
       {/* 7. Bottom CTA Banner */}
-      <section className="py-16 bg-gradient-to-r from-emerald-950 via-emerald-900 to-stone-950 border-t border-emerald-800/40 relative">
+      <section className="py-16 bg-emerald-950 border-t border-emerald-800/40 relative">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
           <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
             Mulai Amankan &amp; Rapikan Data Aset Anda Hari Ini

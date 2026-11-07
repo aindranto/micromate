@@ -214,8 +214,8 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         </div>
 
         <div className="pt-2">
-          <p className="text-[11px] text-stone-400 font-medium">
-            🔒 Keamanan lokal aktif. Data Anda aman tersimpan di IndexedDB.
+          <p className="text-[11px] text-stone-400 font-medium flex items-center gap-1.5">
+            <Lock className="w-3.5 h-3.5 shrink-0" /> Keamanan lokal aktif. Data Anda aman tersimpan di IndexedDB.
           </p>
         </div>
 

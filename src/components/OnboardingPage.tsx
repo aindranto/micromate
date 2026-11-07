@@ -3,7 +3,7 @@ import {
   Cloud, HardDrive, ShieldCheck, CheckCircle2, ArrowRight, ArrowLeft, 
   KeyRound, Mail, Sparkles, RefreshCw, FileCode, Check, ChevronRight,
   Database, ExternalLink, Layers, ShieldAlert, Sparkle, Laptop, CheckCircle
-} from 'lucide-react';
+, Star, FileText, Package } from 'lucide-react';
 import { dbManager } from '../lib/db';
 import { APPS_SCRIPT_CODE } from '../lib/appsScriptCode';
 
@@ -189,7 +189,6 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
     <div className="min-h-screen bg-stone-900 text-stone-100 flex flex-col justify-between selection:bg-emerald-500 selection:text-stone-900 font-sans antialiased relative overflow-x-hidden">
       
       {/* Background Decorative Gradient Blobs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-emerald-600/15 via-emerald-900/10 to-transparent blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[300px] bg-emerald-800/10 blur-3xl pointer-events-none" />
 
       {/* Top Header Bar */}
@@ -299,7 +298,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
               </button>
               
               <p className="text-[11px] text-stone-400 font-extrabold tracking-wide">
-                ⏱️ Setup ± 5 menit
+                Setup ± 5 menit
               </p>
             </div>
           </div>
@@ -335,14 +334,14 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                     <div className="w-10 h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-bold">
                       <Cloud className="w-5 h-5 text-emerald-300" />
                     </div>
-                    <span className="px-2.5 py-1 bg-emerald-800 text-emerald-100 font-extrabold text-[10px] rounded-full border border-emerald-600">
-                      ⭐ Direkomendasikan
+                    <span className="px-2.5 py-1 bg-emerald-800 text-emerald-100 font-extrabold text-[10px] rounded-full border border-emerald-600 inline-flex items-center gap-1">
+                      <Star className="w-3 h-3" /> Direkomendasikan
                     </span>
                   </div>
 
                   <div>
                     <h3 className="text-base font-extrabold text-white flex items-center gap-1.5">
-                      ☁️ Google Sheets + Drive
+                      Google Sheets + Drive
                     </h3>
                     <p className="text-xs text-stone-300 font-medium leading-relaxed mt-1.5">
                       Data &amp; file dokumen garansi tersimpan secara aman di Google Account milik Anda sendiri via Apps Script Gateway.
@@ -386,7 +385,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
                   <div>
                     <h3 className="text-base font-extrabold text-white">
-                      💻 Penyimpanan Lokal
+                      Penyimpanan Lokal
                     </h3>
                     <p className="text-xs text-stone-300 font-medium leading-relaxed mt-1.5">
                       Gunakan MicroMate secara offline tanpa integrasi Google Account. Data hanya berada di browser perangkat ini.
@@ -432,7 +431,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                 <span>Kembali</span>
               </button>
               <span className="text-[10px] font-black text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
-                ☁️ Setup Google Storage
+                Setup Google Storage
               </span>
             </div>
 
@@ -584,7 +583,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
               {errorMessage && (
                 <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300 text-xs font-bold">
-                  ⚠️ {errorMessage}
+                  {errorMessage}
                 </div>
               )}
 
@@ -657,7 +656,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
 
               {errorMessage && (
                 <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-xl text-rose-300 text-xs font-bold">
-                  ⚠️ {errorMessage}
+                  {errorMessage}
                 </div>
               )}
 
@@ -733,7 +732,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-xl bg-emerald-800 text-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">
-                      ☁️
+                      <Cloud className="w-4 h-4" />
                     </div>
                     <div>
                       <h4 className="font-extrabold text-white text-sm">
@@ -758,7 +757,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
               >
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-stone-800 text-stone-300 flex items-center justify-center font-bold text-sm shrink-0">
-                    📄
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div>
                     <h4 className="font-extrabold text-white text-sm">
@@ -782,7 +781,7 @@ export const OnboardingPage: React.FC<OnboardingPageProps> = ({
               >
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-xl bg-emerald-800 text-emerald-200 flex items-center justify-center font-bold text-sm shrink-0">
-                    📦
+                    <Package className="w-4 h-4" />
                   </div>
                   <div>
                     <h4 className="font-extrabold text-white text-sm">

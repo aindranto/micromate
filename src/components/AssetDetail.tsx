@@ -343,11 +343,11 @@ export const AssetDetail: React.FC<AssetDetailProps> = ({
               onChange={(e) => onUpdateStatus(asset.asset_id, e.target.value as AssetStatus)}
               className="px-2.5 py-1.5 text-xs font-bold rounded-xl bg-white border border-stone-200 text-stone-800 focus:outline-none max-w-[110px] xs:max-w-[140px] sm:max-w-none truncate shrink-0 cursor-pointer shadow-2xs"
             >
-              <option value="active">🟢 Active (Aktif)</option>
-              <option value="under_repair">🟡 Under Repair (Diservis)</option>
-              <option value="stored">⚪ Stored (Disimpan)</option>
-              <option value="sold">🔵 Sold (Terjual)</option>
-              <option value="disposed">🔴 Disposed (Dibuang)</option>
+              <option value="active">Active (Aktif)</option>
+              <option value="under_repair">Under Repair (Diservis)</option>
+              <option value="stored">Stored (Disimpan)</option>
+              <option value="sold">Sold (Terjual)</option>
+              <option value="disposed">Disposed (Dibuang)</option>
             </select>
           </div>
 

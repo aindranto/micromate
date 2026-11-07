@@ -253,9 +253,9 @@ export const Step2Specs: React.FC<Step2SpecsProps> = ({
               <label className="font-bold text-stone-800 block">Status Registrasi Dukcapil (NIK / KK)</label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'registered', label: '✅ Terdaftar Resmi' },
-                  { id: 'unregistered', label: '⚠️ Belum Registrasi' },
-                  { id: 'expired', label: '❌ Masa Tenggang' },
+                  { id: 'registered', label: 'Terdaftar Resmi' },
+                  { id: 'unregistered', label: 'Belum Registrasi' },
+                  { id: 'expired', label: 'Masa Tenggang' },
                 ].map((st) => (
                   <button
                     key={st.id}

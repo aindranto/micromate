@@ -192,19 +192,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                   <span className="text-xs font-extrabold text-stone-900">Status Penyimpanan &amp; Sync</span>
-                  <span className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full border ${
+                  <span className={`px-2 py-0.5 text-[10px] font-extrabold inline-flex items-center gap-1 rounded-full border ${
                     syncStatus === 'synced' ? 'bg-emerald-100 text-emerald-900 border-emerald-300' :
                     syncStatus === 'unconfigured' ? 'bg-stone-100 text-stone-700 border-stone-200' :
                     syncStatus === 'error' ? 'bg-rose-100 text-rose-900 border-rose-300' :
                     'bg-amber-100 text-amber-900 border-amber-300'
                   }`}>
-                    {syncStatus === 'synced' ? '🟢 Terhubung' :
-                     syncStatus === 'unconfigured' ? '⚪ Penyimpanan Lokal' :
-                     syncStatus === 'unverified' ? '🟡 Belum Verifikasi' :
-                     syncStatus === 'partial' ? '🟡 Koneksi Sebagian' :
-                     syncStatus === 'pending' ? '🟡 Changes Pending' :
-                     syncStatus === 'syncing' ? '🔄 Syncing' :
-                     syncStatus === 'error' ? '🔴 Sync Error' : '⚪ Offline'}
+                    {syncStatus === 'synced' ? (<><span className="w-2 h-2 rounded-full bg-emerald-600" /> Terhubung</>) :
+                     syncStatus === 'unconfigured' ? (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Penyimpanan Lokal</>) :
+                     syncStatus === 'unverified' ? (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Belum Verifikasi</>) :
+                     syncStatus === 'partial' ? (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Koneksi Sebagian</>) :
+                     syncStatus === 'pending' ? (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Changes Pending</>) :
+                     syncStatus === 'syncing' ? (<><RefreshCw className="w-3 h-3 animate-spin" /> Syncing</>) :
+                     syncStatus === 'error' ? (<><span className="w-2 h-2 rounded-full bg-rose-600" /> Sync Error</>) : (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Offline</>)}
                   </span>
                 </div>
 
@@ -215,10 +215,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <Code2 className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Apps Script</span>
                     </span>
-                    <span className={`font-bold ${
+                    <span className={`font-bold inline-flex items-center gap-1.5 ${
                       serviceHealth.appsScript ? 'text-emerald-800' : 'text-amber-800'
                     }`}>
-                      {serviceHealth.appsScript ? '✓ Aktif' : '⚪ Belum dikonfigurasi'}
+                      {serviceHealth.appsScript ? '✓ Aktif' : (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Belum dikonfigurasi</>)}
                     </span>
                   </div>
 
@@ -227,10 +227,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <Database className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Sheets</span>
                     </span>
-                    <span className={`font-bold ${
+                    <span className={`font-bold inline-flex items-center gap-1.5 ${
                       serviceHealth.googleSheets ? 'text-emerald-800' : 'text-stone-500'
                     }`}>
-                      {serviceHealth.googleSheets ? '✓ Aktif' : '⚪ Belum terhubung'}
+                      {serviceHealth.googleSheets ? '✓ Aktif' : (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Belum terhubung</>)}
                     </span>
                   </div>
 
@@ -239,10 +239,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <HardDrive className="w-3.5 h-3.5 text-emerald-800" />
                       <span>Google Drive Vault</span>
                     </span>
-                    <span className={`font-bold ${
+                    <span className={`font-bold inline-flex items-center gap-1.5 ${
                       serviceHealth.googleDrive ? 'text-emerald-800' : 'text-stone-500'
                     }`}>
-                      {serviceHealth.googleDrive ? '✓ Aktif' : '⚪ Belum terhubung'}
+                      {serviceHealth.googleDrive ? '✓ Aktif' : (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Belum terhubung</>)}
                     </span>
                   </div>
 
@@ -268,7 +268,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full py-2 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                     >
                       <UploadCloud className="w-4 h-4 text-emerald-300" />
-                      <span>☁️ Kelola Integrasi Storage</span>
+                      <span>Kelola Integrasi Storage</span>
                     </button>
                   ) : (
                     <>
@@ -315,7 +315,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       {hasDemoData && isDemoBannerVisible && (
         <div className="bg-amber-50/90 border-b border-amber-200/80 px-3 py-1 text-[11px] font-medium text-amber-950 flex items-center justify-between gap-2 transition-all">
           <div className="flex items-center gap-1.5 min-w-0 truncate">
-            <span className="shrink-0">🧪</span>
             <span className="truncate text-stone-700">Data contoh (demo assets) aktif.</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">

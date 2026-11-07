@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.2.6.3 — Perbaiki temuan audit anti-slop fase 2 (klaim kompetitor, gradasi, ikon)
+
+Fase 2 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan
+4–6 dari 9). Hanya perbaikan teks dan tampilan di permukaan — tidak ada
+perubahan model data, sync engine, PIN, demo seeding, navigasi, atau
+logika. Temuan 1–3 sudah diperbaiki di v0.2.6.2; temuan 7–9 dikerjakan
+di fase 3, bukan di versi ini.
+
+- Klaim kompetitor (R-36): kartu "Aplikasi Sejenis Konvensional" di
+  landing ditulis ulang supaya tidak ada klaim yang tidak bisa
+  diverifikasi tentang produk tanpa nama — "rentan peretasan" dihapus
+  dan diganti fakta arsitektur (data di server pihak ketiga berarti
+  keamanan dan aksesnya mengikuti kebijakan perusahaan tersebut);
+  "Sering meminta biaya bulanan/tahunan..." dilunakkan menjadi
+  "Biaya bulanan/tahunan bisa menjadi syarat..."; "sering kali lambat
+  atau tidak bisa dibuka" diganti pernyataan struktural (aplikasi yang
+  bergantung pada server tidak bisa dibuka saat internet terputus).
+  Baris "Format Terkunci (Vendor Lock-in)" dibiarkan — isinya
+  menjelaskan mekanisme lock-in, bukan fakta tentang suatu produk.
+  Kartu "MicroMate Vault", judul bagian, dan kalimat penutup tidak
+  berubah.
+- Gradasi (R-01): keempat gradasi di landing diratakan ke warna solid
+  sesuai arah desain Micromate (permukaan datar, tanpa gradasi):
+  logo "M" emerald-500→700 menjadi `bg-emerald-600`; hero
+  stone-900→950 menjadi `bg-stone-950`; kartu mockup
+  emerald-950/60→stone-950 menjadi `bg-stone-950`; panel CTA
+  emerald-950→emerald-900→stone-950 menjadi `bg-emerald-950`.
+  Tiga gradasi lain di luar landing ikut diratakan: header
+  DocumentationPage (emerald-900→800→950 menjadi `bg-emerald-900`),
+  header DemoOnboardingModal (stone-900→850→950 menjadi
+  `bg-stone-900`), dan satu blob dekoratif di OnboardingPage — yang
+  ini DIHAPUS, bukan diratakan, karena blok solid akan tampak salah
+  (blob kedua di halaman yang sama dibiarkan karena warnanya solid,
+  bukan gradasi). Alasan dicatat di DESIGN_PLAN_V0263.md.
+- Ikon (R-04): ikon sparkle di badge hero diganti lucide `Bell`
+  (badge-nya tentang pengingat/perhatian); seluruh emoji yang tampil
+  di UI diganti ikon lucide, titik warna CSS, atau dihapus — ikon
+  mockup 💻🚗📷⚠️ menjadi `Laptop`/`Car`/`Camera`/`AlertTriangle`;
+  status sync di navbar dan status layanan menjadi titik warna CSS
+  (hijau/abu/amber/merah) dengan `RefreshCw` berputar untuk
+  "Syncing"; status pengingat (Overdue/Hari Ini/Selesai/Mendatang)
+  menjadi titik warna CSS; judul "Jatuh Tempo (Overdue)" memakai
+  `AlertTriangle`; banner demo, tombol "Kelola Integrasi Storage",
+  dan tombol "Buka Panduan & Salin Skrip" kehilangan emoji-nya
+  karena ikon lucide sudah ada di sebelahnya atau teksnya sudah
+  jelas; kartu fitur di Panduan & Docs memakai ikon lucide yang
+  sesuai (`Search`, `Image`, `Smartphone`, `Lock`, `Cloud`,
+  `ShieldCheck`, `Settings`, `Folder`, `Table`); opsi status di
+  dropdown (elemen `<option>` native) dan label registrasi SIM
+  kehilangan emoji-nya karena `<option>` tidak bisa menampilkan
+  ikon. Tidak ada dependency baru.
+- Sengaja dibiarkan: tanda ✓/✕ (dingbat teks, bukan emoji) — beberapa
+  dipakai logika pencocokan string (`pinMsg.includes('✓')`,
+  `pullMessage.includes('✓')`, pewarna log `startsWith('❌')`); tanda
+  ✕ di tabel perbandingan adalah simbol teks; log diagnostik di
+  contractTests memakai ❌/✓ sebagai penanda log; ikon lucide
+  `Sparkles` di AiAssistantModal, Step1Identity, dan SettingsModal
+  bukan emoji dan di luar temuan audit — tidak diubah; heading
+  "Perlu Perhatian" di dashboard sudah memakai lucide `ShieldAlert`
+  (kutipan audit "⚠️ 7 Perlu Ditindaklanjuti" tidak ada di kode).
+
 ## 0.2.6.2 — Perbaiki temuan audit anti-slop fase 1 (em dash, huruf besar, jargon)
 
 Fase 1 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan

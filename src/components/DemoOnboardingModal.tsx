@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Trash2, CheckCircle2, ShieldCheck, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Box, Trash2, CheckCircle2, ShieldCheck, AlertTriangle, ArrowLeft, FlaskConical } from 'lucide-react';
 
 interface DemoOnboardingModalProps {
   isOpen: boolean;
@@ -32,7 +32,7 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
       <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200 shadow-2xl w-full max-w-md overflow-hidden flex flex-col my-auto transition-all">
         
         {/* Compact Header Banner */}
-        <div className="bg-gradient-to-r from-stone-900 via-stone-850 to-stone-950 text-white p-4 sm:p-5 relative">
+        <div className="bg-stone-900 text-white p-4 sm:p-5 relative">
           <div className="flex items-center gap-1.5 text-amber-300 text-[11px] font-bold mb-1">
             <Box className="w-3.5 h-3.5 text-amber-400" />
             <span>Manajemen Data Simulasi</span>
@@ -52,8 +52,8 @@ export const DemoOnboardingModal: React.FC<DemoOnboardingModalProps> = ({
             <>
               {/* Current Status Badge */}
               <div className="p-3 bg-amber-50/90 border border-amber-200 rounded-xl flex items-center gap-3">
-                <span className="p-1.5 bg-amber-100 text-amber-950 rounded-lg font-bold text-xs shrink-0">
-                  🧪
+                <span className="p-1.5 bg-amber-100 text-amber-950 rounded-lg font-bold text-xs shrink-0 flex items-center justify-center">
+                  <FlaskConical className="w-4 h-4" />
                 </span>
                 <p className="text-xs text-amber-950 leading-snug font-medium">
                   Saat ini terdapat <strong>{countDisplay} aset contoh</strong> (MacBook, Vario, AC, Kamera) di ruang kerja Anda.

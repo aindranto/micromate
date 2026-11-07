@@ -26,7 +26,15 @@ import {
   Terminal,
   Settings,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Search,
+  Image,
+  Smartphone,
+  Lock,
+  Cloud,
+  ShieldCheck,
+  Folder,
+  Table
 } from 'lucide-react';
 
 interface DocumentationPageProps {
@@ -120,7 +128,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
     <div className="space-y-6 w-full pb-12">
       
       {/* Header Banner */}
-      <div className="p-6 sm:p-8 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-950 text-white rounded-3xl shadow-md relative overflow-hidden">
+      <div className="p-6 sm:p-8 bg-emerald-900 text-white rounded-3xl shadow-md relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold text-emerald-200 border border-white/15">
@@ -169,7 +177,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
             }`}
           >
             <UserCheck className="w-4 h-4" />
-            <span>📘 Panduan Penggunaan (User Guide)</span>
+            <span>Panduan Penggunaan (User Guide)</span>
           </button>
 
           <button
@@ -182,7 +190,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
             }`}
           >
             <Code2 className="w-4 h-4" />
-            <span>⚙️ Dokumentasi Sistem & Developer</span>
+            <span>Dokumentasi Sistem & Developer</span>
           </button>
         </div>
 
@@ -351,7 +359,7 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
               <div className="px-5 pb-6 sm:px-6 pt-1 border-t border-stone-100">
                 <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200 space-y-2 text-xs text-stone-700 leading-relaxed">
                   <p className="font-semibold text-stone-900">
-                    🔄 Prinsip <strong>"Last Known State + Pending Changes"</strong>:
+                    Prinsip <strong>"Last Known State + Pending Changes"</strong>:
                   </p>
                   <ul className="list-disc pl-5 space-y-1 text-stone-600">
                     <li><strong>Instant Rendering:</strong> Aplikasi memuat data lokal dari IndexedDB secara instan sehingga pengguna tidak perlu menunggu koneksi jaringan.</li>
@@ -398,11 +406,11 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                      <span className="font-bold text-emerald-800 block">🔍 Zoom & Drag/Pan</span>
+                      <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Search className="w-3.5 h-3.5 shrink-0" /> Zoom & Drag/Pan</span>
                       <p>Gunakan tombol Zoom (+/-), scroll mouse, atau pintasan keyboard untuk memperbesar detail hingga 400% dan geser posisi foto.</p>
                     </div>
                     <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                      <span className="font-bold text-emerald-800 block">🖼️ Galeri Multi-Media</span>
+                      <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Image className="w-3.5 h-3.5 shrink-0" /> Galeri Multi-Media</span>
                       <p>Navigasi antarfoto dan dokumen dengan mudah menggunakan thumbnail di bagian bawah atau tombol panah keyboard (← / →).</p>
                     </div>
                   </div>
@@ -446,11 +454,11 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                      <span className="font-bold text-emerald-800 block">📱 Mitigasi Kehilangan SIM / HP</span>
+                      <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 shrink-0" /> Mitigasi Kehilangan SIM / HP</span>
                       <p>Mencatat daftar layanan seperti WhatsApp, Tokopedia, Shopee, M-Banking, dan Email yang terikat pada nomor HP tersebut.</p>
                     </div>
                     <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                      <span className="font-bold text-emerald-800 block">🔒 Tanpa Password & Kredensial</span>
+                      <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 shrink-0" /> Tanpa Password & Kredensial</span>
                       <p>Hanya nama aplikasi/layanan yang dicatat. Tanpa password, PIN, atau kredensial sensitif sehingga aman jika diakses pihak lain.</p>
                     </div>
                   </div>
@@ -490,15 +498,15 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
               <div className="px-5 pb-6 sm:px-6 space-y-3 text-xs text-stone-600 pt-1 border-t border-stone-100">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                    <span className="font-bold text-emerald-800 block">☁️ Personal Storage Gateway (Zero SaaS)</span>
+                    <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Cloud className="w-3.5 h-3.5 shrink-0" /> Personal Storage Gateway (Zero SaaS)</span>
                     <p>MicroMate terhubung langsung ke Google Sheets &amp; Drive pribadi pengguna melalui Apps Script. Tanpa registrasi akun SaaS, tanpa ketergantungan pada server pihak ketiga.</p>
                   </div>
                   <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1">
-                    <span className="font-bold text-emerald-800 block">🔒 App PIN Lock (4-Digit)</span>
+                    <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 shrink-0" /> App PIN Lock (4-Digit)</span>
                     <p>Kunci aplikasi lokal untuk menjaga privasi data aset saat HP/laptop dipinjamkan. Tersimpan dengan aman di penyimpanan lokal peramban.</p>
                   </div>
                   <div className="p-3 bg-white rounded-xl border border-stone-200 space-y-1 sm:col-span-2">
-                    <span className="font-bold text-emerald-800 block">🛡️ Email Ownership Verification (Kode OTP)</span>
+                    <span className="font-bold text-emerald-800 inline-flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> Email Ownership Verification (Kode OTP)</span>
                     <p>Saat menghubungkan Apps Script URL, sistem secara otomatis mendeteksi pemilik akun Google (Session.getEffectiveUser) dan mengirimkan 6-digit OTP melalui MailApp. Email disamarkan di UI (mis. u••••@gmail.com) demi privasi.</p>
                   </div>
                 </div>
@@ -549,21 +557,21 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
                   <span className="text-[11px] text-emerald-400 font-bold block">// DIAGRAM INTEGRASI CLOUD GATEWAY</span>
                   <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-[11px]">
                     <div className="p-3 bg-stone-800 border border-stone-700 rounded-xl text-center w-full md:w-auto">
-                      📱 Frontend MicroMate
+                      <span className="inline-flex items-center gap-1.5"><Smartphone className="w-3.5 h-3.5 shrink-0" /> Frontend MicroMate</span>
                       <div className="text-[10px] text-stone-400">React + IndexedDB Storage</div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-emerald-400 hidden md:block" />
                     <div className="p-3 bg-emerald-950 border border-emerald-700/80 text-emerald-300 rounded-xl text-center w-full md:w-auto">
-                      ⚙️ Google Apps Script
+                      <span className="inline-flex items-center gap-1.5"><Settings className="w-3.5 h-3.5 shrink-0" /> Google Apps Script</span>
                       <div className="text-[10px] text-emerald-400/80">API Gateway Web App</div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-emerald-400 hidden md:block" />
                     <div className="flex flex-col gap-1.5 w-full md:w-auto">
                       <div className="p-2 bg-stone-800 border border-stone-700 rounded-lg text-center text-[10px]">
-                        📂 Google Drive (Foto & Nota)
+                        <span className="inline-flex items-center gap-1.5"><Folder className="w-3 h-3 shrink-0" /> Google Drive (Foto & Nota)</span>
                       </div>
                       <div className="p-2 bg-stone-800 border border-stone-700 rounded-lg text-center text-[10px]">
-                        📊 Google Sheets (Database Metadata)
+                        <span className="inline-flex items-center gap-1.5"><Table className="w-3 h-3 shrink-0" /> Google Sheets (Database Metadata)</span>
                       </div>
                     </div>
                   </div>
@@ -654,11 +662,11 @@ export const DocumentationPage: React.FC<DocumentationPageProps> = ({
             {expandedSysSections.folder && (
               <div className="px-5 pb-6 sm:px-6 pt-1 border-t border-stone-100">
                 <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 font-mono text-xs space-y-2 text-stone-800">
-                  <div>📁 MicroMate /</div>
-                  <div className="pl-4">└── 📁 Assets /</div>
-                  <div className="pl-8">└── 📁 AST-2026-000124 /</div>
-                  <div className="pl-12">├── 📁 Photos / (Foto fisik produk, tampak depan, serial number)</div>
-                  <div className="pl-12">└── 📁 Documents / (Invoice nota pembelian, kartu garansi, STNK)</div>
+                  <div>MicroMate /</div>
+                  <div className="pl-4">└── Assets /</div>
+                  <div className="pl-8">└── AST-2026-000124 /</div>
+                  <div className="pl-12">├── Photos / (Foto fisik produk, tampak depan, serial number)</div>
+                  <div className="pl-12">└── Documents / (Invoice nota pembelian, kartu garansi, STNK)</div>
                 </div>
               </div>
             )}

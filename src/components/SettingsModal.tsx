@@ -683,7 +683,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         onClose();
       }, 1000);
     } else {
-      setImportStatus('⚠️ Gagal mengimpor file JSON.');
+      setImportStatus('Gagal mengimpor file JSON.');
       setImportPreviewData(null);
     }
   };
@@ -880,7 +880,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {queueItems.length === 0 ? (
                   <div className="p-4 bg-white rounded-xl border border-stone-200 text-center text-stone-500 font-medium text-[11px]">
-                    ✨ Antrean sinkronisasi bersih. Seluruh data lokal telah tersinkronkan.
+                    Antrean sinkronisasi bersih. Seluruh data lokal telah tersinkronkan.
                   </div>
                 ) : (
                   <div className="space-y-1.5 max-h-56 overflow-y-auto no-scrollbar">
@@ -949,7 +949,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                           {item.last_error && (
                             <div className="mt-1 p-1.5 bg-rose-100/70 rounded-lg text-[10px] text-rose-900 font-semibold border border-rose-200">
-                              ⚠️ Eror: {item.last_error}
+                              Eror: {item.last_error}
                             </div>
                           )}
                         </div>
@@ -999,7 +999,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="text-[11px] font-bold text-emerald-800 hover:text-emerald-900 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <FileCode className="w-3.5 h-3.5" />
-                  <span>📖 Buka Panduan &amp; Salin Skrip</span>
+                  <span>Buka Panduan &amp; Salin Skrip</span>
                 </button>
               </div>
               <div className="flex gap-2">
@@ -1070,7 +1070,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                   {otpExpiryTimer > 0 && (
                     <span className="px-2 py-1 rounded-md bg-emerald-100 text-emerald-950 text-[10px] font-bold border border-emerald-300 font-mono">
-                      ⏱️ {Math.floor(otpExpiryTimer / 60)}:{String(otpExpiryTimer % 60).padStart(2, '0')}
+                      {Math.floor(otpExpiryTimer / 60)}:{String(otpExpiryTimer % 60).padStart(2, '0')}
                     </span>
                   )}
                 </div>
@@ -1099,13 +1099,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   {otpError && (
                     <p className="text-rose-700 font-bold text-[11px] bg-rose-50 p-2 rounded-lg border border-rose-200">
-                      ⚠️ {otpError}
+                      {otpError}
                     </p>
                   )}
 
                   {otpMessage && !otpError && (
                     <p className="text-emerald-900 font-semibold text-[11px] bg-emerald-100/70 p-2 rounded-lg border border-emerald-200">
-                      ℹ️ {otpMessage}
+                      {otpMessage}
                     </p>
                   )}
 
@@ -1150,8 +1150,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <ShieldCheck className="w-4 h-4 text-emerald-700" />
                     <span>Google Gateway Terverifikasi</span>
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200/80 text-emerald-950 border border-emerald-400">
-                    🟢 Active & Verified
+                  <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-200/80 text-emerald-950 border border-emerald-400 inline-flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" /> Active & Verified
                   </span>
                 </div>
                 <p className="text-[11px] text-emerald-900 font-medium leading-relaxed">
@@ -1170,12 +1170,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Code2 className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Google Apps Script Endpoint</span>
                   </span>
-                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1.5 ${
                     serviceHealth.appsScript 
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
                       : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}>
-                    {serviceHealth.appsScript ? '✓ Terhubung' : '⚠️ Belum dikonfigurasi'}
+                    {serviceHealth.appsScript ? '✓ Terhubung' : (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Belum dikonfigurasi</>)}
                   </span>
                 </div>
 
@@ -1184,12 +1184,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Database className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Google Sheets Metadata</span>
                   </span>
-                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1.5 ${
                     serviceHealth.googleSheets 
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
                       : 'bg-stone-100 text-stone-600 border border-stone-200'
                   }`}>
-                    {serviceHealth.googleSheets ? '✓ Terhubung' : '⚪ Menunggu koneksi'}
+                    {serviceHealth.googleSheets ? '✓ Terhubung' : (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Menunggu koneksi</>)}
                   </span>
                 </div>
 
@@ -1198,12 +1198,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <HardDrive className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Google Drive Vault Folder</span>
                   </span>
-                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1.5 ${
                     serviceHealth.googleDrive 
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
                       : 'bg-stone-100 text-stone-600 border border-stone-200'
                   }`}>
-                    {serviceHealth.googleDrive ? '✓ Terhubung' : '⚪ Menunggu koneksi'}
+                    {serviceHealth.googleDrive ? '✓ Terhubung' : (<><span className="w-2 h-2 rounded-full bg-stone-400" /> Menunggu koneksi</>)}
                   </span>
                 </div>
 
@@ -1212,19 +1212,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                     <span>Verifikasi Kepemilikan Email</span>
                   </span>
-                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] inline-flex items-center gap-1.5 ${
                     dbManager.isConnectionVerified()
                       ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' 
                       : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}>
-                    {dbManager.isConnectionVerified() ? `✓ ${maskedEmail}` : '⚠️ Belum Verifikasi'}
+                    {dbManager.isConnectionVerified() ? `✓ ${maskedEmail}` : (<><span className="w-2 h-2 rounded-full bg-amber-500" /> Belum Verifikasi</>)}
                   </span>
                 </div>
               </div>
 
               {otpError && otpStep === 'ERROR' && (
                 <p className="text-rose-600 text-[10px] pt-1 font-bold bg-rose-50 p-2 rounded-lg border border-rose-200">
-                  ⚠️ {otpError}
+                  {otpError}
                 </p>
               )}
             </div>
@@ -2246,7 +2246,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {confirmAction === 'clear_cache' && (
                     <div className="p-3 bg-rose-100 border border-rose-300 rounded-xl space-y-2 animate-fade-in mt-2">
                       <p className="text-xs font-bold text-rose-950">
-                        ⚠️ Konfirmasi: Hapus seluruh data lokal &amp; kembali ke wizard setup awal sekarang?
+                        Konfirmasi: Hapus seluruh data lokal &amp; kembali ke wizard setup awal sekarang?
                       </p>
                       <div className="flex items-center gap-2 pt-1">
                         <button

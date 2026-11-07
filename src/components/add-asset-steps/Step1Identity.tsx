@@ -1,7 +1,7 @@
 import React from 'react';
 import { AssetCategory } from '../../types';
 import { useCategories, getCategoryIcon } from '../../lib/categories';
-import { RefreshCw, Tag, Building2, UserCheck, MapPin, Hash, Sparkles } from 'lucide-react';
+import { RefreshCw, Tag, Building2, UserCheck, MapPin, Hash, Sparkles, Lock } from 'lucide-react';
 
 interface Step1IdentityProps {
   category: AssetCategory;
@@ -200,8 +200,8 @@ export const Step1Identity: React.FC<Step1IdentityProps> = ({
                     <Hash className="w-3.5 h-3.5 text-emerald-800" />
                     <span>Kode Aset Unik</span>
                   </label>
-                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    🔒 Generasi Otomatis
+                  <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 inline-flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Generasi Otomatis
                   </span>
                 </div>
 
