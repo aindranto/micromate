@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Asset, Reminder, ReminderDerivedState, ReminderType } from '../types';
-import { formatDate } from '../lib/utils';
+import { formatDate, getNeedsAttentionItems } from '../lib/utils';
 import { getReminderPresentationState } from '../lib/reminderDomain';
 import { 
   Bell, 
@@ -17,7 +17,8 @@ import {
   RefreshCw,
   Tag,
   Layers,
-  ChevronRight
+  ChevronRight,
+  ShieldAlert
 } from 'lucide-react';
 
 interface RemindersPageProps {
@@ -87,6 +88,19 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
       return a.reminder.due_date.localeCompare(b.reminder.due_date);
     });
   }, [assets, todayYMD]);
+
+  // Perlu Perhatian (v0.2.6): gabungan "Pusat Perhatian" ke halaman ini —
+  // garansi, pajak, oli, dan pengingat yang jatuh tempo, dari sumber yang
+  // sama dengan strip perhatian di Dashboard (getNeedsAttentionItems).
+  const attentionItems = useMemo(() => getNeedsAttentionItems(assets), [assets]);
+  const overdueAttention = useMemo(
+    () => attentionItems.filter((item) => item.isOverdue),
+    [attentionItems]
+  );
+  const upcomingAttention = useMemo(
+    () => attentionItems.filter((item) => !item.isOverdue),
+    [attentionItems]
+  );
 
   // Section Counts
   const counts = useMemo(() => {
@@ -320,13 +334,107 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
     );
   };
 
+  // Kartu perhatian (garansi / pajak / oli / pengingat) — tampilan dan aksi
+  // yang sama dengan strip "Perlu Perhatian" di Dashboard.
+  const renderAttentionCard = (item: (typeof attentionItems)[number]) => {
+    const targetAsset = assets.find((a) => a.asset_id === item.assetId);
+    const days = item.daysDiff;
+    let relativeText = '';
+    if (days !== undefined && days !== null) {
+      if (days < 0) relativeText = `Terlambat ${Math.abs(days)} hari`;
+      else if (days === 0) relativeText = 'Hari ini';
+      else relativeText = `${days} hari lagi`;
+    }
+
+    return (
+      <div
+        key={`att-${item.id}`}
+        className={`p-4 rounded-2xl border flex flex-col xs:flex-row xs:items-center justify-between gap-3 transition-all min-w-0 ${
+          item.isOverdue
+            ? 'bg-rose-50/80 border-rose-200/80 shadow-2xs'
+            : 'bg-amber-50/80 border-amber-200/80 shadow-2xs'
+        }`}
+      >
+        <div className="space-y-1 min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`px-2.5 py-0.5 text-label font-extrabold rounded-full border ${
+              item.isOverdue
+                ? 'bg-rose-600 text-white border-rose-700'
+                : 'bg-amber-500 text-white border-amber-600'
+            }`}>
+              {item.isOverdue ? 'Terlambat' : 'Mendatang'}
+            </span>
+            {relativeText && (
+              <span className={`text-label font-bold ${
+                item.isOverdue ? 'text-rose-700' : 'text-amber-900'
+              }`}>
+                • {relativeText}
+              </span>
+            )}
+          </div>
+
+          <h4 className="text-subheading font-bold text-stone-900 truncate">
+            {item.title}
+          </h4>
+
+          <div className="flex items-center gap-2 text-label text-stone-600 truncate">
+            {targetAsset ? (
+              <button
+                type="button"
+                onClick={() => onSelectAsset(targetAsset)}
+                className="font-extrabold text-emerald-800 hover:text-emerald-950 hover:underline cursor-pointer flex items-center gap-1 truncate"
+                title="Lihat Detail Aset"
+              >
+                <span>{item.assetName}</span>
+                <ChevronRight className="w-3 h-3 shrink-0" />
+              </button>
+            ) : (
+              <span className="font-semibold text-stone-700 truncate">
+                {item.assetName}
+              </span>
+            )}
+            {item.dueDate && (
+              <span className="text-stone-500 font-medium flex items-center gap-1 shrink-0">
+                <Clock className="w-3 h-3" />
+                {formatDate(item.dueDate)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end xs:self-center">
+          {targetAsset && (
+            <button
+              type="button"
+              onClick={() => onSelectAsset(targetAsset)}
+              className="px-3.5 py-2 text-label font-bold rounded-full bg-emerald-900 text-white hover:bg-emerald-950 transition-all shadow-2xs whitespace-nowrap cursor-pointer flex items-center gap-1.5 active:scale-95"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Detail Aset</span>
+            </button>
+          )}
+          {(item.category === 'maintenance' || item.category === 'custom') && (
+            <button
+              type="button"
+              disabled={isProcessingId === item.id}
+              onClick={() => handleComplete(item.id)}
+              className="px-3 py-2 text-label font-bold rounded-full bg-white text-emerald-900 border border-emerald-300/80 hover:bg-emerald-50 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              Selesaikan
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-stone-900 tracking-tight flex items-center gap-2">
-            <span>Reminder Hub</span>
+            <span>Reminder Center</span>
             <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
               Task-Oriented
             </span>
@@ -345,6 +453,69 @@ export const RemindersPage: React.FC<RemindersPageProps> = ({
           <Plus className="w-4 h-4" />
           <span>Tambah Pengingat</span>
         </button>
+      </div>
+
+      {/* Perlu Perhatian — rumah perhatian yang digabung dari "Pusat Perhatian"
+          (v0.2.6). Selalu menampilkan seluruh set perhatian (garansi, pajak,
+          oli, pengingat jatuh tempo); filter tab di bawah hanya memengaruhi
+          daftar pengingat. */}
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="p-2 rounded-2xl bg-rose-50 text-rose-600 shrink-0">
+            <ShieldAlert className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-bold text-stone-900 text-section truncate">
+              Perlu Perhatian
+            </h3>
+            <p className="text-label text-stone-500 font-medium truncate">
+              Garansi, pajak, oli, dan pengingat yang jatuh tempo — dari semua aset
+            </p>
+          </div>
+        </div>
+
+        {attentionItems.length === 0 ? (
+          <div className="py-6 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
+            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+            <p className="text-subheading font-bold text-stone-800">
+              Tidak ada yang perlu perhatian
+            </p>
+            <p className="text-body text-stone-500 font-medium max-w-sm mx-auto">
+              Semua garansi, pajak, dan jadwal masih aman.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {overdueAttention.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
+                  <h4 className="text-label font-bold text-rose-700">Terlambat</h4>
+                  <span className="text-label font-bold text-white bg-rose-600 rounded-full px-2 py-0.5">
+                    {overdueAttention.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {overdueAttention.map((item) => renderAttentionCard(item))}
+                </div>
+              </div>
+            )}
+            {upcomingAttention.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <h4 className="text-label font-bold text-amber-800">Mendatang</h4>
+                  <span className="text-label font-bold text-white bg-amber-500 rounded-full px-2 py-0.5">
+                    {upcomingAttention.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {upcomingAttention.map((item) => renderAttentionCard(item))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Primary Tab Filter with Live Counters */}

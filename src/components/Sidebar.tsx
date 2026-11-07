@@ -25,7 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const renderItem = (item: (typeof NAV_ITEMS)[number]) => {
     const Icon = item.icon;
     const isActive = activeTab === item.id;
-    const badge = item.id === 'attention' && needsAttentionCount > 0 ? needsAttentionCount : null;
+    const badge = item.id === 'reminders' && needsAttentionCount > 0 ? needsAttentionCount : null;
     return (
       <button
         key={item.id}

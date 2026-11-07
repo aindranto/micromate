@@ -90,17 +90,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Tagline Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold shadow-inner">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Personal Asset Manager &amp; Vault Digital</span>
+              <span>Tahu apa yang perlu perhatian, sebelum terlambat</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.15]">
-              Kelola &amp; Lindungi Aset Pribadi dalam <span className="text-emerald-400">Satu Vault Digital</span>
+              Tahu Duluan Apa yang <span className="text-emerald-400">Perlu Perhatian</span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-base sm:text-lg text-stone-300 font-normal leading-relaxed max-w-2xl mx-auto">
-              Platform terpadu untuk inventarisasi perangkat, kendaraan, dokumen garansi, jadwal pemeliharaan, serta biaya servis otomatis secara <strong>100% privat &amp; aman</strong>.
+              MicroMate mengingatkan garansi yang mau habis, servis yang jatuh tempo, dan pajak yang mendekat — sebelum terlambat. Semua aset, dokumen, dan biaya tercatat rapi dalam satu vault yang <strong>100% privat &amp; aman</strong>.
             </p>
 
             {/* CTA Buttons - Single Action Button */}
@@ -134,7 +134,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Interactive Mockup Visual Preview: sample data only, not the user's data */}
-          <p className="mt-14 text-center text-xs font-medium text-stone-400">Contoh tampilan dashboard (data contoh, bukan data Anda)</p>
+          <p className="mt-14 text-center text-xs font-medium text-stone-400">Contoh tampilan dashboard yang mengutamakan perhatian (data contoh, bukan data Anda)</p>
           <div className="mt-4 max-w-5xl mx-auto bg-stone-950/80 rounded-3xl border border-stone-800 shadow-2xl p-3 sm:p-5 backdrop-blur-xl relative">
             {/* Window bar */}
             <div className="flex items-center justify-between pb-3 px-2 border-b border-stone-800/80 mb-4">
@@ -154,19 +154,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Dashboard Mockup Layout */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Stat Card 1 */}
-              <div className="bg-stone-900/90 rounded-2xl p-4 border border-stone-800 flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] font-bold text-stone-300 block">Total Aset Aktif</span>
-                  <span className="text-2xl font-black text-white mt-1 block">12 Unit</span>
-                  <span className="text-[10px] text-emerald-400 font-medium mt-0.5 block">100% Terinventarisasi</span>
-                </div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 flex items-center justify-center border border-emerald-800/50">
-                  <Box className="w-5 h-5" />
-                </div>
-              </div>
-
-              {/* Stat Card 2 */}
+              {/* Stat Card 1 — perhatian dulu (v0.2.6) */}
               <div className="bg-stone-900/90 rounded-2xl p-4 border border-stone-800 flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-bold text-stone-300 block">Status Garansi</span>
@@ -175,6 +163,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 flex items-center justify-center border border-amber-800/50">
                   <FileText className="w-5 h-5" />
+                </div>
+              </div>
+
+              {/* Stat Card 2 */}
+              <div className="bg-stone-900/90 rounded-2xl p-4 border border-stone-800 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-stone-300 block">Total Aset Aktif</span>
+                  <span className="text-2xl font-black text-white mt-1 block">12 Unit</span>
+                  <span className="text-[10px] text-emerald-400 font-medium mt-0.5 block">100% Terinventarisasi</span>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-emerald-950 text-emerald-400 flex items-center justify-center border border-emerald-800/50">
+                  <Box className="w-5 h-5" />
                 </div>
               </div>
 

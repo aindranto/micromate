@@ -1,5 +1,74 @@
 # Changelog
 
+## 0.2.6 — Dashboard attention-first + refresh landing
+
+Tahap 3 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi →
+v0.2.6 dashboard attention-first + landing). Termasuk bersih-bersih
+menu duplikat yang dilaporkan Agung 6 Nov 2026: "Pusat Perhatian"
+digabung ke "Reminder Center". Tidak ada perubahan model data, sync
+engine, PIN, demo seeding, atau Pengaturan.
+
+- Dashboard kini attention-first. Hero "Ringkasan Aset Hari Ini"
+  diganti hero yang dipimpin perhatian: bila ada butir perhatian, hero
+  menyebut jumlahnya dan butir paling mendesak beserta teks jatuh
+  temponya ("Paling mendesak — ... (Terlambat 3 hari)."); bila tidak
+  ada, hero tenang: "Semua terkendali". Section "Perlu Perhatian"
+  (pengelompokan Terlambat lalu Mendatang dari v0.2.4, dengan aksi
+  Detail Aset dan Selesaikan) kini menjadi section konten pertama di
+  bawah hero; kartu KPI menjadi overview di bawah perhatian. Empty
+  state berbingkai (perhatian, aset, perawatan) beserta aksinya tetap.
+- Tombol cepat hero (Aset Baru / Servis / Reminder) dihapus dari
+  Dashboard — ketiganya sudah ada di tombol sidebar "Tambah Aset Baru"
+  (desktop) dan menu "+" (FAB) di HP. FAB dan tombol sidebar tidak
+  diubah. Prop tambah Dashboard tetap dipakai empty state di bawah.
+- "Pusat Perhatian" digabung ke "Reminder Center" (satu rumah
+  perhatian + pengingat). Halaman Reminder Center kini punya section
+  "Perlu Perhatian" di atas daftar pengingat, dari sumber yang sama
+  dengan strip Dashboard (`getNeedsAttentionItems`): pengingat jatuh
+  tempo, garansi, pajak STNK, dan oli — dikelompokkan Terlambat (rose,
+  badge jumlah) lalu Mendatang (amber, badge jumlah), dengan kartu dan
+  aksi yang sama (Detail Aset, Selesaikan untuk pengingat). Section ini
+  tidak terpengaruh filter tab; filter hanya memengaruhi daftar
+  pengingat di bawahnya. Judul halaman disamakan dengan label nav:
+  "Reminder Hub" → "Reminder Center".
+- Navigasi 8 → 7 item: entri `'attention'` dihapus dari
+  `src/lib/navigation.ts`; cabang tab `'attention'` di `App.tsx`
+  dihapus beserta import-nya. Badge jumlah perhatian pindah ke
+  "Reminder Center" di sidebar (sumber hitungan sama) dan tetap di
+  "Reminder" di BottomNav. Tidak ada lagi referensi ke id tab
+  `'attention'` di seluruh `src/`.
+- Sub-sistem "Attention Intelligence" yang hanya hidup di balik tab
+  lama dihapus (15 file, semuanya yatim setelah tab dicabut —
+  terverifikasi tidak ada importir lain): `src/components/attention/`
+  (5 file: AttentionDashboardPage, FleetAttentionOverview,
+  AssetAttentionCard, ActionResolverCTA, EvidenceDisclosureModal),
+  `src/components/workflow/` (3 modal: WorkflowExecutionModal,
+  DocumentRenewalResolverModal, CostTrendReviewModal),
+  `src/hooks/useWorkflowGateway.ts`, `src/lib/attentionSignalEngine.ts`,
+  `src/lib/attentionPresentationAdapter.ts`,
+  `src/lib/workflowExecutionGateway.ts`,
+  `src/lib/workflowStateMachine.ts`,
+  `src/lib/coordinatedMutationService.ts`,
+  `src/lib/documentRenewalCoordinatedService.ts`. Konsekuensi yang
+  dicatat: aksi workflow dari halaman lama (resolver perpanjangan
+  dokumen berbasis bukti, review tren biaya, gateway eksekusi
+  workflow) ikut terhapus — semuanya hanya bisa dijangkau dari tab
+  itu. Datanya tidak hilang: pengingat, garansi, pajak, dan oli tetap
+  muncul di Reminder Center dan strip Dashboard. File-file ini bisa
+  dipulihkan dari git bila suatu hari dibutuhkan.
+- Landing refresh (copy + mockup saja, tanpa redesign struktural).
+  Hero kini memimpin dengan manfaat perhatian: judul "Tahu Duluan Apa
+  yang Perlu Perhatian" dan subheadline tentang garansi/servis/pajak
+  yang diingatkan sebelum terlambat. Kartu mockup diurutkan ulang
+  sehingga kartu perhatian ("Status Garansi — 2 Perlu Perhatian")
+  menjadi yang pertama; caption mockup menyebut dashboard yang
+  mengutamakan perhatian. Mockup tetap berlabel data contoh, bukan
+  data pengguna. Gradient yang sudah ada di landing tidak disentuh
+  (di luar scope refresh ini).
+- Tidak diubah: model data, sync engine, PIN, demo seeding, halaman
+  Pengaturan, item BottomNav (Dashboard, Aset, Reminder, Pengaturan),
+  blok brand sidebar, dan ikon Navbar.
+
 ## 0.2.5.1 — Perbaiki scroll Pengaturan di HP + label versi
 
 Patch atas v0.2.5, dari laporan langsung di HP: halaman Pengaturan tidak

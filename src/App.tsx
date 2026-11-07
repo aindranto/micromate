@@ -12,7 +12,6 @@ import { MaintenancePage } from './components/MaintenancePage';
 import { RemindersPage } from './components/RemindersPage';
 import { CostAnalyticsPage } from './components/CostAnalyticsPage';
 import { DocumentationPage } from './components/DocumentationPage';
-import { AttentionDashboardPage } from './components/attention/AttentionDashboardPage';
 
 // Modals
 import { AddAssetModal } from './components/AddAssetModal';
@@ -826,13 +825,6 @@ export default function App() {
             <DocumentationPage
               onOpenSettings={goToSettings}
               onQuickAddAsset={handleOpenAddAsset}
-            />
-          ) : activeTab === 'attention' ? (
-            <AttentionDashboardPage
-              assets={assets}
-              onSelectAsset={(a) => setSelectedAsset(a)}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onEditAsset={handleOpenEditAsset}
             />
           ) : activeTab === 'settings' ? (
             <SettingsModal

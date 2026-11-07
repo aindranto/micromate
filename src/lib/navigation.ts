@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
-  ShieldAlert,
   Package,
   Wrench,
   Bell,
@@ -26,7 +25,6 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', shortLabel: 'Dashboard', icon: LayoutDashboard, section: 'utama', inBottomNav: true },
-  { id: 'attention', label: 'Pusat Perhatian', shortLabel: 'Perhatian', icon: ShieldAlert, section: 'utama', inBottomNav: false },
   { id: 'assets', label: 'Aset Saya', shortLabel: 'Aset', icon: Package, section: 'utama', inBottomNav: true },
   { id: 'maintenance', label: 'Perawatan & Servis', shortLabel: 'Servis', icon: Wrench, section: 'utama', inBottomNav: false },
   { id: 'reminders', label: 'Reminder Center', shortLabel: 'Reminder', icon: Bell, section: 'utama', inBottomNav: true },

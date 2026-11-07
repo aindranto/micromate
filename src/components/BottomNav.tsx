@@ -146,9 +146,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       {/* Fixed M3 Bottom Navigation Bar.
           Item, label pendek, ikon, dan urutan diambil dari daftar navigasi
           bersama (src/lib/navigation.ts) — sama dengan sidebar desktop.
-          Badge jumlah perhatian menempel di Reminder: HP tidak punya slot
-          Pusat Perhatian, jadi badge menandai jumlah yang sama pada item
-          terdekat yang mewakilinya. */}
+          Badge jumlah perhatian menempel di Reminder Center: satu-satunya
+          rumah perhatian dan pengingat sejak v0.2.6 (dulu "Pusat Perhatian"
+          digabung ke sini). */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-stone-200/80 shadow-lg px-2 sm:px-4 py-2 transition-all pb-safe">
         <div className="flex items-center justify-around max-w-md mx-auto relative">
 

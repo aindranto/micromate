@@ -82,6 +82,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const overdueItems = attentionItems.filter((item) => item.isOverdue);
   const upcomingItems = attentionItems.filter((item) => !item.isOverdue);
 
+  // Butir paling mendesak untuk hero: attentionItems sudah terurut
+  // (terlambat dulu, lalu yang paling dekat jatuh temponya).
+  const mostUrgent = attentionItems[0];
+  const mostUrgentRelativeText =
+    mostUrgent && mostUrgent.daysDiff !== undefined && mostUrgent.daysDiff !== null
+      ? mostUrgent.daysDiff < 0
+        ? `Terlambat ${Math.abs(mostUrgent.daysDiff)} hari`
+        : mostUrgent.daysDiff === 0
+          ? 'Hari ini'
+          : `${mostUrgent.daysDiff} hari lagi`
+      : '';
+
   const renderAttentionCard = (item: (typeof attentionItems)[number], index: number) => {
     const targetAsset = assets.find((a) => a.asset_id === item.assetId);
     const days = item.daysDiff;
@@ -182,48 +194,102 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-8 pb-12">
       
-      {/* Simplified Welcome Banner (M3 Primary Surface Container) */}
-      <div className="bg-emerald-900 text-white rounded-3xl p-5 sm:p-7 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+      {/* Attention-led hero (v0.2.6): perhatian dulu, bukan ringkasan umum.
+          Tombol cepat (Aset Baru / Servis / Reminder) dihapus — ketiganya
+          sudah ada di tombol sidebar "Tambah Aset Baru" (desktop) dan menu
+          "+" (FAB) di HP. */}
+      <div className="bg-emerald-900 text-white rounded-3xl p-5 sm:p-7 shadow-2xs">
         <div className="space-y-1">
           <h2 className="text-section sm:text-display font-bold tracking-tight text-white">
-            Ringkasan Aset Hari Ini
+            {attentionItems.length > 0
+              ? `Ada ${attentionItems.length} hal yang perlu perhatian`
+              : 'Semua terkendali'}
           </h2>
           <p className="text-emerald-100/90 text-label sm:text-subheading font-medium">
-            {attentionItems.length > 0 
-              ? `Terdapat ${attentionItems.length} poin perhatian terkait garansi, servis, atau pajak.`
-              : 'Semua aset dan jadwal perawatan Anda terkelola dengan baik.'}
+            {attentionItems.length > 0 && mostUrgent
+              ? `Paling mendesak — ${mostUrgent.title} (${mostUrgentRelativeText}).`
+              : 'Semua garansi masih berlaku dan belum ada jadwal servis atau pajak yang jatuh tempo.'}
           </p>
         </div>
+      </div>
 
-        {/* Quick Action Buttons (M3 Filled & Tonal Buttons) */}
-        <div className="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
-          <button
-            type="button"
-            onClick={onQuickAddAsset}
-            className="flex items-center justify-center gap-1.5 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-3.5 sm:px-4 py-2.5 rounded-full text-label shadow-2xs transition-all cursor-pointer active:scale-95"
-          >
-            <Plus className="w-4 h-4 text-emerald-800 shrink-0" />
-            <span>Aset Baru</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onQuickAddMaintenance}
-            className="flex items-center justify-center gap-1.5 bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold px-3 sm:px-4 py-2.5 rounded-full text-label border border-white/20 transition-all cursor-pointer active:scale-95"
-          >
-            <Wrench className="w-3.5 h-3.5 text-emerald-200 shrink-0" />
-            <span>Servis</span>
-          </button>
+      {/* "Perlu Perhatian" Section */}
+      <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2 rounded-2xl bg-rose-50 text-rose-600 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-stone-900 text-section truncate">
+                Perlu Perhatian
+              </h3>
+              <p className="text-label text-stone-500 font-medium truncate hidden xs:block">
+                Aset yang membutuhkan perawatan, pembayaran pajak, atau perhatian garansi
+              </p>
+            </div>
+          </div>
 
           <button
             type="button"
-            onClick={onQuickAddReminder}
-            className="flex items-center justify-center gap-1.5 bg-emerald-800/80 hover:bg-emerald-800 text-white font-bold px-3 sm:px-4 py-2.5 rounded-full text-label border border-white/20 transition-all cursor-pointer active:scale-95"
+            onClick={() => onNavigateTab('reminders')}
+            className="text-label font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer shrink-0 self-end xs:self-center"
           >
-            <Bell className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-            <span>Reminder</span>
+            <span>Semua Reminder</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {attentionItems.length === 0 ? (
+          <div className="py-6 sm:py-8 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
+            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+            <p className="text-subheading font-bold text-stone-800">
+              Tidak ada agenda mendesak
+            </p>
+            <p className="text-body text-stone-500 font-medium max-w-sm mx-auto">
+              Semua garansi masih berlaku dan belum ada jadwal service atau pajak STNK yang jatuh tempo.
+            </p>
+            <button
+              type="button"
+              onClick={onQuickAddReminder}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 border border-emerald-200 font-bold text-label rounded-xl hover:bg-emerald-50 cursor-pointer shadow-2xs"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              <span>Tambah Reminder</span>
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {overdueItems.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
+                  <h4 className="text-label font-bold text-rose-700">Terlambat</h4>
+                  <span className="text-label font-bold text-white bg-rose-600 rounded-full px-2 py-0.5">
+                    {overdueItems.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {overdueItems.map((item, index) => renderAttentionCard(item, index))}
+                </div>
+              </div>
+            )}
+            {upcomingItems.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                  <h4 className="text-label font-bold text-amber-800">Mendatang</h4>
+                  <span className="text-label font-bold text-white bg-amber-500 rounded-full px-2 py-0.5">
+                    {upcomingItems.length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {upcomingItems.map((item, index) => renderAttentionCard(item, index))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* KPI Stats Overview (M3 Container Cards) */}
@@ -304,85 +370,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <p className="text-label text-stone-500 font-medium mt-1 truncate">Aset + Total Servis</p>
         </div>
 
-      </div>
-
-      {/* "Perlu Perhatian" Section */}
-      <div className="bg-white rounded-2xl border border-stone-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
-        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-2xl bg-rose-50 text-rose-600 shrink-0">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-bold text-stone-900 text-section truncate">
-                Perlu Perhatian
-              </h3>
-              <p className="text-label text-stone-500 font-medium truncate hidden xs:block">
-                Aset yang membutuhkan perawatan, pembayaran pajak, atau perhatian garansi
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onNavigateTab('reminders')}
-            className="text-label font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer shrink-0 self-end xs:self-center"
-          >
-            <span>Semua Reminder</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {attentionItems.length === 0 ? (
-          <div className="py-6 sm:py-8 text-center bg-stone-50/80 rounded-2xl border border-dashed border-stone-200 space-y-2 px-3">
-            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-            <p className="text-subheading font-bold text-stone-800">
-              Tidak ada agenda mendesak
-            </p>
-            <p className="text-body text-stone-500 font-medium max-w-sm mx-auto">
-              Semua garansi masih berlaku dan belum ada jadwal service atau pajak STNK yang jatuh tempo.
-            </p>
-            <button
-              type="button"
-              onClick={onQuickAddReminder}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-emerald-700 border border-emerald-200 font-bold text-label rounded-xl hover:bg-emerald-50 cursor-pointer shadow-2xs"
-            >
-              <Bell className="w-3.5 h-3.5" />
-              <span>Tambah Reminder</span>
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {overdueItems.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-600 shrink-0" />
-                  <h4 className="text-label font-bold text-rose-700">Terlambat</h4>
-                  <span className="text-label font-bold text-white bg-rose-600 rounded-full px-2 py-0.5">
-                    {overdueItems.length}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  {overdueItems.map((item, index) => renderAttentionCard(item, index))}
-                </div>
-              </div>
-            )}
-            {upcomingItems.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                  <h4 className="text-label font-bold text-amber-800">Mendatang</h4>
-                  <span className="text-label font-bold text-white bg-amber-500 rounded-full px-2 py-0.5">
-                    {upcomingItems.length}
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  {upcomingItems.map((item, index) => renderAttentionCard(item, index))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Two Column Layout: Recent Assets & Recent Maintenance Timeline */}
