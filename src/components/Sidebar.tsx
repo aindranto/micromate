@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Box,
   Plus,
   ShieldCheck,
 } from 'lucide-react';
@@ -53,21 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className="w-64 hidden lg:flex flex-col border-r border-stone-200/80 bg-stone-50/50 shrink-0 select-none sticky top-16 self-start h-[calc(100vh-4rem)] overflow-y-auto p-4 justify-between">
       <div className="space-y-6">
-
-        {/* MicroMate branding */}
-        <div className="flex items-center gap-2.5 px-1">
-          <div className="w-9 h-9 rounded-2xl bg-emerald-900 text-white flex items-center justify-center shrink-0 shadow-2xs">
-            <Box className="w-4 h-4 text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-extrabold text-stone-900 text-base tracking-tight leading-none truncate">
-              MicroMate
-            </p>
-            <p className="text-[11px] text-stone-500 font-medium truncate mt-0.5">
-              Personal Asset Vault
-            </p>
-          </div>
-        </div>
 
         {/* M3 Extended FAB (Primary Action) */}
         <div>

@@ -645,11 +645,6 @@ export default function App() {
         onSyncClick={() => handleFlushSync(true)}
         onPullClick={handlePullFromSheets}
         onOpenSettings={goToSettings}
-        onNavigateDocs={() => {
-          setActiveTab('docs');
-          setSelectedAsset(null);
-        }}
-        onQuickAddAsset={handleOpenAddAsset}
         searchQuery={searchQuery}
         onSearchChange={(q) => {
           setSearchQuery(q);

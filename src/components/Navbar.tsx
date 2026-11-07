@@ -5,7 +5,6 @@ import {
   RefreshCw, 
   CheckCircle2, 
   WifiOff, 
-  Settings, 
   Search,
   Database,
   HardDrive,
@@ -17,7 +16,6 @@ import {
   Code2,
   Download,
   Sparkles,
-  BookOpen,
   X
 } from 'lucide-react';
 
@@ -30,8 +28,6 @@ interface NavbarProps {
   onSyncClick: () => void;
   onPullClick?: () => void;
   onOpenSettings: () => void;
-  onNavigateDocs?: () => void;
-  onQuickAddAsset: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   onVerifyConnection?: () => void;
@@ -50,8 +46,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSyncClick,
   onPullClick,
   onOpenSettings,
-  onNavigateDocs,
-  onQuickAddAsset,
   searchQuery,
   onSearchChange,
   onVerifyConnection,
@@ -173,7 +167,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Action Controls: Contextual Sync Status + Settings */}
+        {/* Action Controls: Contextual Sync Status */}
         <div className="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
           
           {/* Contextual Sync Status Badge (M3 Badge) */}
@@ -309,28 +303,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
           </div>
-
-          {/* Panduan & Docs Button */}
-          {onNavigateDocs && (
-            <button
-              type="button"
-              onClick={onNavigateDocs}
-              className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-stone-200"
-              title="Panduan & Dokumentasi"
-            >
-              <BookOpen className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-stone-700" />
-            </button>
-          )}
-
-          {/* Settings Button (Desktop only; on mobile it is housed in the bottom navigation bar) */}
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="hidden lg:flex p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-stone-200"
-            title="Pengaturan Control Center"
-          >
-            <Settings className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-stone-700" />
-          </button>
 
         </div>
       </div>

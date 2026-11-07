@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.6.1 — Bersih-bersih menu duplikat (logo sidebar, ikon navbar, prop mati)
+
+Sisa dari bersih-bersih menu duplikat yang dilaporkan Agung 6 Nov 2026
+(butir 3–5 dari temuan, plus prop mati). Di v0.2.6 sudah digabung
+\"Pusat Perhatian\" ke \"Reminder Center\" dan dihapus tombol cepat hero;
+versi ini menyelesaikan sisanya. Tidak ada perubahan model data, sync
+engine, PIN, demo seeding, navigasi (tetap 7 item), atau Pengaturan.
+
+- Logo/brand \"MicroMate\" di atas sidebar dihapus — brand sudah ada di
+  navbar, jadi di desktop logo tidak lagi muncul dua kali bertumpuk.
+  Sidebar kini langsung dimulai tombol \"Tambah Aset Baru\", lalu
+  \"Navigasi utama\". Perilaku sticky sidebar tidak berubah
+  (`top-16`, tinggi header tetap h-16).
+- Ikon gear Pengaturan di navbar (desktop) dihapus — Pengaturan tetap
+  bisa dibuka dari item sidebar \"Pengaturan\", BottomNav \"Pengaturan\",
+  dan tombol kontekstual di dalam popover sinkronisasi (\"Kelola
+  Integrasi Storage\"), yang tetap memanggil `onOpenSettings`.
+- Ikon buku \"Panduan & Docs\" di navbar dihapus — Panduan & Docs tetap
+  bisa dibuka dari item sidebar. Prop `onNavigateDocs` dihapus dari
+  Navbar beserta pass-through-nya di App.
+- Prop mati `onQuickAddAsset` dihapus dari Navbar (dideklarasikan tapi
+  tidak pernah di-render di sana). Prop `onQuickAddAsset` di
+  AssetList, DocumentationPage, Dashboard, dan BottomNav TIDAK disentuh
+  — semuanya masih dipakai (tombol tambah aset di halaman-halaman itu
+  dan menu \"+\" di HP).
+
 ## 0.2.6 — Dashboard attention-first + refresh landing
 
 Tahap 3 dari redesign bertahap (v0.2.4 fondasi → v0.2.5 navigasi →
