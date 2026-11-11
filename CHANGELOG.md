@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.6.5 — Bersihkan script test mati di package.json
+
+Hanya bersih-bersih `package.json` (+ penyesuaian dokumen yang merujuk
+script tersebut) — tidak ada perubahan kode aplikasi, model data, sync
+engine, PIN, navigasi, atau desain visual.
+
+- Dari 56 script `test:*`, 54 menunjuk ke file yang tidak ada di repo
+  (sisa template: `test:sync`, `test:multi-device`, `test:security`,
+  seri `phase3*`/`phase4*`/`phase5*`/`phase6*`, seri
+  `release-readiness`, dan `test:all` lama yang merangkai 35 file yang
+  tidak ada). Di repo hanya ada 2 file tes:
+  `src/tests/sync-queue-smoke.test.ts` dan
+  `src/tests/demo-seed-smoke.test.ts`.
+- 53 script dihapus. `test:all` tidak dihapus, melainkan didefinisikan
+  ulang menjadi gabungan dua suite yang ada: `test:sync-queue` (11
+  pengecekan) + `test:demo-seed` (4 pengecekan), total 15 pengecekan.
+  `test:sync-queue` dan `test:demo-seed` sendiri tidak berubah.
+- `ROADMAP.md` ikut diperbaiki: klaim "35/35 master regression suites"
+  dan rujukan `test:prod-smoke` sudah tidak sesuai isi repo, diganti
+  dengan dua smoke suite yang ada.
+- Versi package menjadi 0.2.6.5.
+
 ## 0.2.6.4 — Perbaiki temuan audit anti-slop fase 3 (struktur landing, hitungan reminder, kata demo)
 
 Fase 3 dari perbaikan bertahap atas audit anti-slop 7 Nov 2026 (temuan

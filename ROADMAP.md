@@ -56,5 +56,5 @@ FINAL GO / NO-GO DECISION GATE                              🟢 GO
 
 ## 3. Tata Kelola Siklus Pasca-Rilis (Post-Release Governance)
 
-1.  **Maintenance Mode**: Setiap perubahan pasca-rilis wajib mempertahankan kelulusan seluruh rangkaian 35/35 master regression suites (`npm run test:all`) dan production smoke test (`npm run test:prod-smoke`).
+1.  **Maintenance Mode**: Setiap perubahan pasca-rilis wajib mempertahankan kelulusan kedua smoke suite yang ada (`npm run test:all` = `test:sync-queue` + `test:demo-seed`, total 15 pengecekan). Catatan v0.2.6.5: klaim lama "35/35 master regression suites" dan `test:prod-smoke` dihapus karena file tesnya tidak ada di repo — hanya 2 suite di atas yang tersisa.
 2.  **Zero-Regression Policy**: Penambahan fitur baru di masa mendatang tidak boleh merusak invariant P0 isolasi multi-tenant maupun jaminan P1 idempotensi transaksi lokal/cloud.
